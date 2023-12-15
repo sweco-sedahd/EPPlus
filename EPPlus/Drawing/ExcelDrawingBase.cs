@@ -477,7 +477,6 @@ namespace OfficeOpenXml.Drawing
 
         internal int GetPixelTop()
         {
-            ExcelWorksheet ws = _drawings.Worksheet;
             int pix = 0;
             for (int row = 0; row < From.Row; row++)
             {
@@ -505,8 +504,6 @@ namespace OfficeOpenXml.Drawing
 
         internal int GetPixelHeight()
         {
-            ExcelWorksheet ws = _drawings.Worksheet;
-
             int pix = -(From.RowOff / EMU_PER_PIXEL);
             for (int row = From.Row + 1; row <= To.Row; row++)
             {
@@ -520,7 +517,7 @@ namespace OfficeOpenXml.Drawing
         private decimal GetColumnWidth(int col)
         {
             ExcelWorksheet ws = _drawings.Worksheet;
-            if (ws.GetValueInner(0, col) is not ExcelColumn column) //Check that the column exists
+            if (ws.GetValueInner(0, col) is not ExcelColumn) //Check that the column exists
             {
                 return (decimal)ws.DefaultColWidth;
             }
@@ -578,7 +575,6 @@ namespace OfficeOpenXml.Drawing
         {
             _doNotAdjust = true;
             ExcelWorksheet ws = _drawings.Worksheet;
-            decimal mdw = ws.Workbook.MaxFontWidth;
             int prevPix = 0;
             int pix = (int)(GetRowHeight(1) / 0.75);
             int row = 2;
@@ -641,7 +637,6 @@ namespace OfficeOpenXml.Drawing
         internal void SetPixelHeight(int pixels, float dpi)
         {
             _doNotAdjust = true;
-            ExcelWorksheet ws = _drawings.Worksheet;
             //decimal mdw = ws.Workbook.MaxFontWidth;
             pixels = (int)(pixels / (dpi / STANDARD_DPI) + .5);
             int pixOff = pixels - ((int)(GetRowHeight(From.Row + 1) / 0.75) - From.RowOff / EMU_PER_PIXEL);

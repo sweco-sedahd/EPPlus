@@ -35,7 +35,6 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
         {
             FunctionArgument[] functionArguments = arguments as FunctionArgument[] ?? arguments.ToArray();
             ValidateArguments(functionArguments, 3);
-            var rows = new List<int>();
             ExcelDataProvider.IRangeInfo valueRange = functionArguments[0].ValueAsRangeInfo;
             List<double> sumRange;
             if (valueRange != null)
@@ -54,7 +53,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
                 if (functionArguments.Length <= ix) break;
                 ExcelDataProvider.IRangeInfo rangeInfo = functionArguments[ix].ValueAsRangeInfo;
                 argRanges.Add(rangeInfo);
-                string value = functionArguments[ix + 1].Value != null ? functionArguments[ix + 1].Value.ToString() : null;
+                string value = functionArguments[ix + 1].Value?.ToString();
                 criterias.Add(value);
             }
 

@@ -102,7 +102,7 @@ namespace OfficeOpenXml.VBA
         private string GetUnicodeString(BinaryReader br, uint size)
         {
             string s = GetString(br, size);
-            int reserved = br.ReadUInt16();
+            br.ReadUInt16();
             uint sizeUC = br.ReadUInt32();
             string sUC = GetString(br, sizeUC, Encoding.Unicode);
             return sUC.Length == 0 ? s : sUC;
@@ -309,8 +309,7 @@ namespace OfficeOpenXml.VBA
         private void GetProject()
         {
             MemoryStream stream = Part.GetStream();
-            byte[] vba;
-            vba = new byte[stream.Length];
+            byte[] vba = new byte[stream.Length];
             stream.Read(vba, 0, (int)stream.Length);
             Document = new CompoundDocument(vba);
 
@@ -418,7 +417,6 @@ namespace OfficeOpenXml.VBA
                             byte[] dpb = Decrypt(split[1]);
                             if (dpb.Length >= 28)
                             {
-                                byte reserved = dpb[0];
                                 byte[] flags = new byte[3];
                                 Array.Copy(dpb, 1, flags, 0, 3);
                                 byte[] keyNoNulls = new byte[4];
@@ -476,8 +474,7 @@ namespace OfficeOpenXml.VBA
         {
             byte[] enc = GetByte(value);
             byte[] dec = new byte[value.Length - 1];
-            byte seed, version, projKey, ignoredLength;
-            seed = enc[0];
+            byte seed = enc[0];
             dec[0] = (byte)(enc[1] ^ seed);
             dec[1] = (byte)(enc[2] ^ seed);
             for (int i = 2; i < enc.Length - 1; i++)
@@ -485,9 +482,7 @@ namespace OfficeOpenXml.VBA
                 dec[i] = (byte)(enc[i + 1] ^ (enc[i - 1] + dec[i - 1]));
             }
 
-            version = dec[0];
-            projKey = dec[1];
-            ignoredLength = (byte)((seed & 6) / 2);
+            byte ignoredLength = (byte)((seed & 6) / 2);
             int datalength = BitConverter.ToInt32(dec, ignoredLength + 2);
             byte[] data = new byte[datalength];
             Array.Copy(dec, 6 + ignoredLength, data, 0, datalength);
@@ -622,8 +617,8 @@ namespace OfficeOpenXml.VBA
                         regRef.Name = referenceName;
                         regRef.ReferenceRecordID = id;
                         regRef.Libid = GetString(br, sizeLibID);
-                        uint reserved1 = br.ReadUInt32();
-                        ushort reserved2 = br.ReadUInt16();
+                        br.ReadUInt32();
+                        br.ReadUInt16();
                         References.Add(regRef);
                         break;
                     case 0x0E:
@@ -639,10 +634,10 @@ namespace OfficeOpenXml.VBA
                         References.Add(projRef);
                         break;
                     case 0x0F:
-                        ushort modualCount = br.ReadUInt16();
+                        br.ReadUInt16();
                         break;
                     case 0x13:
-                        ushort cookie = br.ReadUInt16();
+                        br.ReadUInt16();
                         break;
                     case 0x14:
                         LcidInvoke = (int)br.ReadUInt32();
@@ -683,8 +678,8 @@ namespace OfficeOpenXml.VBA
                         uint sizeExt = br.ReadUInt32();
                         extRef.LibIdExternal = GetString(br, sizeExt);
 
-                        uint reserved4 = br.ReadUInt32();
-                        ushort reserved5 = br.ReadUInt16();
+                        br.ReadUInt32();
+                        br.ReadUInt16();
                         extRef.OriginalTypeLib = new Guid(br.ReadBytes(16));
                         extRef.Cookie = br.ReadUInt32();
                         break;
@@ -701,8 +696,8 @@ namespace OfficeOpenXml.VBA
 
                         uint sizeTwiddled = br.ReadUInt32();
                         contrRef.LibIdTwiddled = GetString(br, sizeTwiddled);
-                        uint r1 = br.ReadUInt32();
-                        ushort r2 = br.ReadUInt16();
+                        br.ReadUInt32();
+                        br.ReadUInt16();
 
                         break;
                     case 0x25:
@@ -762,7 +757,7 @@ namespace OfficeOpenXml.VBA
                 {
                     Uri = new Uri(PartUri, UriKind.Relative);
                     Part = _pck.CreatePart(Uri, ExcelPackage.schemaVBA);
-                    ZipPackageRelationship rel = _wb.Part.CreateRelationship(Uri, TargetMode.Internal, schemaRelVba);
+                    _wb.Part.CreateRelationship(Uri, TargetMode.Internal, schemaRelVba);
                 }
 
                 MemoryStream st = Part.GetStream(FileMode.Create);

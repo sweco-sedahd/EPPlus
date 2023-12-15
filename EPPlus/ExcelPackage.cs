@@ -593,7 +593,7 @@ namespace OfficeOpenXml
         /// <returns></returns>
         private void CreateFromTemplate(FileInfo template, string password)
         {
-            if (template != null) template.Refresh();
+            template?.Refresh();
             if (template.Exists)
             {
                 if (_stream == null) _stream = new MemoryStream();
@@ -635,8 +635,8 @@ namespace OfficeOpenXml
         {
             var ms = new MemoryStream();
             if (_stream == null) _stream = new MemoryStream();
-            if (File != null) File.Refresh();
-            if (File != null && File.Exists)
+            File?.Refresh();
+            if (File is { Exists: true })
             {
                 if (password != null)
                 {
@@ -692,7 +692,6 @@ namespace OfficeOpenXml
 
         private void CreateBlankWb()
         {
-            XmlDocument workbook = Workbook.WorkbookXml; // this will create the workbook xml in the package
             // create the relationship to the main part
             Package.CreateRelationship(UriHelper.GetRelativeUri(new Uri("/xl", UriKind.Relative), Workbook.WorkbookUri), TargetMode.Internal, schemaRelationships + "/officeDocument");
         }
@@ -849,10 +848,7 @@ namespace OfficeOpenXml
                 }
 
                 Package.Close();
-                if (_workbook != null)
-                {
-                    _workbook.Dispose();
-                }
+                _workbook?.Dispose();
 
                 Package = null;
                 _images = null;
@@ -1245,7 +1241,6 @@ namespace OfficeOpenXml
                 }
                 catch (Exception ex)
                 {
-                    var eph = new EncryptedPackageHandler();
                     if (Password == null && CompoundDocument.IsCompoundDocument((MemoryStream)_stream))
                     {
                         throw new Exception("Can not open the package. Package is an OLE compound document. If this is an encrypted package, please supply the password", ex);

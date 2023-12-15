@@ -16,7 +16,7 @@ namespace OfficeOpenXml
             SchemaNodeOrder = ws.SchemaNodeOrder; //Fixed issue 15385
             foreach (XmlNode protectedRangeNode in topNode.SelectNodes("d:protectedRanges/d:protectedRange", nsm))
             {
-                if (!(protectedRangeNode is XmlElement))
+                if (protectedRangeNode is not XmlElement)
                     continue;
                 _baseList.Add(new ExcelProtectedRange(protectedRangeNode.Attributes["name"].Value, new ExcelAddress(SqRefUtility.FromSqRefAddress(protectedRangeNode.Attributes["sqref"].Value)), nsm, topNode));
             }

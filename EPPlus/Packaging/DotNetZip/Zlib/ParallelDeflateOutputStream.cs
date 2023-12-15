@@ -1137,7 +1137,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
             var workitem = (WorkItem)wi;
             try
             {
-                int myItem = workitem.index;
                 var crc = new CRC32();
 
                 // calc CRC on the buffer

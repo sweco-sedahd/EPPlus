@@ -113,7 +113,7 @@ namespace OfficeOpenXml
             foreach (XmlNode n in fillNode)
             {
                 ExcelFillXml f;
-                if (n.FirstChild != null && n.FirstChild.LocalName == "gradientFill")
+                if (n.FirstChild is { LocalName: "gradientFill" })
                 {
                     f = new ExcelGradientFillXml(_nameSpaceManager, n);
                 }
@@ -248,7 +248,7 @@ namespace OfficeOpenXml
 
                     if (column.ColumnMax > address.End.Column)
                     {
-                        ExcelColumn newCol = ws.CopyColumn(column, address.End.Column + 1, column.ColumnMax);
+                        ws.CopyColumn(column, address.End.Column + 1, column.ColumnMax);
                         column.ColumnMax = address.End.Column;
                     }
 
@@ -367,7 +367,7 @@ namespace OfficeOpenXml
                         {
                             s = cse.Value._styleId;
                             if (s == 0) continue;
-                            if (ws.GetValueInner(cse.Row, cse.Column) is ExcelColumn c && c.ColumnMax < ExcelPackage.MaxColumns)
+                            if (ws.GetValueInner(cse.Row, cse.Column) is ExcelColumn { ColumnMax: < ExcelPackage.MaxColumns } c)
                             {
                                 for (int col = c.ColumnMin; col < c.ColumnMax; col++)
                                 {
@@ -589,8 +589,7 @@ namespace OfficeOpenXml
                 throw new Exception(string.Format("Key {0} already exists in collection", name));
             }
 
-            ExcelNamedStyleXml style;
-            style = new ExcelNamedStyleXml(NameSpaceManager, this);
+            var style = new ExcelNamedStyleXml(NameSpaceManager, this);
             int xfIdCopy, positionID;
             ExcelStyles styles;
             if (Template == null)
@@ -749,10 +748,7 @@ namespace OfficeOpenXml
             count = normalIx > -1 ? 1 : 0; //If we have a normal style, we make sure it's added first.
 
             XmlNode cellStyleNode = _styleXml.SelectSingleNode(CellStylesPath, _nameSpaceManager);
-            if (cellStyleNode != null)
-            {
-                cellStyleNode.RemoveAll();
-            }
+            cellStyleNode?.RemoveAll();
 
             XmlNode cellXfsNode = _styleXml.SelectSingleNode(CellXfsPath, _nameSpaceManager);
             cellXfsNode.RemoveAll();
@@ -1042,7 +1038,7 @@ namespace OfficeOpenXml
                             }
                             else
                             {
-                                ExcelNamedStyleXml ns = CreateNamedStyle(st.Name, st.Style);
+                                CreateNamedStyle(st.Name, st.Style);
                                 newXfs.XfId = NamedStyles.Count - 1;
                             }
                         }

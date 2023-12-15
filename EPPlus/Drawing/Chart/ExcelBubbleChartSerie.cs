@@ -113,10 +113,7 @@ namespace OfficeOpenXml.Drawing.Chart
                     SetXmlNodeString(BUBBLESIZE_PATH, ExcelCellBase.GetFullAddress(_chartSeries.Chart.WorkSheet.Name, value));
 
                     XmlNode cache = TopNode.SelectSingleNode(string.Format("{0}/c:numCache", BUBBLESIZE_PATH), _ns);
-                    if (cache != null)
-                    {
-                        cache.ParentNode.RemoveChild(cache);
-                    }
+                    cache?.ParentNode.RemoveChild(cache);
 
                     DeleteNode(string.Format("{0}/c:numLit", BUBBLESIZE_TOPPATH));
                     //XmlNode lit = TopNode.SelectSingleNode(string.Format("{0}/c:numLit", _xSeriesTopPath), _ns);

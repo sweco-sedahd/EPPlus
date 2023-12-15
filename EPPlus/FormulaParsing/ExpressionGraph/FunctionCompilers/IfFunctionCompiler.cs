@@ -53,7 +53,7 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph.FunctionCompilers
             : base(function, context)
         {
             Require.That(function).Named("function").IsNotNull();
-            if (!(function is If)) throw new ArgumentException("function must be of type If");
+            if (function is not If) throw new ArgumentException("function must be of type If");
         }
 
         public override CompileResult Compile(IEnumerable<Expression> children)

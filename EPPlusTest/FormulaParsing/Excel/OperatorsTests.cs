@@ -192,7 +192,7 @@ namespace EPPlusTest.Excel
             CompileResult result1 = new CompileResult(date1.ToString(dateFormat), DataType.String); // 2/20/2015
             CompileResult result2 = new CompileResult(date2.ToString(dateFormat), DataType.String); // 12/1/2015
             var operatorResult = Operator.Concat.Apply(result1, result2);
-            Assert.AreEqual($"{date1.ToString(dateFormat)}{date2.ToString(dateFormat)}", operatorResult.Result);
+            Assert.AreEqual($"{date1.ToString(dateFormat)}{date2.ToString(dateFormat)}", operatorResult.Result.ToString());
             operatorResult = Operator.Divide.Apply(result1, result2);
             Assert.AreEqual(numericDate1 / numericDate2, operatorResult.Result);
             operatorResult = Operator.Exp.Apply(result1, result2);

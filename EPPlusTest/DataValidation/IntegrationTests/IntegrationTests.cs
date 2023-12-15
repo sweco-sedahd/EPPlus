@@ -101,7 +101,7 @@ namespace EPPlusTest.DataValidation.IntegrationTests
         [TestMethod, Ignore]
         public void RemoveDataValidation()
         {
-            var fileInfo = new FileInfo(@"c:\Temp\DvTest.xlsx");
+            var fileInfo = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesDvTest.xlsx");
             if(File.Exists(fileInfo.FullName))
                 File.Delete(fileInfo.FullName);
             using (var package = new ExcelPackage())

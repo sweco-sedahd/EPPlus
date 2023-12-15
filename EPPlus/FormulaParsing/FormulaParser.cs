@@ -96,7 +96,7 @@ namespace OfficeOpenXml.FormulaParsing
 
         internal virtual object Parse(string formula, RangeAddress rangeAddress)
         {
-            using (ParsingScope scope = _parsingContext.Scopes.NewScope(rangeAddress))
+            using (_parsingContext.Scopes.NewScope(rangeAddress))
             {
                 IEnumerable<Token> tokens = Lexer.Tokenize(formula);
                 ExpressionGraph.ExpressionGraph graph = _graphBuilder.Build(tokens);
@@ -112,7 +112,7 @@ namespace OfficeOpenXml.FormulaParsing
         internal virtual object Parse(IEnumerable<Token> tokens, string worksheet, string address)
         {
             RangeAddress rangeAddress = _parsingContext.RangeAddressFactory.Create(address);
-            using (ParsingScope scope = _parsingContext.Scopes.NewScope(rangeAddress))
+            using (_parsingContext.Scopes.NewScope(rangeAddress))
             {
                 ExpressionGraph.ExpressionGraph graph = _graphBuilder.Build(tokens);
                 if (graph.Expressions.Count() == 0)
@@ -127,7 +127,7 @@ namespace OfficeOpenXml.FormulaParsing
         internal virtual object ParseCell(IEnumerable<Token> tokens, string worksheet, int row, int column)
         {
             RangeAddress rangeAddress = _parsingContext.RangeAddressFactory.Create(worksheet, column, row);
-            using (ParsingScope scope = _parsingContext.Scopes.NewScope(rangeAddress))
+            using (_parsingContext.Scopes.NewScope(rangeAddress))
             {
                 //    _parsingContext.Dependencies.AddFormulaScope(scope);
                 ExpressionGraph.ExpressionGraph graph = _graphBuilder.Build(tokens);
@@ -220,10 +220,7 @@ namespace OfficeOpenXml.FormulaParsing
 
         internal void InitNewCalc()
         {
-            if (_excelDataProvider != null)
-            {
-                _excelDataProvider.Reset();
-            }
+            _excelDataProvider?.Reset();
         }
     }
 }

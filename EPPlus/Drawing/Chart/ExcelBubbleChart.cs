@@ -53,7 +53,7 @@ namespace OfficeOpenXml.Drawing.Chart
             get => _chartXmlHelper.GetXmlNodeInt(BUBBLESCALE_PATH);
             set
             {
-                if (value < 0 && value > 300)
+                if (value is < 0 or > 300)
                 {
                     throw new ArgumentOutOfRangeException("Bubblescale out of range. 0-300 allowed");
                 }

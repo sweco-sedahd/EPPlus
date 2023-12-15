@@ -63,7 +63,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
                 {
                     if (ShouldIgnore(c, context)) continue;
                     CheckForAndHandleExcelError(c);
-                    if (IsNumeric(c.Value) && !(c.Value is bool))
+                    if (IsNumeric(c.Value) && c.Value is not bool)
                     {
                         nValues++;
                         retVal += c.ValueDouble;
@@ -107,7 +107,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
         {
             double number;
             System.DateTime date;
-            if (IsNumeric(obj) && !(obj is bool))
+            if (IsNumeric(obj) && obj is not bool)
             {
                 return ConvertUtil.GetValueDouble(obj);
             }

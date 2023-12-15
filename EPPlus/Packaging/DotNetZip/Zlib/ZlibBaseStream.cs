@@ -134,8 +134,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         {
             // workitem 7159
             // calculate the CRC on the unccompressed data  (before writing)
-            if (crc != null)
-                crc.SlurpBlock(buffer, offset, count);
+            crc?.SlurpBlock(buffer, offset, count);
 
             if (_streamMode == StreamMode.Undefined)
                 _streamMode = StreamMode.Writer;
@@ -518,8 +517,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
             rc = count - _z.AvailableBytesOut;
 
             // calculate CRC after reading
-            if (crc != null)
-                crc.SlurpBlock(buffer, offset, rc);
+            crc?.SlurpBlock(buffer, offset, rc);
 
             return rc;
         }

@@ -58,7 +58,7 @@ namespace OfficeOpenXml.Drawing.Chart
             get => GetXmlNodeInt(THICKNESS_PATH);
             set
             {
-                if (value < 0 && value > 9)
+                if (value is < 0 or > 9)
                 {
                     throw new ArgumentOutOfRangeException("Thickness out of range. (0-9)");
                 }

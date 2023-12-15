@@ -347,8 +347,8 @@ namespace EPPlusTest
         [TestMethod]
         public void TestInvalidVBA()
         {
-            const string infile=@"C:\temp\bug\Infile.xlsm";
-            const string outfile=@"C:\temp\bug\Outfile.xlsm";
+            const string infile=@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesbug\Infile.xlsm";
+            const string outfile=@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesbug\Outfile.xlsm";
             ExcelPackage ep;
 
             using (FileStream fs = File.OpenRead(infile))
@@ -392,8 +392,8 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void test()
         { 
-            CreateXlsxSheet(@"C:\temp\bug\test4.xlsx", 4, 4);
-            CreateXlsxSheet(@"C:\temp\bug\test25.xlsx", 25, 25); 
+            CreateXlsxSheet(@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesbug\test4.xlsx", 4, 4);
+            CreateXlsxSheet(@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesbug\test25.xlsx", 25, 25); 
         }
         [Ignore]
         [TestMethod]
@@ -445,7 +445,7 @@ namespace EPPlusTest
         [TestMethod]
         public void I15043()
         {
-            using (var p = new ExcelPackage(new FileInfo(@"C:\temp\bug\EPPlusTest\EPPlusTest\EPPlusTest\example.xlsx")))
+            using (var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesbug\EPPlusTest\EPPlusTest\EPPlusTest\example.xlsx")))
             {
                 var ws = p.Workbook.Worksheets[1];
                 p.Workbook.Worksheets.Copy(ws.Name, "Copy");
@@ -454,7 +454,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void whitespace()
         {
-            using (var p = new ExcelPackage(new FileInfo(@"C:\temp\bug\GridToExcel_05-12-2014.xlsx")))
+            using (var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesbug\GridToExcel_05-12-2014.xlsx")))
             {
                 var ws = p.Workbook.Worksheets[1];
                 foreach (var cell in ws.Cells[1,84,3,86])
@@ -466,7 +466,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void SaveCorruption()
         {
-            using (var p = new ExcelPackage(new FileInfo(@"C:\temp\bug\tables.xlsx")))
+            using (var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesbug\tables.xlsx")))
             {
                 var ws = p.Workbook.Worksheets[1];
                 p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\corr.xlsx"));
@@ -493,7 +493,7 @@ namespace EPPlusTest
         {
             using (var pkg = new ExcelPackage())
             {
-                var templateFile = ReadTemplateFile(@"C:\temp\bug\StackOverflow\EPPlusTest\20141120_01_3.各股累計收結表 (其他案件).xlsx");
+                var templateFile = ReadTemplateFile(@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesbug\StackOverflow\EPPlusTest\20141120_01_3.各股累計收結表 (其他案件).xlsx");
                 using (var ms = new System.IO.MemoryStream(templateFile))
                 {
                     using (var tempPkg = new ExcelPackage(ms))

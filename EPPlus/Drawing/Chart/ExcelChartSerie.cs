@@ -148,19 +148,13 @@ namespace OfficeOpenXml.Drawing.Chart
                 if (_chartSeries.Chart.PivotTableSource != null)
                 {
                     XmlNode cache = TopNode.SelectSingleNode(string.Format("{0}/c:numRef/c:numCache", _seriesTopPath), _ns);
-                    if (cache != null)
-                    {
-                        cache.ParentNode.RemoveChild(cache);
-                    }
+                    cache?.ParentNode.RemoveChild(cache);
 
                     SetXmlNodeString(string.Format("{0}/c:numRef/c:numCache", _seriesTopPath), "General");
                 }
 
                 XmlNode lit = TopNode.SelectSingleNode(string.Format("{0}/c:numLit", _seriesTopPath), _ns);
-                if (lit != null)
-                {
-                    lit.ParentNode.RemoveChild(lit);
-                }
+                lit?.ParentNode.RemoveChild(lit);
             }
         }
 
@@ -178,30 +172,18 @@ namespace OfficeOpenXml.Drawing.Chart
                 if (_xSeriesPath.IndexOf("c:numRef") > 0)
                 {
                     XmlNode cache = TopNode.SelectSingleNode(string.Format("{0}/c:numRef/c:numCache", _xSeriesTopPath), _ns);
-                    if (cache != null)
-                    {
-                        cache.ParentNode.RemoveChild(cache);
-                    }
+                    cache?.ParentNode.RemoveChild(cache);
 
                     XmlNode lit = TopNode.SelectSingleNode(string.Format("{0}/c:numLit", _xSeriesTopPath), _ns);
-                    if (lit != null)
-                    {
-                        lit.ParentNode.RemoveChild(lit);
-                    }
+                    lit?.ParentNode.RemoveChild(lit);
                 }
                 else
                 {
                     XmlNode cache = TopNode.SelectSingleNode(string.Format("{0}/c:strRef/c:strCache", _xSeriesTopPath), _ns);
-                    if (cache != null)
-                    {
-                        cache.ParentNode.RemoveChild(cache);
-                    }
+                    cache?.ParentNode.RemoveChild(cache);
 
                     XmlNode lit = TopNode.SelectSingleNode(string.Format("{0}/c:strLit", _xSeriesTopPath), _ns);
-                    if (lit != null)
-                    {
-                        lit.ParentNode.RemoveChild(lit);
-                    }
+                    lit?.ParentNode.RemoveChild(lit);
                 }
             }
         }

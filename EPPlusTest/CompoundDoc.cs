@@ -173,11 +173,11 @@ namespace EPPlusTest
         {
             int Rows = 1000000;
             int colMult = 20;
-            FileInfo newFile = new FileInfo(@"C:\temp\bug\sample7compdoctest.xlsx");
+            FileInfo newFile = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesbug\sample7compdoctest.xlsx");
             if (newFile.Exists)
             {
                 newFile.Delete();  // ensures we create a new workbook
-                newFile = new FileInfo(@"C:\temp\bug\sample7compdoctest.xlsx");
+                newFile = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesbug\sample7compdoctest.xlsx");
             }
             using (ExcelPackage package = new ExcelPackage())
             {

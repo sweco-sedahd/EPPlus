@@ -81,7 +81,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
         {
             ValidateArguments(arguments, 2);
             int funcNum = ArgToInt(arguments, 0);
-            if (context.Scopes.Current.Parent != null && context.Scopes.Current.Parent.IsSubtotal)
+            if (context.Scopes.Current.Parent is { IsSubtotal: true })
             {
                 return CreateResult(0d, DataType.Decimal);
             }

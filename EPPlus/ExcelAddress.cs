@@ -467,7 +467,7 @@ namespace OfficeOpenXml
                         isROrC = false;
                         break;
                     default:
-                        if ((c >= '0' && c <= '9') || c == '-')
+                        if (c is >= '0' and <= '9' || c == '-')
                         {
                             if (isROrC == false)
                             {
@@ -1241,8 +1241,6 @@ namespace OfficeOpenXml
                 return this;
             }
 
-            int rows = address.Rows;
-            int cols = address.Columns;
             string retAddress = "";
             if (Shift == eShiftType.Right)
             {

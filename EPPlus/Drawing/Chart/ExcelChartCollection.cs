@@ -92,7 +92,6 @@ namespace OfficeOpenXml.Drawing.Chart
                 throw new InvalidOperationException("3D charts can not be combined with other charttypes");
             }
 
-            XmlNode prependingChartNode = _list[_list.Count - 1].TopNode;
             var chart = ExcelChart.GetNewChart(_topChart.WorkSheet.Drawings, _topChart.TopNode, chartType, _topChart, null);
 
             _list.Add(chart);

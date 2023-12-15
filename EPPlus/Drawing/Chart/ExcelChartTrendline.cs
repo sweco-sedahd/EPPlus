@@ -80,11 +80,10 @@ namespace OfficeOpenXml.Drawing.Chart
                 throw new ArgumentException("Trendlines don't apply to 3d-charts, stacked charts, pie charts or doughnut charts");
             }
 
-            ExcelChartTrendline tl;
             XmlNode insertAfter;
             if (_list.Count > 0)
             {
-                insertAfter = _list[_list.Count - 1].TopNode;
+                insertAfter = _list[^1].TopNode;
             }
             else
             {
@@ -102,7 +101,7 @@ namespace OfficeOpenXml.Drawing.Chart
             XmlElement node = _serie.TopNode.OwnerDocument.CreateElement("c", "trendline", ExcelPackage.schemaChart);
             _serie.TopNode.InsertAfter(node, insertAfter);
 
-            tl = new ExcelChartTrendline(_serie.NameSpaceManager, node);
+            var tl = new ExcelChartTrendline(_serie.NameSpaceManager, node);
             tl.Type = Type;
             return tl;
         }

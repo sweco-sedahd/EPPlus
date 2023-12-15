@@ -130,7 +130,6 @@ namespace OfficeOpenXml.Utils
                         {
                             tokenFlags |= (byte)(1 << i);
 
-                            ushort offsetMask = (ushort)~lengthMask;
                             ushort token = (ushort)((ushort)(dPos - (bestCandidate + 1)) << bitCount | (ushort)(bestLength - 3));
                             Array.Copy(BitConverter.GetBytes(token), 0, comprBuffer, cPos, 2);
                             dPos = dPos + bestLength;
@@ -197,7 +196,6 @@ namespace OfficeOpenXml.Utils
             byte[] buffer = new byte[4198]; //Add an extra 100 byte. Some workbooks have overflowing worksheets.
             int size = (header & 0xFFF) + 3;
             int endPos = pos + size;
-            int a = (header & 0x7000) >> 12;
             int b = (header & 0x8000) >> 15;
             pos += 2;
             if (b == 1) //Compressed chunk

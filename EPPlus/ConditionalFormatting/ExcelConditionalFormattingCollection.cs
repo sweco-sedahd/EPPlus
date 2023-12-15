@@ -93,8 +93,7 @@ namespace OfficeOpenXml.ConditionalFormatting
                 _worksheet.NameSpaceManager);
 
             // Check if we found at least 1 node
-            if (conditionalFormattingNodes != null
-                && conditionalFormattingNodes.Count > 0)
+            if (conditionalFormattingNodes is { Count: > 0 })
             {
                 // Foreach <conditionalFormatting>
                 foreach (XmlNode conditionalFormattingNode in conditionalFormattingNodes)

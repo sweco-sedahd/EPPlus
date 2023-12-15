@@ -867,7 +867,7 @@ namespace OfficeOpenXml.Table.PivotTable
 
         internal XmlElement AppendField(XmlNode rowsNode, int index, string fieldNodeText, string indexAttrText)
         {
-            XmlElement prevField = null, newElement;
+            XmlElement prevField = null;
             foreach (XmlElement field in rowsNode.ChildNodes)
             {
                 string x = field.GetAttribute(indexAttrText);
@@ -888,7 +888,7 @@ namespace OfficeOpenXml.Table.PivotTable
                 prevField = field;
             }
 
-            newElement = rowsNode.OwnerDocument.CreateElement(fieldNodeText, ExcelPackage.schemaMain);
+            XmlElement newElement = rowsNode.OwnerDocument.CreateElement(fieldNodeText, ExcelPackage.schemaMain);
             newElement.SetAttribute(indexAttrText, index.ToString());
             rowsNode.InsertAfter(newElement, prevField);
 
@@ -922,8 +922,7 @@ namespace OfficeOpenXml.Table.PivotTable
 
         internal ExcelPivotTableFieldDateGroup SetDateGroup(eDateGroupBy GroupBy, DateTime StartDate, DateTime EndDate, int interval)
         {
-            ExcelPivotTableFieldDateGroup group;
-            group = new ExcelPivotTableFieldDateGroup(NameSpaceManager, _cacheFieldHelper.TopNode);
+            var group = new ExcelPivotTableFieldDateGroup(NameSpaceManager, _cacheFieldHelper.TopNode);
             _cacheFieldHelper.SetXmlNodeBool("d:sharedItems/@containsDate", true);
             _cacheFieldHelper.SetXmlNodeBool("d:sharedItems/@containsNonDate", false);
             _cacheFieldHelper.SetXmlNodeBool("d:sharedItems/@containsSemiMixedTypes", false);
@@ -959,8 +958,7 @@ namespace OfficeOpenXml.Table.PivotTable
 
         internal ExcelPivotTableFieldNumericGroup SetNumericGroup(double start, double end, double interval)
         {
-            ExcelPivotTableFieldNumericGroup group;
-            group = new ExcelPivotTableFieldNumericGroup(NameSpaceManager, _cacheFieldHelper.TopNode);
+            var group = new ExcelPivotTableFieldNumericGroup(NameSpaceManager, _cacheFieldHelper.TopNode);
             _cacheFieldHelper.SetXmlNodeBool("d:sharedItems/@containsNumber", true);
             _cacheFieldHelper.SetXmlNodeBool("d:sharedItems/@containsInteger", true);
             _cacheFieldHelper.SetXmlNodeBool("d:sharedItems/@containsSemiMixedTypes", false);

@@ -26,7 +26,7 @@ namespace OfficeOpenXml.Style.Dxf
 
         protected void SetValueColor(XmlHelper helper, string path, ExcelDxfColor color)
         {
-            if (color != null && color.HasValue)
+            if (color is { HasValue: true })
             {
                 if (color.Color != null)
                 {

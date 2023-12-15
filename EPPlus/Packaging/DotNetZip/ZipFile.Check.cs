@@ -191,8 +191,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                             if (e1._RelativeOffsetOfLocalHeader != e2._RelativeOffsetOfLocalHeader)
                             {
                                 isOk = false;
-                                if (writer != null)
-                                    writer.WriteLine("{0}: mismatch in RelativeOffsetOfLocalHeader  (0x{1:X16} != 0x{2:X16})",
+                                writer?.WriteLine("{0}: mismatch in RelativeOffsetOfLocalHeader  (0x{1:X16} != 0x{2:X16})",
                                         e1.FileName, e1._RelativeOffsetOfLocalHeader,
                                         e2._RelativeOffsetOfLocalHeader);
                             }
@@ -200,8 +199,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                             if (e1._CompressedSize != e2._CompressedSize)
                             {
                                 isOk = false;
-                                if (writer != null)
-                                    writer.WriteLine("{0}: mismatch in CompressedSize  (0x{1:X16} != 0x{2:X16})",
+                                writer?.WriteLine("{0}: mismatch in CompressedSize  (0x{1:X16} != 0x{2:X16})",
                                         e1.FileName, e1._CompressedSize,
                                         e2._CompressedSize);
                             }
@@ -209,8 +207,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                             if (e1._UncompressedSize != e2._UncompressedSize)
                             {
                                 isOk = false;
-                                if (writer != null)
-                                    writer.WriteLine("{0}: mismatch in UncompressedSize  (0x{1:X16} != 0x{2:X16})",
+                                writer?.WriteLine("{0}: mismatch in UncompressedSize  (0x{1:X16} != 0x{2:X16})",
                                         e1.FileName, e1._UncompressedSize,
                                         e2._UncompressedSize);
                             }
@@ -218,8 +215,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                             if (e1.CompressionMethod != e2.CompressionMethod)
                             {
                                 isOk = false;
-                                if (writer != null)
-                                    writer.WriteLine("{0}: mismatch in CompressionMethod  (0x{1:X4} != 0x{2:X4})",
+                                writer?.WriteLine("{0}: mismatch in CompressionMethod  (0x{1:X4} != 0x{2:X4})",
                                         e1.FileName, e1.CompressionMethod,
                                         e2.CompressionMethod);
                             }
@@ -227,8 +223,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                             if (e1.Crc != e2.Crc)
                             {
                                 isOk = false;
-                                if (writer != null)
-                                    writer.WriteLine("{0}: mismatch in Crc32  (0x{1:X4} != 0x{2:X4})",
+                                writer?.WriteLine("{0}: mismatch in Crc32  (0x{1:X4} != 0x{2:X4})",
                                         e1.FileName, e1.Crc,
                                         e2.Crc);
                             }
@@ -251,8 +246,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             }
             finally
             {
-                if (zip1 != null) zip1.Dispose();
-                if (zip2 != null) zip2.Dispose();
+                zip1?.Dispose();
+                zip2?.Dispose();
             }
 
             return isOk;

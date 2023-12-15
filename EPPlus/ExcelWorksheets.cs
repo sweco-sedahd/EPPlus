@@ -461,8 +461,7 @@ namespace OfficeOpenXml
                 }
                 else
                 {
-                    XmlAttribute relAtt;
-                    relAtt = added.WorksheetXml.SelectSingleNode(string.Format("//d:tableParts/d:tablePart/@r:id[.='{0}']", tbl.RelationshipID), tbl.NameSpaceManager) as XmlAttribute;
+                    var relAtt = added.WorksheetXml.SelectSingleNode(string.Format("//d:tableParts/d:tablePart/@r:id[.='{0}']", tbl.RelationshipID), tbl.NameSpaceManager) as XmlAttribute;
                     relAtt.Value = rel.Id;
                 }
             }
@@ -562,8 +561,7 @@ namespace OfficeOpenXml
             //Copy any images;
             if (Copy.HeaderFooter.Pictures.Count > 0)
             {
-                Uri source = Copy.HeaderFooter.Pictures.Uri;
-                Uri dest = GetNewUri(_pck.Package, @"/xl/drawings/vmlDrawing{0}.vml");
+                GetNewUri(_pck.Package, @"/xl/drawings/vmlDrawing{0}.vml");
                 added.DeleteNode("d:legacyDrawingHF");
 
                 //var part = _pck.Package.CreatePart(dest, "application/vnd.openxmlformats-officedocument.vmlDrawing", _pck.Compression);
@@ -703,7 +701,7 @@ namespace OfficeOpenXml
             streamDrawing.Flush();
 
             //Add the relationship ID to the worksheet xml.
-            ZipPackageRelationship commentRelation = workSheet.Part.CreateRelationship(UriHelper.GetRelativeUri(workSheet.WorksheetUri, uriComment), TargetMode.Internal, ExcelPackage.schemaRelationships + "/comments");
+            workSheet.Part.CreateRelationship(UriHelper.GetRelativeUri(workSheet.WorksheetUri, uriComment), TargetMode.Internal, ExcelPackage.schemaRelationships + "/comments");
 
             xml = Copy.VmlDrawingsComments.VmlDrawingXml.InnerXml;
 
@@ -834,10 +832,7 @@ namespace OfficeOpenXml
                 e = newSheet.WorksheetXml.CreateNode(XmlNodeType.Entity, "//d:legacyDrawing", _namespaceManager.LookupNamespace("d")) as XmlElement;
             }
 
-            if (e != null)
-            {
-                e.SetAttribute("id", ExcelPackage.schemaRelationships, vmlRelation.Id);
-            }
+            e?.SetAttribute("id", ExcelPackage.schemaRelationships, vmlRelation.Id);
         }
 
         string CreateWorkbookRel(string Name, int sheetID, Uri uriWorksheet, bool isChart)
@@ -980,7 +975,6 @@ namespace OfficeOpenXml
              */
             foreach (KeyValuePair<int, ExcelWorksheet> ws in _worksheets)
             {
-                ExcelDrawings drawings = ws.Value.Drawings;
             }
 
             ExcelWorksheet worksheet = _worksheets[Index];
@@ -990,7 +984,7 @@ namespace OfficeOpenXml
             }
 
             //Remove all comments
-            if (!(worksheet is ExcelChartsheet) && worksheet.Comments.Count > 0)
+            if (worksheet is not ExcelChartsheet && worksheet.Comments.Count > 0)
             {
                 worksheet.Comments.Clear();
             }
@@ -1014,10 +1008,7 @@ namespace OfficeOpenXml
             }
 
             _worksheets.Remove(Index);
-            if (_pck.Workbook.VbaProject != null)
-            {
-                _pck.Workbook.VbaProject.Modules.Remove(worksheet.CodeModule);
-            }
+            _pck.Workbook.VbaProject?.Modules.Remove(worksheet.CodeModule);
 
             ReindexWorksheetDictionary();
             //If the active sheet is deleted, set the first tab as active.

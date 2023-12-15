@@ -203,7 +203,7 @@ namespace OfficeOpenXml.ConditionalFormatting
                 itemElementNode,
                 namespaceManager ?? worksheet.NameSpaceManager)
         {
-            if (itemElementNode != null && itemElementNode.HasChildNodes)
+            if (itemElementNode is { HasChildNodes: true })
             {
                 int pos = 1;
                 foreach (XmlNode node in itemElementNode.SelectNodes("d:iconSet/d:cfvo", NameSpaceManager))

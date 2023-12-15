@@ -156,7 +156,7 @@ namespace EPPlusTest
         [TestMethod]
         public void TestOneCell()
         {
-            var pck = new ExcelPackage(new FileInfo(@"C:\temp\EPPlusTestark\Test4.xlsm"));
+            var pck = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesEPPlusTestark\Test4.xlsm"));
             var ws = pck.Workbook.Worksheets.First(); 
             pck.Workbook.Worksheets["Räntebärande formaterat utland"].Cells["M13"].Calculate();
             Assert.AreEqual(0d, pck.Workbook.Worksheets["Räntebärande formaterat utland"].Cells["M13"].Value);  
@@ -165,7 +165,7 @@ namespace EPPlusTest
         [TestMethod]
         public void TestPrecedence()
         {
-            var pck = new ExcelPackage(new FileInfo(@"C:\temp\EPPlusTestark\Precedence.xlsx"));
+            var pck = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFilesEPPlusTestark\Precedence.xlsx"));
             var ws = pck.Workbook.Worksheets.Last();
             pck.Workbook.Calculate();
             Assert.AreEqual(150d, ws.Cells["A1"].Value);
@@ -269,7 +269,8 @@ namespace EPPlusTest
             var pck = new ExcelPackage();
             var ws = pck.Workbook.Worksheets.Add("CalcTest");
             var currentDate = DateTime.UtcNow.Date;
-            ws.SetValue("A1", currentDate.ToString("MM/dd/yyyy"));
+
+            ws.SetValue("A1", currentDate.ToString("dd/MM/yyyy"));
             ws.SetValue("A2", currentDate.Date);
             ws.SetValue("A3", "31.1");
             ws.SetValue("A4", 31.1);
@@ -291,7 +292,7 @@ namespace EPPlusTest
         {
             StringBuilder sb=new StringBuilder();
             //Add sheets to test in this directory or change it to your testpath.
-            string path = @"C:\temp\EPPlusTestark\workbooks";
+            string path = @"C:\OldLaptop\source\repos1\EPPlus\TestingFilesEPPlusTestark\workbooks";
             if(!Directory.Exists(path)) return;
 
             foreach (var file in Directory.GetFiles(path, "*.xls*"))

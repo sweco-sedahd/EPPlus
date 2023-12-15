@@ -391,7 +391,7 @@ namespace OfficeOpenXml
             }
 
             int num;
-            if (value[0] == '[' && value[value.Length - 1] == ']') //Offset?                
+            if (value[0] == '[' && value[^1] == ']') //Offset?                
             {
                 fixedAddr = false;
                 if (int.TryParse(value.Substring(1, value.Length - 2), NumberStyles.Any, CultureInfo.InvariantCulture, out num))
@@ -540,7 +540,7 @@ namespace OfficeOpenXml
 
         internal static bool IsAlpha(char c)
         {
-            return c >= 'A' && c <= 'Z';
+            return c is >= 'A' and <= 'Z';
         }
 
         /// <summary>
@@ -584,13 +584,13 @@ namespace OfficeOpenXml
             for (int i = colStartIx; i < address.Length; i++)
             {
                 char c = address[i];
-                if (colPart && c >= 'A' && c <= 'Z' && colLength <= 3)
+                if (colPart && c is >= 'A' and <= 'Z' && colLength <= 3)
                 {
                     col *= 26;
                     col += c - 64;
                     colLength++;
                 }
-                else if (c >= '0' && c <= '9')
+                else if (c is >= '0' and <= '9')
                 {
                     row *= 10;
                     row += c - 48;
@@ -890,7 +890,7 @@ namespace OfficeOpenXml
                 {
                     int column = GetColumn(c1);
                     int row = int.Parse(r1);
-                    ret = column >= 1 && column <= ExcelPackage.MaxColumns && row >= 1 && row <= ExcelPackage.MaxRows;
+                    ret = column is >= 1 and <= ExcelPackage.MaxColumns && row is >= 1 and <= ExcelPackage.MaxRows;
                 }
                 else if (r1 != "" && r2 != "" && c1 != "" && c2 != "") //Range
                 {
@@ -932,12 +932,12 @@ namespace OfficeOpenXml
 
         private static bool IsCol(char c)
         {
-            return c >= 'A' && c <= 'Z';
+            return c is >= 'A' and <= 'Z';
         }
 
         private static bool IsRow(char r)
         {
-            return r >= '0' && r <= '9';
+            return r is >= '0' and <= '9';
         }
 
         /// <summary>
@@ -985,7 +985,6 @@ namespace OfficeOpenXml
         /// <returns>The updated version of the <paramref name="formula"/>.</returns>
         internal static string UpdateFormulaReferences(string formula, int rowIncrement, int colIncrement, int afterRow, int afterColumn, string currentSheet, string modifiedSheet, bool setFixed = false)
         {
-            var d = new Dictionary<string, object>();
             try
             {
                 var sct = new SourceCodeTokenizer(FunctionNameProvider.Empty, NameValueProvider.Empty);
@@ -1070,7 +1069,6 @@ namespace OfficeOpenXml
                 throw new ArgumentNullException(nameof(oldSheetName));
             if (string.IsNullOrEmpty(newSheetName))
                 throw new ArgumentNullException(nameof(newSheetName));
-            var d = new Dictionary<string, object>();
             try
             {
                 var sct = new SourceCodeTokenizer(FunctionNameProvider.Empty, NameValueProvider.Empty);

@@ -161,7 +161,7 @@ namespace OfficeOpenXml
                 _workSheet.Part.DeleteRelationship(relID);
 
                 //Delete the image if there are no other references.
-                if (ii != null && ii.RefCount == 1)
+                if (ii is { RefCount: 1 })
                 {
                     if (_workSheet.Part.Package.PartExists(ii.Uri))
                     {

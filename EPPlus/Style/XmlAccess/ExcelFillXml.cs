@@ -95,7 +95,7 @@ namespace OfficeOpenXml.Style.XmlAccess
             SetXmlNodeString(fillPatternTypePath, SetPatternString(_fillPatternType));
             if (PatternType != ExcelFillStyle.None)
             {
-                XmlNode pattern = topNode.SelectSingleNode(fillPatternTypePath, NameSpaceManager);
+                topNode.SelectSingleNode(fillPatternTypePath, NameSpaceManager);
                 if (BackgroundColor.Exists)
                 {
                     CreateNode(_backgroundColorPath);

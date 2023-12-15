@@ -50,7 +50,6 @@ namespace OfficeOpenXml.Table
 
         internal ExcelTableCollection(ExcelWorksheet ws)
         {
-            ZipPackage pck = ws._package.Package;
             _ws = ws;
             foreach (XmlElement node in ws.WorksheetXml.SelectNodes("//d:tableParts/d:tablePart", ws.NameSpaceManager))
             {

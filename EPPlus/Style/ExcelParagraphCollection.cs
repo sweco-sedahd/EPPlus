@@ -86,7 +86,6 @@ namespace OfficeOpenXml.Style
                 else
                 {
                     this[0].Text = value;
-                    int count = Count;
                     for (int ix = Count - 1; ix > 0; ix--)
                     {
                         RemoveAt(ix);

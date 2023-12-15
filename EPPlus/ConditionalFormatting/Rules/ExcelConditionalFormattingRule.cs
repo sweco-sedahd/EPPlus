@@ -185,7 +185,6 @@ namespace OfficeOpenXml.ConditionalFormatting
                 if (Address.Address != value.Address)
                 {
                     // Save the old parente node
-                    XmlNode oldNode = Node;
                     XmlNode oldParentNode = Node.ParentNode;
 
                     // Create/Get the new <conditionalFormatting> parent node
@@ -571,7 +570,7 @@ namespace OfficeOpenXml.ConditionalFormatting
             set
             {
                 // Create/Get the first <formula> node (ensure that it exists)
-                XmlNode firstNode = CreateComplexNode(
+                CreateComplexNode(
                     TopNode,
                     string.Format(
                         "{0}[position()=1]",

@@ -91,7 +91,7 @@ namespace OfficeOpenXml.ConditionalFormatting
             if (itemElementNode == null)
             {
                 // Create the <colorScale> node inside the <cfRule> node
-                XmlNode colorScaleNode = CreateComplexNode(
+                CreateComplexNode(
                     Node,
                     ExcelConditionalFormattingConstants.Paths.ColorScale);
 

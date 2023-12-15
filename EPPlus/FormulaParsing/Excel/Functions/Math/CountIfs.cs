@@ -42,7 +42,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
                 if (functionArguments.Length <= ix) break;
                 ExcelDataProvider.IRangeInfo rangeInfo = functionArguments[ix].ValueAsRangeInfo;
                 argRanges.Add(rangeInfo);
-                string value = functionArguments[ix + 1].Value != null ? functionArguments[ix + 1].Value.ToString() : null;
+                string value = functionArguments[ix + 1].Value?.ToString();
                 criterias.Add(value);
             }
 

@@ -53,7 +53,7 @@ namespace OfficeOpenXml.FormulaParsing.LexicalAnalysis.TokenSeparatorHandlers
 
             if (tokenSeparator.TokenType == TokenType.WorksheetName)
             {
-                if (context.LastToken != null && context.LastToken.TokenType == TokenType.WorksheetName)
+                if (context.LastToken is { TokenType: TokenType.WorksheetName })
                 {
                     context.AddToken(!context.CurrentTokenHasValue
                         ? new Token(string.Empty, TokenType.WorksheetNameContent)

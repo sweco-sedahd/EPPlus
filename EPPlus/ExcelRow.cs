@@ -233,12 +233,7 @@ namespace OfficeOpenXml
             get
             {
                 var r = (RowInternal)_worksheet.GetValueInner(Row, 0);
-                if (r == null)
-                {
-                    return false;
-                }
-
-                return r.PageBreak;
+                return r is { PageBreak: true };
             }
             set
             {

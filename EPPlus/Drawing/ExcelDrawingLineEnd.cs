@@ -186,7 +186,6 @@ namespace OfficeOpenXml.Drawing
 
         private string TranslateEndSizeText(eEndSize value)
         {
-            string text = value.ToString();
             switch (value)
             {
                 case eEndSize.Small:

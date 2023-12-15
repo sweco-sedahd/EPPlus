@@ -68,22 +68,22 @@ namespace OfficeOpenXml.VBA
                 MemoryStream stream = Part.GetStream();
                 var br = new BinaryReader(stream);
                 uint cbSignature = br.ReadUInt32();
-                uint signatureOffset = br.ReadUInt32(); //44 ??
-                uint cbSigningCertStore = br.ReadUInt32();
-                uint certStoreOffset = br.ReadUInt32();
-                uint cbProjectName = br.ReadUInt32();
-                uint projectNameOffset = br.ReadUInt32();
-                uint fTimestamp = br.ReadUInt32();
-                uint cbTimestampUrl = br.ReadUInt32();
-                uint timestampUrlOffset = br.ReadUInt32();
+                br.ReadUInt32();
+                br.ReadUInt32();
+                br.ReadUInt32();
+                br.ReadUInt32();
+                br.ReadUInt32();
+                br.ReadUInt32();
+                br.ReadUInt32();
+                br.ReadUInt32();
                 byte[] signature = br.ReadBytes((int)cbSignature);
-                uint version = br.ReadUInt32();
-                uint fileType = br.ReadUInt32();
+                br.ReadUInt32();
+                br.ReadUInt32();
 
                 uint id = br.ReadUInt32();
                 while (id != 0)
                 {
-                    uint encodingType = br.ReadUInt32();
+                    br.ReadUInt32();
                     uint length = br.ReadUInt32();
                     if (length > 0)
                     {
@@ -100,10 +100,10 @@ namespace OfficeOpenXml.VBA
                     id = br.ReadUInt32();
                 }
 
-                uint endel1 = br.ReadUInt32(); //0
-                uint endel2 = br.ReadUInt32(); //0
-                ushort rgchProjectNameBuffer = br.ReadUInt16();
-                ushort rgchTimestampBuffer = br.ReadUInt16();
+                br.ReadUInt32();
+                br.ReadUInt32();
+                br.ReadUInt16();
+                br.ReadUInt16();
 #if Core
                 Verifier = new EnvelopedCms();
 #else
@@ -165,7 +165,7 @@ namespace OfficeOpenXml.VBA
                     storeCert = GetCertFromStore(StoreLocation.LocalMachine);
                 }
 
-                if (storeCert != null && storeCert.HasPrivateKey)
+                if (storeCert is { HasPrivateKey: true })
                 {
                     Certificate = storeCert;
                 }

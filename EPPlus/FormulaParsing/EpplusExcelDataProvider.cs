@@ -111,7 +111,6 @@ namespace OfficeOpenXml.FormulaParsing
         public override INameInfo GetName(string worksheet, string name)
         {
             ExcelNamedRange nameItem;
-            ulong id;
             ExcelWorksheet ws;
             if (string.IsNullOrEmpty(worksheet))
             {
@@ -143,7 +142,7 @@ namespace OfficeOpenXml.FormulaParsing
                 }
             }
 
-            id = ExcelCellBase.GetCellID(nameItem.LocalSheetId, nameItem.Index, 0);
+            ulong id = ExcelCellBase.GetCellID(nameItem.LocalSheetId, nameItem.Index, 0);
 
             if (_names.ContainsKey(id))
             {

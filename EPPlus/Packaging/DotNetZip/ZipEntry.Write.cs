@@ -733,15 +733,11 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             if (_Source == ZipEntrySource.Stream)
             {
                 // workitem 7742
-                if (_sourceStream != null && _sourceStream.CanSeek)
-                {
+                if (_sourceStream is { CanSeek: true, Length: 0 })
                     // Length prop will throw if CanSeek is false
-                    long fileLength = _sourceStream.Length;
-                    if (fileLength == 0)
-                    {
-                        _CompressionMethod = 0x00;
-                        return;
-                    }
+                {
+                    _CompressionMethod = 0x00;
+                    return;
                 }
             }
             else if (_Source == ZipEntrySource.FileSystem && SharedUtilities.GetFileLength(LocalFileName) == 0L)
@@ -1598,7 +1594,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
                         // workitem 11131
                         // adjust the count on the CountingStream as necessary
-                        if (s1 != null) s1.Adjust(headerBytesToRetract);
+                        s1?.Adjust(headerBytesToRetract);
 
                         // subtract the size of the security header from the _LengthOfHeader
                         _LengthOfHeader -= headerBytesToRetract;
@@ -1818,7 +1814,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                     s.Write(_EntryHeader, 0, _EntryHeader.Length);
 
                     // adjust the count on the CountingStream as necessary
-                    if (s1 != null) s1.Adjust(_EntryHeader.Length);
+                    s1?.Adjust(_EntryHeader.Length);
 
                     // seek in the raw output stream, to the end of the file data
                     // for this entry
@@ -2172,7 +2168,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                             s.SetLength(s.Position);
 
                             // Adjust the count on the CountingStream as necessary.
-                            if (cs1 != null) cs1.Adjust(_TotalEntrySize);
+                            cs1?.Adjust(_TotalEntrySize);
                         }
                     } while (readAgain);
 
@@ -2199,7 +2195,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                                 s.Seek(delta, SeekOrigin.Current); // may throw
                                 long p2 = s.Position;
                                 s.SetLength(s.Position); // to prevent garbage if this is the last entry
-                                if (cs1 != null) cs1.Adjust(p1 - p2);
+                                cs1?.Adjust(p1 - p2);
                             }
 
                             if (ZipErrorAction == ZipErrorAction.Skip)

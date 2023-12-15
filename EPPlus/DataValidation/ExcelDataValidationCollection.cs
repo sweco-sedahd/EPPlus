@@ -87,7 +87,7 @@ namespace OfficeOpenXml.DataValidation
 
             // check existing nodes and load them
             XmlNodeList dataValidationNodes = worksheet.WorksheetXml.SelectNodes(DataValidationItemsPath, worksheet.NameSpaceManager);
-            if (dataValidationNodes != null && dataValidationNodes.Count > 0)
+            if (dataValidationNodes is { Count: > 0 })
             {
                 foreach (XmlNode node in dataValidationNodes)
                 {

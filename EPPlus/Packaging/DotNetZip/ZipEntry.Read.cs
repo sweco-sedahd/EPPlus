@@ -193,8 +193,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                     // stream we had to seek forward, to find the sig.  We need this to
                     // determine if the zip entry is valid, later.
 
-                    if (ze._container.ZipFile != null)
-                        ze._container.ZipFile.OnReadBytes(ze);
+                    ze._container.ZipFile?.OnReadBytes(ze);
 
                     long d = SharedUtilities.FindSignature(ze.ArchiveStream, ZipConstants.ZipEntryDataDescriptorSignature);
                     if (d == -1) return false;
@@ -359,8 +358,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             entry._Source = ZipEntrySource.ZipFile;
             entry._container = zc;
             entry._archiveStream = s;
-            if (zf != null)
-                zf.OnReadEntry(true, null);
+            zf?.OnReadEntry(true, null);
 
             if (first) HandlePK00Prefix(s);
 

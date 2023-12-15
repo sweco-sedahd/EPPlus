@@ -36,7 +36,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Information
             ValidateArguments(arguments, 1);
             FunctionArgument firstArg = arguments.ElementAt(0);
             if (firstArg.Value == null || firstArg.ValueIsExcelError) return CreateResult(false, DataType.Boolean);
-            return CreateResult(!(firstArg.Value is string), DataType.Boolean);
+            return CreateResult(firstArg.Value is not string, DataType.Boolean);
         }
     }
 }

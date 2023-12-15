@@ -405,7 +405,7 @@ namespace OfficeOpenXml
             _nextPivotTableID = 1;
             foreach (ExcelWorksheet ws in Worksheets)
             {
-                if (!(ws is ExcelChartsheet)) //Fixes 15273. Chartsheets should be ignored.
+                if (ws is not ExcelChartsheet) //Fixes 15273. Chartsheets should be ignored.
                 {
                     foreach (ExcelTable tbl in ws.Tables)
                     {
@@ -977,10 +977,7 @@ namespace OfficeOpenXml
             }
 
             // save the properties of the workbook
-            if (_properties != null)
-            {
-                _properties.Save();
-            }
+            _properties?.Save();
 
             // save the style sheet
             Styles.UpdateXml();
@@ -1049,7 +1046,7 @@ namespace OfficeOpenXml
         {
             foreach (ExcelWorksheet sheet in _package.Workbook.Worksheets)
             {
-                if (!(sheet is ExcelChartsheet))
+                if (sheet is not ExcelChartsheet)
                 {
                     sheet.DataValidations.ValidateAll();
                 }
@@ -1088,7 +1085,7 @@ namespace OfficeOpenXml
                 }
                 else
                 {
-                    if (t.Length > 0 && (t[0] == ' ' || t[t.Length - 1] == ' ' || t.Contains("  ") || t.Contains("\t") || t.Contains("\n") || t.Contains("\n"))) //Fixes issue 14849
+                    if (t.Length > 0 && (t[0] == ' ' || t[^1] == ' ' || t.Contains("  ") || t.Contains("\t") || t.Contains("\n") || t.Contains("\n"))) //Fixes issue 14849
                     {
                         cache.Append("<si><t xml:space=\"preserve\">");
                     }
@@ -1148,7 +1145,7 @@ namespace OfficeOpenXml
 
                 foreach (ExcelWorksheet ws in _worksheets)
                 {
-                    if (!(ws is ExcelChartsheet))
+                    if (ws is not ExcelChartsheet)
                     {
                         foreach (ExcelNamedRange name in ws.Names)
                         {

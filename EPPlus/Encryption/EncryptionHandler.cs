@@ -316,7 +316,6 @@ namespace OfficeOpenXml.Encryption
         {
             var ds = new CompoundDocument.StoragePart();
             doc.Storage.SubStorage.Add("\x06" + "DataSpaces", ds);
-            var ver = new CompoundDocument.StoragePart();
             ds.DataStreams.Add("Version", CreateVersionStream());
             ds.DataStreams.Add("DataSpaceMap", CreateDataSpaceMap());
 
@@ -506,7 +505,6 @@ namespace OfficeOpenXml.Encryption
 
         private MemoryStream GetStreamFromPackage(CompoundDocument doc, ExcelEncryption encryption)
         {
-            var ret = new MemoryStream();
             if (doc.Storage.DataStreams.ContainsKey("EncryptionInfo") ||
                 doc.Storage.DataStreams.ContainsKey("EncryptedPackage"))
             {
@@ -873,7 +871,6 @@ namespace OfficeOpenXml.Encryption
                 encryptor,
                 CryptoStreamMode.Write);
 
-            long cryptoSize = size % encr.BlockSize == 0 ? size : size + (encr.BlockSize - size % encr.BlockSize);
             byte[] buffer = new byte[size];
             Array.Copy(data, (int)pos, buffer, 0, (int)size);
             cryptoStream.Write(buffer, 0, (int)size);
@@ -906,7 +903,7 @@ namespace OfficeOpenXml.Encryption
                     hashProvider = new SHA1CryptoServiceProvider();
 #endif
                 }
-                else if (encryptionInfo.Header.KeySize > 0 && encryptionInfo.Header.KeySize < 80)
+                else if (encryptionInfo.Header.KeySize is > 0 and < 80)
                 {
                     throw new NotSupportedException("RC4 Hash provider is not supported. Must be SHA1(AlgIDHash == 0x8004)");
                 }

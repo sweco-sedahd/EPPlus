@@ -130,22 +130,16 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         internal int Process(int r)
         {
             int t; // temporary storage
-            int b; // bit buffer
-            int k; // bits in bit buffer
-            int p; // input data pointer
-            int n; // bytes available there
-            int q; // output window write pointer
-            int m; // bytes to end of window or read pointer
 
-            // copy input/output information to locals (UPDATE macro restores)
+            int p = // input data pointer
+                // copy input/output information to locals (UPDATE macro restores)
+                _codec.NextIn;
+            int n = _codec.AvailableBytesIn; // bytes available there
+            int b = bitb; // bit buffer
+            int k = bitk; // bits in bit buffer
 
-            p = _codec.NextIn;
-            n = _codec.AvailableBytesIn;
-            b = bitb;
-            k = bitk;
-
-            q = writeAt;
-            m = q < readAt ? readAt - q - 1 : end - q;
+            int q = writeAt; // output window write pointer
+            int m = q < readAt ? readAt - q - 1 : end - q; // bytes to end of window or read pointer
 
 
             // process input based on current state
@@ -464,7 +458,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
                                 break;
                             }
 
-                            int i, j, c;
+                            int i, j;
 
                             t = bb[0];
 
@@ -491,7 +485,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
                             }
 
                             t = hufts[(tb[0] + (b & InternalInflateConstants.InflateMask[t])) * 3 + 1];
-                            c = hufts[(tb[0] + (b & InternalInflateConstants.InflateMask[t])) * 3 + 2];
+                            int c = hufts[(tb[0] + (b & InternalInflateConstants.InflateMask[t])) * 3 + 2];
 
                             if (c < 16)
                             {
@@ -853,20 +847,17 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
             int b = 0; // bit buffer
             int k = 0; // bits in bit buffer
             int p = 0; // input data pointer
-            int n; // bytes available there
-            int q; // output window write pointer
-            int m; // bytes to end of window or read pointer
             int f; // pointer to copy strings from
 
             ZlibCodec z = blocks._codec;
 
             // copy input/output information to locals (UPDATE macro restores)
             p = z.NextIn;
-            n = z.AvailableBytesIn;
+            int n = z.AvailableBytesIn; // bytes available there
             b = blocks.bitb;
             k = blocks.bitk;
-            q = blocks.writeAt;
-            m = q < blocks.readAt ? blocks.readAt - q - 1 : blocks.end - q;
+            int q = blocks.writeAt; // output window write pointer
+            int m = q < blocks.readAt ? blocks.readAt - q - 1 : blocks.end - q; // bytes to end of window or read pointer
 
             // process input and output based on current state
             while (true)
@@ -1279,14 +1270,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
             int[] tp; // temporary pointer
             int tp_index; // temporary pointer
             int e; // extra bits or operation
-            int b; // bit buffer
-            int k; // bits in bit buffer
-            int p; // input data pointer
-            int n; // bytes available there
-            int q; // output window write pointer
-            int m; // bytes to end of window or read pointer
-            int ml; // mask for literal/length tree
-            int md; // mask for distance tree
             int c; // bytes to copy
             int d; // distance back to copy from
             int r; // copy source pointer
@@ -1294,16 +1277,16 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
             int tp_index_t_3; // (tp_index+t)*3
 
             // load input, output, bit values
-            p = z.NextIn;
-            n = z.AvailableBytesIn;
-            b = s.bitb;
-            k = s.bitk;
-            q = s.writeAt;
-            m = q < s.readAt ? s.readAt - q - 1 : s.end - q;
+            int p = z.NextIn; // input data pointer
+            int n = z.AvailableBytesIn; // bytes available there
+            int b = s.bitb; // bit buffer
+            int k = s.bitk; // bits in bit buffer
+            int q = s.writeAt; // output window write pointer
+            int m = q < s.readAt ? s.readAt - q - 1 : s.end - q; // bytes to end of window or read pointer
 
             // initialize masks
-            ml = InternalInflateConstants.InflateMask[bl];
-            md = InternalInflateConstants.InflateMask[bd];
+            int ml = InternalInflateConstants.InflateMask[bl]; // mask for literal/length tree
+            int md = InternalInflateConstants.InflateMask[bd]; // mask for distance tree
 
             // do until not enough input or output space for fast loop
             do
@@ -1609,8 +1592,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
 
         internal int End()
         {
-            if (blocks != null)
-                blocks.Free();
+            blocks?.Free();
             blocks = null;
             return ZlibConstants.Z_OK;
         }
@@ -1871,9 +1853,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         internal int Sync()
         {
             int n; // number of bytes to look at
-            int p; // pointer to bytes
-            int m; // number of marker bytes found in a row
-            long r, w; // temporaries to save total_in and total_out
 
             // set up
             if (mode != InflateManagerMode.BAD)
@@ -1884,8 +1863,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
 
             if ((n = _codec.AvailableBytesIn) == 0)
                 return ZlibConstants.Z_BUF_ERROR;
-            p = _codec.NextIn;
-            m = marker;
+            int p = _codec.NextIn; // pointer to bytes
+            int m = marker; // number of marker bytes found in a row
 
             // search
             while (n != 0 && m < 4)
@@ -1919,8 +1898,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
                 return ZlibConstants.Z_DATA_ERROR;
             }
 
-            r = _codec.TotalBytesIn;
-            w = _codec.TotalBytesOut;
+            long r = _codec.TotalBytesIn; // temporaries to save total_in and total_out
+            long w = _codec.TotalBytesOut;
             Reset();
             _codec.TotalBytesIn = r;
             _codec.TotalBytesOut = w;

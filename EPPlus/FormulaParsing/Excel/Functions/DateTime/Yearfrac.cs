@@ -81,7 +81,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime
                     perYear = 366;
                 else if (calendar.IsLeapYear(dt2.Year) && dt2.Month > 2)
                     perYear = 366;
-                else if (dt2.Month == 2 && dt2.Day == 29)
+                else if (dt2 is { Month: 2, Day: 29 })
                     perYear = 366;
             }
 

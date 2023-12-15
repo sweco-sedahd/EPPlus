@@ -94,7 +94,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
                 return r.GetValue(r.Address._fromRow, r.Address._fromCol);
             }
 
-            return arg == null ? null : arg.Value;
+            return arg?.Value;
         }
 
         /// <summary>

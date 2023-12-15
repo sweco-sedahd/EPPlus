@@ -134,7 +134,7 @@ namespace OfficeOpenXml
                         }
                         else
                         {
-                            if (nodePrefix == "" || (node.OwnerDocument != null && node.OwnerDocument.DocumentElement != null && node.OwnerDocument.DocumentElement.NamespaceURI == nameSpaceURI &&
+                            if (nodePrefix == "" || (node.OwnerDocument is { DocumentElement: not null } && node.OwnerDocument.DocumentElement.NamespaceURI == nameSpaceURI &&
                                                      node.OwnerDocument.DocumentElement.Prefix == ""))
                             {
                                 subNode = node.OwnerDocument.CreateElement(nodeName, nameSpaceURI);
@@ -362,8 +362,7 @@ namespace OfficeOpenXml
                             }
                             else
                             {
-                                if (node.OwnerDocument != null
-                                    && node.OwnerDocument.DocumentElement != null
+                                if (node.OwnerDocument is { DocumentElement: not null }
                                     && node.OwnerDocument.DocumentElement.NamespaceURI == nameSpaceURI
                                     && node.OwnerDocument.DocumentElement.Prefix == string.Empty)
                                 {

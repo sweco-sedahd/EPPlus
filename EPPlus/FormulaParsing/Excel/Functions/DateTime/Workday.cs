@@ -13,7 +13,6 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime
             ValidateArguments(functionArguments, 2);
             System.DateTime startDate = System.DateTime.FromOADate(ArgToInt(functionArguments, 0));
             int nWorkDays = ArgToInt(functionArguments, 1);
-            var resultDate = System.DateTime.MinValue;
 
             var calculator = new WorkdayCalculator();
             WorkdayCalculatorResult result = calculator.CalculateWorkday(startDate, nWorkDays);

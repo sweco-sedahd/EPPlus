@@ -40,7 +40,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
                 return CreateResult(System.Math.Truncate(number), DataType.Decimal);
             }
 
-            int nDigits = ArgToInt(arguments, 1);
+            ArgToInt(arguments, 1);
             ExcelFunction func = context.Configuration.FunctionRepository.GetFunction("rounddown");
             return func.Execute(arguments, context);
         }

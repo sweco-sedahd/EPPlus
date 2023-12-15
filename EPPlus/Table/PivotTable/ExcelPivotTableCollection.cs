@@ -48,7 +48,6 @@ namespace OfficeOpenXml.Table.PivotTable
 
         internal ExcelPivotTableCollection(ExcelWorksheet ws)
         {
-            ZipPackage pck = ws._package.Package;
             _ws = ws;
             foreach (ZipPackageRelationship rel in ws.Part.GetRelationships())
             {

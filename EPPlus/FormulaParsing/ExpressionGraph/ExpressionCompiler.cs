@@ -117,7 +117,6 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
         {
             Expression first = _expressions.First();
             IEnumerable<Expression> expressionsToHandle = _expressions.Where(x => x.Operator != null && x.Operator.Precedence == precedence);
-            Expression last = expressionsToHandle.Last();
             Expression expression = expressionsToHandle.First();
             do
             {
@@ -134,7 +133,7 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
                 }
 
                 expression = compiledExpression;
-            } while (expression != null && expression.Operator != null && expression.Operator.Precedence == precedence);
+            } while (expression is { Operator: not null } && expression.Operator.Precedence == precedence);
 
             return RefreshList(first);
         }

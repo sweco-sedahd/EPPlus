@@ -15,7 +15,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Information
                 if (arg is ExcelDataProvider.IRangeInfo)
                 {
                     var r = (ExcelDataProvider.IRangeInfo)arg;
-                    if (r.GetValue(r.Address._fromRow, r.Address._fromCol) is ExcelErrorValue e && e.Type == eErrorType.NA)
+                    if (r.GetValue(r.Address._fromRow, r.Address._fromCol) is ExcelErrorValue { Type: eErrorType.NA })
                     {
                         return CreateResult(false, DataType.Boolean);
                     }

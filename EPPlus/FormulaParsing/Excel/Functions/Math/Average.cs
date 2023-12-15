@@ -87,7 +87,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
 
         private double? GetNumericValue(object obj, bool isInArray)
         {
-            if (IsNumeric(obj) && !(obj is bool))
+            if (IsNumeric(obj) && obj is not bool)
             {
                 return ConvertUtil.GetValueDouble(obj);
             }

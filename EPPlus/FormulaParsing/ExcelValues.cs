@@ -139,7 +139,7 @@ namespace OfficeOpenXml
 
         public override bool Equals(object obj)
         {
-            if (!(obj is ExcelErrorValue)) return false;
+            if (obj is not ExcelErrorValue) return false;
             return ((ExcelErrorValue)obj).ToString() == ToString();
         }
 
@@ -175,7 +175,7 @@ namespace OfficeOpenXml
             /// <returns></returns>
             public static bool IsErrorValue(object candidate)
             {
-                if (candidate == null || !(candidate is ExcelErrorValue)) return false;
+                if (candidate == null || candidate is not ExcelErrorValue) return false;
                 string candidateString = candidate.ToString();
                 return !string.IsNullOrEmpty(candidateString) && _values.ContainsKey(candidateString);
             }

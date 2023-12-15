@@ -93,7 +93,7 @@ namespace OfficeOpenXml.DataValidation.Formulas
                     State = FormulaState.Formula;
                 }
 
-                if (value != null && value.Length > 255)
+                if (value is { Length: > 255 })
                 {
                     throw new InvalidOperationException("The length of a DataValidation formula cannot exceed 255 characters");
                 }

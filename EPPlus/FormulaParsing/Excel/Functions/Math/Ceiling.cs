@@ -37,7 +37,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
             double number = ArgToDecimal(arguments, 0);
             double significance = ArgToDecimal(arguments, 1);
             ValidateNumberAndSign(number, significance);
-            if (significance < 1 && significance > 0)
+            if (significance is < 1 and > 0)
             {
                 double floor = System.Math.Floor(number);
                 double rest = number - floor;

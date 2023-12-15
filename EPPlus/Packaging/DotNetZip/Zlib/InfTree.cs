@@ -127,24 +127,13 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
 
             int a; // counter for codes of length k
             int f; // i repeats in table every f entries
-            int g; // maximum code length
-            int h; // table level
-            int i; // counter, current code
             int j; // counter
-            int k; // number of bits in current code
-            int l; // bits per table (returned in m)
             int mask; // (1 << w) - 1, to avoid cc -O bug on HP
-            int p; // pointer into c[], b[], or v[]
-            int q; // points to current table
-            int w; // bits before this table == (l * h)
-            int xp; // pointer into x
             int y; // number of dummy codes added
-            int z; // number of entries in current table
 
             // Generate counts for each bit length
-
-            p = 0;
-            i = n;
+            int p = 0; // pointer into c[], b[], or v[]
+            int i = n; // counter, current code
             do
             {
                 c[b[bindex + p]]++;
@@ -161,11 +150,12 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
             }
 
             // Find minimum and maximum length, bound *m by those
-            l = m[0];
+            int l = m[0]; // bits per table (returned in m)
             for (j = 1; j <= BMAX; j++)
                 if (c[j] != 0)
                     break;
-            k = j; // minimum code length
+            int k = j; // minimum code length
+            // number of bits in current code
             if (l < j)
             {
                 l = j;
@@ -177,7 +167,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
                     break;
             }
 
-            g = i; // maximum code length
+            int g = i; // maximum code length
+            // maximum code length
             if (l > i)
             {
                 l = i;
@@ -204,7 +195,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
             // Generate starting offsets into the value table for each length
             x[1] = j = 0;
             p = 1;
-            xp = 2;
+            int xp = 2; // pointer into x
             while (--i != 0)
             {
                 // note that i == g from above
@@ -231,12 +222,15 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
             // Generate the Huffman codes and for each, make the table entries
             x[0] = i = 0; // first Huffman code is zero
             p = 0; // grab values in bit order
-            h = -1; // no tables yet--level -1
-            w = -l; // bits decoded == (l * h)
+            int h = -1; // no tables yet--level -1
+            // table level
+            int w = -l; // bits decoded == (l * h)
+            // bits before this table == (l * h)
             u[0] = 0; // just to keep compilers happy
-            q = 0; // ditto
-            z = 0; // ditto
-
+            int q = 0; // ditto
+            // points to current table
+            int z = 0; // ditto
+            // number of entries in current table
             // go through the bit lengths (k already is bits in shortest code)
             for (; k <= g; k++)
             {
@@ -347,10 +341,9 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
 
         internal int inflate_trees_bits(int[] c, int[] bb, int[] tb, int[] hp, ZlibCodec z)
         {
-            int result;
             initWorkArea(19);
             hn[0] = 0;
-            result = huft_build(c, 0, 19, 19, null, null, tb, bb, hp, hn, v);
+            int result = huft_build(c, 0, 19, 19, null, null, tb, bb, hp, hn, v);
 
             if (result == Z_DATA_ERROR)
             {
@@ -367,12 +360,10 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
 
         internal int inflate_trees_dynamic(int nl, int nd, int[] c, int[] bl, int[] bd, int[] tl, int[] td, int[] hp, ZlibCodec z)
         {
-            int result;
-
             // build literal/length tree
             initWorkArea(288);
             hn[0] = 0;
-            result = huft_build(c, 0, nl, 257, cplens, cplext, tl, bl, hp, hn, v);
+            int result = huft_build(c, 0, nl, 257, cplens, cplext, tl, bl, hp, hn, v);
             if (result != Z_OK || bl[0] == 0)
             {
                 if (result == Z_DATA_ERROR)

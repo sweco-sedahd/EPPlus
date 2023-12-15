@@ -104,7 +104,7 @@ namespace OfficeOpenXml.Packaging
                     if (e.UncompressedSize > 0)
                     {
                         byte[] b = new byte[e.UncompressedSize];
-                        int size = zip.Read(b, 0, (int)e.UncompressedSize);
+                        zip.Read(b, 0, (int)e.UncompressedSize);
                         if (e.FileName.Equals("[content_types].xml", StringComparison.OrdinalIgnoreCase))
                         {
                             AddContentTypes(Encoding.UTF8.GetString(b));
@@ -249,7 +249,7 @@ namespace OfficeOpenXml.Packaging
             var os = new ZipOutputStream(stream, true);
             os.CompressionLevel = (Ionic.Zlib.CompressionLevel)_compression;
             /**** ContentType****/
-            ZipEntry entry = os.PutNextEntry("[Content_Types].xml");
+            os.PutNextEntry("[Content_Types].xml");
             byte[] b = enc.GetBytes(GetContentTypeXml());
             os.Write(b, 0, b.Length);
             /**** Top Rels ****/
@@ -268,10 +268,7 @@ namespace OfficeOpenXml.Packaging
             }
 
             //Shared strings must be saved after all worksheets. The ss dictionary is populated when that workheets are saved (to get the best performance).
-            if (ssPart != null)
-            {
-                ssPart.WriteZip(os);
-            }
+            ssPart?.WriteZip(os);
 
             os.Flush();
 

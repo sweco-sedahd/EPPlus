@@ -1263,7 +1263,7 @@ namespace OfficeOpenXml.Packaging.Ionic
         [Conditional("SelectorTrace")]
         private void SelectorTrace(string format, params object[] args)
         {
-            if (_Criterion != null && _Criterion.Verbose)
+            if (_Criterion is { Verbose: true })
                 Console.WriteLine(format, args);
         }
 

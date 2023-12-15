@@ -166,7 +166,7 @@ namespace OfficeOpenXml
                 {
                     throw fe;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     ExcelErrorValue error = ExcelErrorValue.Parse(ExcelErrorValue.Values.Value);
                     SetValue(wb, item, error);
@@ -180,12 +180,9 @@ namespace OfficeOpenXml
             ;
             foreach (ExcelWorksheet ws in workbook.Worksheets)
             {
-                if (!(ws is ExcelChartsheet))
+                if (ws is not ExcelChartsheet)
                 {
-                    if (ws._formulaTokens != null)
-                    {
-                        ws._formulaTokens.Dispose();
-                    }
+                    ws._formulaTokens?.Dispose();
 
                     ws._formulaTokens = new CellStore<List<Token>>();
                 }

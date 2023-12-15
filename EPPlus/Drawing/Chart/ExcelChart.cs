@@ -503,7 +503,7 @@ namespace OfficeOpenXml.Drawing.Chart
             }
             else
             {
-                _axis[0].TopNode.ParentNode.InsertAfter(catAx, _axis[_axis.Length - 1].TopNode);
+                _axis[0].TopNode.ParentNode.InsertAfter(catAx, _axis[^1].TopNode);
                 axID = int.Parse(_axis[0].Id) < int.Parse(_axis[1].Id) ? int.Parse(_axis[1].Id) + 1 : int.Parse(_axis[0].Id) + 1;
             }
 
@@ -533,8 +533,8 @@ namespace OfficeOpenXml.Drawing.Chart
                 _axis = newAxis;
             }
 
-            _axis[_axis.Length - 2] = new ExcelChartAxis(NameSpaceManager, catAx);
-            _axis[_axis.Length - 1] = new ExcelChartAxis(NameSpaceManager, valAx);
+            _axis[^2] = new ExcelChartAxis(NameSpaceManager, catAx);
+            _axis[^1] = new ExcelChartAxis(NameSpaceManager, valAx);
             foreach (ExcelChart chart in _plotArea.ChartTypes)
             {
                 chart._axis = _axis;
@@ -564,10 +564,7 @@ namespace OfficeOpenXml.Drawing.Chart
                     if (topChart == null)
                     {
                         topChart = GetChart(n, drawings, node, uriChart, part, chartXml, null);
-                        if (topChart != null)
-                        {
-                            topChart.PlotArea.ChartTypes.Add(topChart);
-                        }
+                        topChart?.PlotArea.ChartTypes.Add(topChart);
                     }
                     else
                     {
@@ -940,7 +937,7 @@ namespace OfficeOpenXml.Drawing.Chart
                 UriChart = topChart.UriChart;
                 _axis = topChart._axis;
 
-                XmlNode preNode = _plotArea.ChartTypes[_plotArea.ChartTypes.Count - 1].ChartNode;
+                XmlNode preNode = _plotArea.ChartTypes[^1].ChartNode;
                 _chartNode = ChartXml.CreateElement(GetChartNodeText(), ExcelPackage.schemaChart);
                 preNode.ParentNode.InsertAfter(_chartNode, preNode);
                 if (topChart.Axis.Length == 0)
@@ -963,7 +960,7 @@ namespace OfficeOpenXml.Drawing.Chart
             {
                 string id = node.Attributes["val"].Value;
                 XmlNodeList axNode = ChartXml.SelectNodes(rootPath + string.Format("/*/c:axId[@val=\"{0}\"]", id), NameSpaceManager);
-                if (axNode != null && axNode.Count > 1)
+                if (axNode is { Count: > 1 })
                 {
                     foreach (XmlNode axn in axNode)
                     {

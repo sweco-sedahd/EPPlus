@@ -91,13 +91,12 @@ namespace OfficeOpenXml.VBA
             else
             {
                 //Join Password and Key
-                byte[] data;
                 //Set the key
                 PasswordKey = new byte[4];
                 var r = RandomNumberGenerator.Create();
                 r.GetBytes(PasswordKey);
 
-                data = new byte[Password.Length + 4];
+                byte[] data = new byte[Password.Length + 4];
                 Array.Copy(Encoding.GetEncoding(_project.CodePage).GetBytes(Password), data, Password.Length);
                 VbeProtected = true;
                 VisibilityState = false;

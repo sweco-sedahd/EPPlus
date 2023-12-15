@@ -577,7 +577,7 @@ namespace OfficeOpenXml.Style.XmlAccess
                     var numerators = new List<double> { 1, 0 };
                     var denominators = new List<double> { 0, 1 };
 
-                    if (maxDigits < 1 && maxDigits > 12)
+                    if (maxDigits is < 1 or > 12)
                     {
                         throw new ArgumentException("Number of digits out of range (1-12)");
                     }

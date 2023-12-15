@@ -71,7 +71,7 @@ namespace OfficeOpenXml.ConditionalFormatting
                 itemElementNode,
                 namespaceManager ?? worksheet.NameSpaceManager)
         {
-            if (itemElementNode != null && itemElementNode.HasChildNodes)
+            if (itemElementNode is { HasChildNodes: true })
             {
                 XmlNode iconNode4 = TopNode.SelectSingleNode("d:iconSet/d:cfvo[position()=4]", NameSpaceManager);
                 Icon4 = new ExcelConditionalFormattingIconDataBarValue(

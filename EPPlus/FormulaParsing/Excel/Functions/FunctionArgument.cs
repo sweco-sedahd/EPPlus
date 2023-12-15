@@ -52,7 +52,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
 
         public int ExcelAddressReferenceId { get; set; }
 
-        public bool IsExcelRange => Value != null && Value is ExcelDataProvider.IRangeInfo;
+        public bool IsExcelRange => Value is ExcelDataProvider.IRangeInfo;
 
         public bool ValueIsExcelError => ExcelErrorValue.Values.IsErrorValue(Value);
 

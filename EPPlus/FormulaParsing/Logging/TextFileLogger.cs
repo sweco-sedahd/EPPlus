@@ -107,7 +107,7 @@ namespace OfficeOpenXml.FormulaParsing.Logging
 
         private void WriteAddressInfo(ParsingContext context)
         {
-            if (context.Scopes.Current != null && context.Scopes.Current.Address != null)
+            if (context.Scopes.Current is { Address: not null })
             {
                 _sw.WriteLine("Worksheet: {0}", context.Scopes.Current.Address.Worksheet ?? "<not specified>");
                 _sw.WriteLine("Address: {0}", context.Scopes.Current.Address.Address ?? "<not available>");

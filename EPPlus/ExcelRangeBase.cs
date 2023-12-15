@@ -163,7 +163,7 @@ namespace OfficeOpenXml
 
             while (e.Next())
             {
-                if (l.Count == 0 || l[l.Count - 1].Row != e.Row)
+                if (l.Count == 0 || l[^1].Row != e.Row)
                 {
                     item = new SortItem<ExcelCoreValue> { Row = e.Row, Items = new ExcelCoreValue[cols] };
                     l.Add(item);
@@ -753,7 +753,7 @@ namespace OfficeOpenXml
                         {
                             if (column.ColumnMax > _toCol)
                             {
-                                ExcelColumn newCol = _worksheet.CopyColumn(column, _toCol + 1, column.ColumnMax);
+                                _worksheet.CopyColumn(column, _toCol + 1, column.ColumnMax);
                                 column.ColumnMax = _toCol;
                             }
 
@@ -963,13 +963,12 @@ namespace OfficeOpenXml
 
         private ExcelAddressBase GetAddressDim(ExcelRangeBase addr)
         {
-            int fromRow, fromCol, toRow, toCol;
             ExcelAddressBase d = _worksheet.Dimension;
-            fromRow = addr._fromRow < d._fromRow ? d._fromRow : addr._fromRow;
-            fromCol = addr._fromCol < d._fromCol ? d._fromCol : addr._fromCol;
+            int fromRow = addr._fromRow < d._fromRow ? d._fromRow : addr._fromRow;
+            int fromCol = addr._fromCol < d._fromCol ? d._fromCol : addr._fromCol;
 
-            toRow = addr._toRow > d._toRow ? d._toRow : addr._toRow;
-            toCol = addr._toCol > d._toCol ? d._toCol : addr._toCol;
+            int toRow = addr._toRow > d._toRow ? d._toRow : addr._toRow;
+            int toCol = addr._toCol > d._toCol ? d._toCol : addr._toCol;
 
             if (addr._fromRow == fromRow && addr._fromCol == fromCol && addr._toRow == toRow && addr._toCol == _toCol)
             {
@@ -1074,7 +1073,7 @@ namespace OfficeOpenXml
                     _worksheet.AutoFilterAddress._fromCol,
                     _worksheet.AutoFilterAddress._fromRow,
                     _worksheet.AutoFilterAddress._toCol));
-                afAddr[afAddr.Count - 1]._ws = WorkSheet;
+                afAddr[^1]._ws = WorkSheet;
             }
 
             foreach (ExcelTable tbl in _worksheet.Tables)
@@ -1085,7 +1084,7 @@ namespace OfficeOpenXml
                         tbl.AutoFilterAddress._fromCol,
                         tbl.AutoFilterAddress._fromRow,
                         tbl.AutoFilterAddress._toCol));
-                    afAddr[afAddr.Count - 1]._ws = WorkSheet;
+                    afAddr[^1]._ws = WorkSheet;
                 }
             }
 
@@ -1096,7 +1095,6 @@ namespace OfficeOpenXml
             if (nf.UnderLine) fs |= FontStyle.Underline;
             if (nf.Italic) fs |= FontStyle.Italic;
             if (nf.Strike) fs |= FontStyle.Strikeout;
-            var nfont = new Font(nf.Name, nf.Size, fs);
 
             float normalSize = Convert.ToSingle(ExcelWorkbook.GetWidthPixels(nf.Name, nf.Size));
 

@@ -614,12 +614,9 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             // When in the context of a ZipFile.ExtractAll, the events are generated from
             // the ZipFile method, not from within the ZipEntry instance. (why?)
             // Therefore we suppress the events originating from the ZipEntry method.
-            if (_container.ZipFile != null)
+            if (_container.ZipFile is { _inExtractAll: false })
             {
-                if (!_container.ZipFile._inExtractAll)
-                {
-                    _ioOperationCanceled = _container.ZipFile.OnSingleEntryExtract(this, path, true);
-                }
+                _ioOperationCanceled = _container.ZipFile.OnSingleEntryExtract(this, path, true);
             }
         }
 
@@ -628,12 +625,9 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             // When in the context of a ZipFile.ExtractAll, the events are generated from
             // the ZipFile method, not from within the ZipEntry instance. (why?)
             // Therefore we suppress the events originating from the ZipEntry method.
-            if (_container.ZipFile != null)
+            if (_container.ZipFile is { _inExtractAll: false })
             {
-                if (!_container.ZipFile._inExtractAll)
-                {
-                    _container.ZipFile.OnSingleEntryExtract(this, path, false);
-                }
+                _container.ZipFile.OnSingleEntryExtract(this, path, false);
             }
         }
 
@@ -661,7 +655,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
         private void WriteStatus(string format, params object[] args)
         {
-            if (_container.ZipFile != null && _container.ZipFile.Verbose) _container.ZipFile.StatusMessageTextWriter.WriteLine(format, args);
+            if (_container.ZipFile is { Verbose: true }) _container.ZipFile.StatusMessageTextWriter.WriteLine(format, args);
         }
 
 
@@ -868,7 +862,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 {
                     if (targetFileName != null)
                     {
-                        if (output != null) output.Close();
+                        output?.Close();
                         // An exception has occurred. If the file exists, check
                         // to see if it existed before we tried extracting.  If
                         // it did not, attempt to remove the target file. There

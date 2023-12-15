@@ -134,8 +134,7 @@ namespace OfficeOpenXml.Sparkline
                     return null;
                 }
 
-                ExcelWorksheet ws = _ws.Workbook.Worksheets[Sparklines[0].RangeAddress.WorkSheet];
-                return _ws.Cells[Sparklines[0].RangeAddress._fromRow, Sparklines[0].RangeAddress._fromCol, Sparklines[Sparklines.Count - 1].RangeAddress._toRow, Sparklines[Sparklines.Count - 1].RangeAddress._toCol];
+                return _ws.Cells[Sparklines[0].RangeAddress._fromRow, Sparklines[0].RangeAddress._fromCol, Sparklines[^1].RangeAddress._toRow, Sparklines[^1].RangeAddress._toCol];
             }
         }
 
@@ -151,7 +150,7 @@ namespace OfficeOpenXml.Sparkline
                     return null;
                 }
 
-                return _ws.Cells[Sparklines[0].Cell.Row, Sparklines[0].Cell.Column, Sparklines[Sparklines.Count - 1].Cell.Row, Sparklines[Sparklines.Count - 1].Cell.Column];
+                return _ws.Cells[Sparklines[0].Cell.Row, Sparklines[0].Cell.Column, Sparklines[^1].Cell.Row, Sparklines[^1].Cell.Column];
             }
         }
 

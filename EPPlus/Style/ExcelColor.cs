@@ -245,7 +245,7 @@ namespace OfficeOpenXml.Style
                 // coloring by pre-set color codes
                 translatedRGB = rgbLookup[theColor.Indexed];
             }
-            else if (null != theColor.Rgb && 0 < theColor.Rgb.Length)
+            else if (theColor.Rgb is { Length: > 0 })
             {
                 // coloring by RGB value ("FFRRGGBB")
                 translatedRGB = "#" + theColor.Rgb;

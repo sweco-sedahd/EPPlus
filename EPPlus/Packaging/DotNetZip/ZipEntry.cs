@@ -1344,7 +1344,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 else if (CompressionLevel == Zlib.CompressionLevel.None)
                     _CompressionLevel = Zlib.CompressionLevel.Default;
 
-                if (_container.ZipFile != null) _container.ZipFile.NotifyEntryChanged();
+                _container.ZipFile?.NotifyEntryChanged();
                 _restreamRequiredOnSave = true;
             }
         }
@@ -1414,7 +1414,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 else
                     _CompressionMethod = (short)CompressionMethod.Deflate;
 
-                if (_container.ZipFile != null) _container.ZipFile.NotifyEntryChanged();
+                _container.ZipFile?.NotifyEntryChanged();
                 _restreamRequiredOnSave = true;
             }
         }
@@ -1699,8 +1699,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
                 _Encryption = value;
                 _restreamRequiredOnSave = true;
-                if (_container.ZipFile != null)
-                    _container.ZipFile.NotifyEntryChanged();
+                _container.ZipFile?.NotifyEntryChanged();
             }
         }
 

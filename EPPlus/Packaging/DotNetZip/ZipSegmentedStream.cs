@@ -103,19 +103,16 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
         public override bool CanRead =>
             rwMode == RwMode.ReadOnly &&
-            _innerStream != null &&
-            _innerStream.CanRead;
+            _innerStream is { CanRead: true };
 
 
         public override bool CanSeek =>
-            _innerStream != null &&
-            _innerStream.CanSeek;
+            _innerStream is { CanSeek: true };
 
 
         public override bool CanWrite =>
             rwMode == RwMode.Write &&
-            _innerStream != null &&
-            _innerStream.CanWrite;
+            _innerStream is { CanWrite: true };
 
         public override long Length => _innerStream.Length;
 
@@ -253,14 +250,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
         private void _SetReadStream()
         {
-            if (_innerStream != null)
-            {
-#if NETCF
-                _innerStream.Close();
-#else
-                _innerStream.Dispose();
-#endif
-            }
+            _innerStream?.Dispose();
 
             if (CurrentSegment + 1 == _maxDiskNumber)
                 _currentName = _baseName;

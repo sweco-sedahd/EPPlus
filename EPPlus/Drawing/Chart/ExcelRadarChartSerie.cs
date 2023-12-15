@@ -100,7 +100,7 @@ namespace OfficeOpenXml.Drawing.Chart
             get => GetXmlNodeInt(MARKERSIZE_PATH);
             set
             {
-                if (value < 2 && value > 72)
+                if (value is < 2 or > 72)
                 {
                     throw new ArgumentOutOfRangeException("MarkerSize out of range. Range from 2-72 allowed.");
                 }
