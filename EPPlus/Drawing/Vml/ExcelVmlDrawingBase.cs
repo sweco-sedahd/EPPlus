@@ -13,28 +13,25 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		Initial Release		        2010-06-01
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml;
-using System.Globalization;
-using System.Drawing;
 
 namespace OfficeOpenXml.Drawing.Vml
 {
@@ -47,6 +44,7 @@ namespace OfficeOpenXml.Drawing.Vml
         Center,
         Right
     }
+
     /// <summary>
     /// Vertical Alingment
     /// </summary>
@@ -56,6 +54,7 @@ namespace OfficeOpenXml.Drawing.Vml
         Center,
         Bottom
     }
+
     /// <summary>
     /// Linestyle
     /// </summary>
@@ -70,6 +69,7 @@ namespace OfficeOpenXml.Drawing.Vml
         LongDashDot,
         LongDashDotDot
     }
+
     /// <summary>
     /// Drawing object used for comments
     /// </summary>
@@ -78,61 +78,55 @@ namespace OfficeOpenXml.Drawing.Vml
         internal ExcelVmlDrawingBase(XmlNode topNode, XmlNamespaceManager ns) :
             base(ns, topNode)
         {
-            SchemaNodeOrder = new string[] { "fill", "stroke", "shadow", "path", "textbox", "ClientData", "MoveWithCells", "SizeWithCells", "Anchor", "Locked", "AutoFill", "LockText", "TextHAlign", "TextVAlign", "Row", "Column", "Visible" };
-        }   
-        public string Id 
-        {
-            get
-            {
-                return GetXmlNodeString("@id");
-            }
-            set
-            {
-                SetXmlNodeString("@id",value);
-            }
+            SchemaNodeOrder = new[] { "fill", "stroke", "shadow", "path", "textbox", "ClientData", "MoveWithCells", "SizeWithCells", "Anchor", "Locked", "AutoFill", "LockText", "TextHAlign", "TextVAlign", "Row", "Column", "Visible" };
         }
+
+        public string Id
+        {
+            get => GetXmlNodeString("@id");
+            set => SetXmlNodeString("@id", value);
+        }
+
         /// <summary>
         /// Alternative text to be displayed instead of a graphic.
         /// </summary>
         public string AlternativeText
         {
-            get
-            {
-                return GetXmlNodeString("@alt");
-            }
-            set
-            {
-                SetXmlNodeString("@alt", value);
-            }
+            get => GetXmlNodeString("@alt");
+            set => SetXmlNodeString("@alt", value);
         }
+
         #region "Style Handling methods"
+
         protected bool GetStyle(string style, string key, out string value)
         {
-            string[]styles = style.Split(';');
-            foreach(string s in styles)
+            string[] styles = style.Split(';');
+            foreach (string s in styles)
             {
                 if (s.IndexOf(':') > 0)
                 {
                     string[] split = s.Split(':');
                     if (split[0] == key)
                     {
-                        value=split[1];
+                        value = split[1];
                         return true;
                     }
                 }
                 else if (s == key)
                 {
-                    value="";
+                    value = "";
                     return true;
                 }
             }
-            value="";
+
+            value = "";
             return false;
         }
+
         protected string SetStyle(string style, string key, string value)
         {
             string[] styles = style.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-            string newStyle="";
+            string newStyle = "";
             bool changed = false;
             foreach (string s in styles)
             {
@@ -143,14 +137,17 @@ namespace OfficeOpenXml.Drawing.Vml
                     {
                         newStyle += key + ':' + value;
                     }
+
                     changed = true;
                 }
                 else
                 {
                     newStyle += s;
                 }
+
                 newStyle += ';';
             }
+
             if (!changed)
             {
                 newStyle += key + ':' + value;
@@ -159,8 +156,10 @@ namespace OfficeOpenXml.Drawing.Vml
             {
                 newStyle = newStyle.Substring(0, newStyle.Length - 1);
             }
+
             return newStyle;
         }
+
         #endregion
     }
 }

@@ -7,25 +7,25 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Mats Alm   		                Added		                2013-12-03
  *******************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.Exceptions;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph;
 
@@ -37,14 +37,14 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
         {
             ValidateArguments(arguments, 1);
             double result = 0d;
-            List<List<double>> results = new List<List<double>>();
-            foreach (var arg in arguments)
+            var results = new List<List<double>>();
+            foreach (FunctionArgument arg in arguments)
             {
                 results.Add(new List<double>());
-                var currentResult = results.Last();
+                List<double> currentResult = results.Last();
                 if (arg.Value is IEnumerable<FunctionArgument>)
                 {
-                    foreach (var val in (IEnumerable<FunctionArgument>)arg.Value)
+                    foreach (FunctionArgument val in (IEnumerable<FunctionArgument>)arg.Value)
                     {
                         AddValue(val.Value, currentResult);
                     }
@@ -55,23 +55,24 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
                 }
                 else if (arg.IsExcelRange)
                 {
-                    var r=arg.ValueAsRangeInfo;
+                    ExcelDataProvider.IRangeInfo r = arg.ValueAsRangeInfo;
                     for (int col = r.Address._fromCol; col <= r.Address._toCol; col++)
                     {
                         for (int row = r.Address._fromRow; row <= r.Address._toRow; row++)
                         {
-                            AddValue(r.GetValue(row,col), currentResult);
+                            AddValue(r.GetValue(row, col), currentResult);
                         }
                     }
                 }
-                else if(IsNumeric(arg.Value))
+                else if (IsNumeric(arg.Value))
                 {
                     AddValue(arg.Value, currentResult);
                 }
             }
+
             // Validate that all supplied lists have the same length
-            var arrayLength = results.First().Count;
-            foreach (var list in results)
+            int arrayLength = results.First().Count;
+            foreach (List<double> list in results)
             {
                 if (list.Count != arrayLength)
                 {
@@ -79,15 +80,18 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
                     //throw new ExcelFunctionException("All supplied arrays must have the same length", ExcelErrorCodes.Value);
                 }
             }
-            for (var rowIndex = 0; rowIndex < arrayLength; rowIndex++)
+
+            for (int rowIndex = 0; rowIndex < arrayLength; rowIndex++)
             {
                 double rowResult = 1;
-                for (var colIndex = 0; colIndex < results.Count; colIndex++)
+                for (int colIndex = 0; colIndex < results.Count; colIndex++)
                 {
                     rowResult *= results[colIndex][rowIndex];
                 }
+
                 result += rowResult;
             }
+
             return CreateResult(result, DataType.Decimal);
         }
 
@@ -99,7 +103,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
             }
             else if (convertVal is ExcelErrorValue)
             {
-                throw (new ExcelErrorValueException((ExcelErrorValue)convertVal));
+                throw new ExcelErrorValueException((ExcelErrorValue)convertVal);
             }
             else
             {

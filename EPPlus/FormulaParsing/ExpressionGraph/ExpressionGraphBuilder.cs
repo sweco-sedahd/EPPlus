@@ -13,45 +13,42 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using OfficeOpenXml.FormulaParsing.Excel.Operators;
 using OfficeOpenXml.FormulaParsing.Exceptions;
 using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
-using OfficeOpenXml.FormulaParsing.Excel;
-using OfficeOpenXml.FormulaParsing;
 
 namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
 {
-    public class ExpressionGraphBuilder :IExpressionGraphBuilder
+    public class ExpressionGraphBuilder : IExpressionGraphBuilder
     {
-        private readonly ExpressionGraph _graph = new ExpressionGraph();
         private readonly IExpressionFactory _expressionFactory;
+        private readonly ExpressionGraph _graph = new();
         private readonly ParsingContext _parsingContext;
-        private int _tokenIndex = 0;
         private bool _negateNextExpression;
+        private int _tokenIndex;
 
         public ExpressionGraphBuilder(ExcelDataProvider excelDataProvider, ParsingContext parsingContext)
             : this(new ExpressionFactory(excelDataProvider, parsingContext), parsingContext)
         {
-
         }
 
         public ExpressionGraphBuilder(IExpressionFactory expressionFactory, ParsingContext parsingContext)
@@ -64,7 +61,7 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
         {
             _tokenIndex = 0;
             _graph.Reset();
-            var tokensArr = tokens != null ? tokens.ToArray() : new Token[0];
+            Token[] tokensArr = tokens != null ? tokens.ToArray() : new Token[0];
             BuildUp(tokensArr, null);
             return _graph;
         }
@@ -73,9 +70,8 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
         {
             while (_tokenIndex < tokens.Length)
             {
-                var token = tokens[_tokenIndex];
-                IOperator op = null;
-                if (token.TokenType == TokenType.Operator && OperatorsDict.Instance.TryGetValue(token.Value, out op))
+                Token token = tokens[_tokenIndex];
+                if (token.TokenType == TokenType.Operator && OperatorsDict.Instance.TryGetValue(token.Value, out IOperator op))
                 {
                     SetOperatorOnExpression(parent, op);
                 }
@@ -97,11 +93,11 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
                     //    return;
                     //}
                 }
-                else if (token.TokenType == TokenType.ClosingParenthesis || token.TokenType == TokenType.ClosingEnumerable)
+                else if (token.TokenType is TokenType.ClosingParenthesis or TokenType.ClosingEnumerable)
                 {
                     break;
                 }
-                else if(token.TokenType == TokenType.WorksheetName)
+                else if (token.TokenType == TokenType.WorksheetName)
                 {
                     var sb = new StringBuilder();
                     sb.Append(tokens[_tokenIndex++].Value);
@@ -115,7 +111,7 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
                 {
                     _negateNextExpression = true;
                 }
-                else if(token.TokenType == TokenType.Percent)
+                else if (token.TokenType == TokenType.Percent)
                 {
                     SetOperatorOnExpression(parent, Operator.Percent);
                     if (parent == null)
@@ -131,6 +127,7 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
                 {
                     CreateAndAppendExpression(ref parent, token);
                 }
+
                 _tokenIndex++;
             }
         }
@@ -153,18 +150,20 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
         private void CreateAndAppendExpression(ref Expression parent, Token token)
         {
             if (IsWaste(token)) return;
-            if (parent != null && 
-                (token.TokenType == TokenType.Comma || token.TokenType == TokenType.SemiColon))
+            if (parent != null &&
+                token.TokenType is TokenType.Comma or TokenType.SemiColon)
             {
                 parent = parent.PrepareForNextChild();
                 return;
             }
+
             if (_negateNextExpression)
             {
                 token.Negate();
                 _negateNextExpression = false;
             }
-            var expression = _expressionFactory.Create(token);
+
+            Expression expression = _expressionFactory.Create(token);
             if (parent == null)
             {
                 _graph.Add(expression);
@@ -181,6 +180,7 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
             {
                 return true;
             }
+
             return false;
         }
 
@@ -204,11 +204,12 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
         private void HandleFunctionArguments(Token[] tokens, Expression function)
         {
             _tokenIndex++;
-            var token = tokens.ElementAt(_tokenIndex);
+            Token token = tokens.ElementAt(_tokenIndex);
             if (token.TokenType != TokenType.OpeningParenthesis)
             {
                 throw new ExcelErrorValueException(eErrorType.Value);
             }
+
             _tokenIndex++;
             BuildUp(tokens, function.Children.First());
         }
@@ -230,7 +231,8 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
                     parent.AddChild(newGroupExpression);
                     BuildUp(tokens, newGroupExpression);
                 }
-                 BuildUp(tokens, parent);
+
+                BuildUp(tokens, parent);
             }
         }
 
@@ -255,6 +257,7 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
                         candidate = candidate.Children.Last();
                     }
                 }
+
                 candidate.Operator = op;
             }
         }

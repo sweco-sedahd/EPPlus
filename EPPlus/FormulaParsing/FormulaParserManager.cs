@@ -13,29 +13,30 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.Excel.Functions;
 using OfficeOpenXml.FormulaParsing.Logging;
 using OfficeOpenXml.FormulaParsing.Utilities;
+
 namespace OfficeOpenXml.FormulaParsing
 {
     /// <summary>
@@ -81,8 +82,8 @@ namespace OfficeOpenXml.FormulaParsing
         /// <param name="otherWorkbook">The workbook containing the forumulas to be copied.</param>
         public void CopyFunctionsFrom(ExcelWorkbook otherWorkbook)
         {
-            var functions = otherWorkbook.FormulaParserManager.GetImplementedFunctions();
-            foreach (var func in functions)
+            IEnumerable<KeyValuePair<string, ExcelFunction>> functions = otherWorkbook.FormulaParserManager.GetImplementedFunctions();
+            foreach (KeyValuePair<string, ExcelFunction> func in functions)
             {
                 AddOrReplaceFunction(func.Key, func.Value);
             }
@@ -95,8 +96,8 @@ namespace OfficeOpenXml.FormulaParsing
         /// <returns>Function names in lower case</returns>
         public IEnumerable<string> GetImplementedFunctionNames()
         {
-            var fnList = _parser.FunctionNames.ToList();
-            fnList.Sort((x, y) => String.Compare(x, y, System.StringComparison.Ordinal));
+            List<string> fnList = _parser.FunctionNames.ToList();
+            fnList.Sort((x, y) => string.Compare(x, y, StringComparison.Ordinal));
             return fnList;
         }
 
@@ -109,13 +110,13 @@ namespace OfficeOpenXml.FormulaParsing
             var functions = new List<KeyValuePair<string, ExcelFunction>>();
             _parser.Configure(parsingConfiguration =>
             {
-                foreach (var name in parsingConfiguration.FunctionRepository.FunctionNames)
+                foreach (string name in parsingConfiguration.FunctionRepository.FunctionNames)
                 {
                     functions.Add(new KeyValuePair<string, ExcelFunction>(name, parsingConfiguration.FunctionRepository.GetFunction(name)));
                 }
             });
             return functions;
-        } 
+        }
 
         /// <summary>
         /// Parses the supplied <paramref name="formula"/> and returns the result.
@@ -145,6 +146,7 @@ namespace OfficeOpenXml.FormulaParsing
         {
             _parser.Configure(c => c.AttachLogger(LoggerFactory.CreateTextFileLogger(logfile)));
         }
+
         /// <summary>
         /// Detaches any attached logger from the formula parser.
         /// </summary>

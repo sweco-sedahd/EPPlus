@@ -24,8 +24,6 @@
 // Created: Tue, 08 Sep 2009  22:03
 //
 
-using Interop=System.Runtime.InteropServices;
-
 namespace OfficeOpenXml.Packaging.Ionic.Zip
 {
     /// <summary>
@@ -38,7 +36,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 //#if !NETCF
 //    [System.Runtime.InteropServices.ClassInterface(System.Runtime.InteropServices.ClassInterfaceType.AutoDispatch)]
 //#endif
-
     internal class ComHelper
     {
         /// <summary>
@@ -63,6 +60,17 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         public bool IsZipFileWithExtract(string filename)
         {
             return ZipFile.IsZipFile(filename, true);
+        }
+
+        /// <summary>
+        ///  A wrapper for <see cref="ZipFile.LibraryVersion">ZipFile.LibraryVersion</see>
+        /// </summary>
+        /// <returns>
+        ///  the version number on the DotNetZip assembly, formatted as a string.
+        /// </returns>
+        public string GetZipLibraryVersion()
+        {
+            return ZipFile.LibraryVersion.ToString();
         }
 
 #if !NETCF
@@ -100,17 +108,5 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             ZipFile.FixZipDirectory(filename);
         }
 #endif
-
-        /// <summary>
-        ///  A wrapper for <see cref="ZipFile.LibraryVersion">ZipFile.LibraryVersion</see>
-        /// </summary>
-        /// <returns>
-        ///  the version number on the DotNetZip assembly, formatted as a string.
-        /// </returns>
-        public string GetZipLibraryVersion()
-        {
-            return ZipFile.LibraryVersion.ToString();
-        }
-
     }
 }

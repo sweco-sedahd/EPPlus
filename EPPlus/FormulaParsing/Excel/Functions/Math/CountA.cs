@@ -7,25 +7,23 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Mats Alm   		                Added		                2013-12-03
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
@@ -35,19 +33,18 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
         public override CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
         {
             ValidateArguments(arguments, 1);
-            var nItems = 0d;
+            double nItems = 0d;
             Calculate(arguments, context, ref nItems);
             return CreateResult(nItems, DataType.Integer);
         }
 
         private void Calculate(IEnumerable<FunctionArgument> items, ParsingContext context, ref double nItems)
         {
-            foreach (var item in items)
+            foreach (FunctionArgument item in items)
             {
-                var cs = item.Value as ExcelDataProvider.IRangeInfo;
-                if (cs != null)
+                if (item.Value is ExcelDataProvider.IRangeInfo cs)
                 {
-                    foreach (var c in cs)
+                    foreach (ExcelDataProvider.ICellInfo c in cs)
                     {
                         _CheckForAndHandleExcelError(c, context);
                         if (!ShouldIgnore(c, context) && ShouldCount(c.Value))
@@ -68,7 +65,6 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
                         nItems++;
                     }
                 }
-
             }
         }
 
@@ -91,7 +87,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
         private bool ShouldCount(object value)
         {
             if (value == null) return false;
-            return (!string.IsNullOrEmpty(value.ToString()));
+            return !string.IsNullOrEmpty(value.ToString());
         }
     }
 }

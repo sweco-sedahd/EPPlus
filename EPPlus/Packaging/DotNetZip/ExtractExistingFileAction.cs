@@ -27,7 +27,6 @@
 
 namespace OfficeOpenXml.Packaging.Ionic.Zip
 {
-
     /// <summary>
     /// An enum for the options when extracting an entry would overwrite an existing file. 
     /// </summary>
@@ -81,5 +80,4 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// </summary>
         InvokeExtractProgressEvent,
     }
-
 }

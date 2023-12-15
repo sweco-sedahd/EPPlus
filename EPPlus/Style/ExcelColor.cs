@@ -13,107 +13,95 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		                Initial Release		        2009-10-01
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Text;
-using OfficeOpenXml.Style.XmlAccess;
 using System.Drawing;
+using OfficeOpenXml.Style.XmlAccess;
 
 namespace OfficeOpenXml.Style
 {
     /// <summary>
     /// Color for cellstyling
     /// </summary>
-    public sealed class ExcelColor :  StyleBase, IColor
+    public sealed class ExcelColor : StyleBase, IColor
     {
-        eStyleClass _cls;
-        StyleBase _parent;
-        internal ExcelColor(ExcelStyles styles, OfficeOpenXml.XmlHelper.ChangedEventHandler ChangedEvent, int worksheetID, string address, eStyleClass cls, StyleBase parent) : 
+        readonly eStyleClass _cls;
+        readonly StyleBase _parent;
+
+        internal ExcelColor(ExcelStyles styles, XmlHelper.ChangedEventHandler ChangedEvent, int worksheetID, string address, eStyleClass cls, StyleBase parent) :
             base(styles, ChangedEvent, worksheetID, address)
         {
             _parent = parent;
             _cls = cls;
         }
+
+        internal override string Id => Theme + Tint + Rgb + Indexed;
+
         /// <summary>
         /// The theme color
         /// </summary>
-        public string Theme
-        {
-            get
-            {
-                return GetSource().Theme;
-            }
-        }
+        public string Theme => GetSource().Theme;
+
         /// <summary>
         /// The tint value
         /// </summary>
         public decimal Tint
         {
-            get
-            {
-                return GetSource().Tint;
-            }
+            get => GetSource().Tint;
             set
             {
-                if (value > 1 || value < -1)
+                if (value is > 1 or < -1)
                 {
-                    throw (new ArgumentOutOfRangeException("Value must be between -1 and 1"));
+                    throw new ArgumentOutOfRangeException("Value must be between -1 and 1");
                 }
+
                 _ChangedEvent(this, new StyleChangeEventArgs(_cls, eStyleProperty.Tint, value, _positionID, _address));
             }
         }
+
         /// <summary>
         /// The RGB value
         /// </summary>
         public string Rgb
         {
-            get
-            {
-                return GetSource().Rgb;
-            }
-            internal set
-            {
-                _ChangedEvent(this, new StyleChangeEventArgs(_cls, eStyleProperty.Color, value, _positionID, _address));
-            }
+            get => GetSource().Rgb;
+            internal set => _ChangedEvent(this, new StyleChangeEventArgs(_cls, eStyleProperty.Color, value, _positionID, _address));
         }
+
         /// <summary>
         /// The indexed color number.
         /// </summary>
         public int Indexed
         {
-            get
-            {
-                return GetSource().Indexed;
-            }
-            set
-            {
-                _ChangedEvent(this, new StyleChangeEventArgs(_cls, eStyleProperty.IndexedColor, value, _positionID, _address));
-            }
+            get => GetSource().Indexed;
+            set => _ChangedEvent(this, new StyleChangeEventArgs(_cls, eStyleProperty.IndexedColor, value, _positionID, _address));
         }
+
         /// <summary>
         /// Set the color of the object
         /// </summary>
         /// <param name="color">The color</param>
         public void SetColor(Color color)
         {
-            Rgb = color.ToArgb().ToString("X");       
+            Rgb = color.ToArgb().ToString("X");
         }
+
         /// <summary>
         /// Set the color of the object
         /// </summary>
@@ -123,24 +111,19 @@ namespace OfficeOpenXml.Style
         /// <param name="blue">Blue component value</param>
         public void SetColor(int alpha, int red, int green, int blue)
         {
-            if(alpha < 0 || red < 0 || green < 0 ||blue < 0 ||
-               alpha > 255 || red > 255 || green > 255 || blue > 255)
+            if (alpha < 0 || red < 0 || green < 0 || blue < 0 ||
+                alpha > 255 || red > 255 || green > 255 || blue > 255)
             {
-                throw (new ArgumentException("Argument range must be from 0 to 255"));
+                throw new ArgumentException("Argument range must be from 0 to 255");
             }
+
             Rgb = alpha.ToString("X2") + red.ToString("X2") + green.ToString("X2") + blue.ToString("X2");
         }
-        internal override string Id
-        {
-            get 
-            {
-                return Theme + Tint + Rgb + Indexed;
-            }
-        }
+
         private ExcelColorXml GetSource()
         {
             Index = _parent.Index < 0 ? 0 : _parent.Index;
-            switch(_cls)
+            switch (_cls)
             {
                 case eStyleClass.FillBackgroundColor:
                     return _styles.Fills[Index].BackgroundColor;
@@ -159,13 +142,15 @@ namespace OfficeOpenXml.Style
                 case eStyleClass.BorderDiagonal:
                     return _styles.Borders[Index].Diagonal.Color;
                 default:
-                    throw(new Exception("Invalid style-class for Color"));
+                    throw new Exception("Invalid style-class for Color");
             }
         }
+
         internal override void SetIndex(int index)
         {
             _parent.Index = index;
         }
+
         /// <summary>
         /// Return the RGB value for the Indexed or Tint property
         /// </summary>
@@ -174,6 +159,7 @@ namespace OfficeOpenXml.Style
         {
             return LookupColor(this);
         }
+
         /// <summary>
         /// Return the RGB value for the color object that uses the Indexed or Tint property
         /// </summary>
@@ -254,7 +240,7 @@ namespace OfficeOpenXml.Style
                 "#FF333333", // 63
             };
 
-            if ((0 <= theColor.Indexed) && (rgbLookup.Length > theColor.Indexed))
+            if (0 <= theColor.Indexed && rgbLookup.Length > theColor.Indexed)
             {
                 // coloring by pre-set color codes
                 translatedRGB = rgbLookup[theColor.Indexed];
@@ -267,8 +253,8 @@ namespace OfficeOpenXml.Style
             else
             {
                 // coloring by shades of grey (-1 -> 0)
-                iTint = ((int)(theColor.Tint * 160) + 0x80);
-                translatedRGB = ((int)(Math.Round(theColor.Tint * -512))).ToString("X");
+                iTint = (int)(theColor.Tint * 160) + 0x80;
+                translatedRGB = ((int)Math.Round(theColor.Tint * -512)).ToString("X");
                 translatedRGB = "#FF" + translatedRGB + translatedRGB + translatedRGB;
             }
 

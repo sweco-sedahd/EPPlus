@@ -13,25 +13,24 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.Excel.Functions;
 
 namespace OfficeOpenXml.FormulaParsing.ExpressionGraph.FunctionCompilers
@@ -41,21 +40,20 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph.FunctionCompilers
         public LookupFunctionCompiler(ExcelFunction function, ParsingContext context)
             : base(function, context)
         {
-
         }
 
         public override CompileResult Compile(IEnumerable<Expression> children)
         {
             var args = new List<FunctionArgument>();
             Function.BeforeInvoke(Context);
-            for(var x = 0; x < children.Count(); x++)
+            for (int x = 0; x < children.Count(); x++)
             {
-                var child = children.ElementAt(x);
+                Expression child = children.ElementAt(x);
                 //if (x > 0 || Function.SkipArgumentEvaluation)
                 //{
                 //    child.ParentIsLookupFunction = Function.IsLookupFuction;
                 //}
-                var arg = child.Compile();
+                CompileResult arg = child.Compile();
                 if (arg != null)
                 {
                     BuildFunctionArguments(arg, arg.DataType, args);
@@ -63,8 +61,9 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph.FunctionCompilers
                 else
                 {
                     BuildFunctionArguments(null, DataType.Unknown, args);
-                } 
+                }
             }
+
             return Function.Execute(args, Context);
         }
     }

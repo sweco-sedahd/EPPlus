@@ -13,26 +13,26 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		Initial Release		        2009-10-01
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml;
+using OfficeOpenXml.Packaging;
 using OfficeOpenXml.Table.PivotTable;
 
 namespace OfficeOpenXml.Drawing.Chart
@@ -42,17 +42,20 @@ namespace OfficeOpenXml.Drawing.Chart
     /// </summary>
     public class ExcelPieChart : ExcelChart
     {
+        ExcelChartDataLabel _DataLabel;
+
         internal ExcelPieChart(ExcelDrawings drawings, XmlNode node, eChartType type, bool isPivot) :
             base(drawings, node, type, isPivot)
         {
         }
+
         internal ExcelPieChart(ExcelDrawings drawings, XmlNode node, eChartType type, ExcelChart topChart, ExcelPivotTable PivotTableSource) :
             base(drawings, node, type, topChart, PivotTableSource)
         {
         }
 
-        internal ExcelPieChart(ExcelDrawings drawings, XmlNode node, Uri uriChart, Packaging.ZipPackagePart part, XmlDocument chartXml, XmlNode chartNode) :
-           base(drawings, node, uriChart, part, chartXml, chartNode)
+        internal ExcelPieChart(ExcelDrawings drawings, XmlNode node, Uri uriChart, ZipPackagePart part, XmlDocument chartXml, XmlNode chartNode) :
+            base(drawings, node, uriChart, part, chartXml, chartNode)
         {
         }
 
@@ -60,7 +63,7 @@ namespace OfficeOpenXml.Drawing.Chart
             base(topChart, chartNode)
         {
         }
-        ExcelChartDataLabel _DataLabel = null;
+
         /// <summary>
         /// Access to datalabel properties
         /// </summary>
@@ -72,6 +75,7 @@ namespace OfficeOpenXml.Drawing.Chart
                 {
                     _DataLabel = new ExcelChartDataLabel(NameSpaceManager, ChartNode);
                 }
+
                 return _DataLabel;
             }
         }
@@ -80,26 +84,24 @@ namespace OfficeOpenXml.Drawing.Chart
         {
             if (name == "pieChart")
             {
-                if (Series.Count > 0 && ((ExcelPieChartSerie)Series[0]).Explosion>0)
+                if (Series.Count > 0 && ((ExcelPieChartSerie)Series[0]).Explosion > 0)
                 {
                     return eChartType.PieExploded;
                 }
-                else
-                {
-                    return eChartType.Pie;
-                }
+
+                return eChartType.Pie;
             }
-            else if (name == "pie3DChart")
+
+            if (name == "pie3DChart")
             {
                 if (Series.Count > 0 && ((ExcelPieChartSerie)Series[0]).Explosion > 0)
                 {
                     return eChartType.PieExploded3D;
                 }
-                else
-                {
-                    return eChartType.Pie3D;
-                }
+
+                return eChartType.Pie3D;
             }
+
             return base.GetChartType(name);
         }
     }

@@ -25,32 +25,26 @@
 
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace OfficeOpenXml.Packaging.Ionic.Zip
 {
-    internal class ZipSegmentedStream : System.IO.Stream
+    internal class ZipSegmentedStream : Stream
     {
-        enum RwMode
-        {
-            None = 0,
-            ReadOnly = 1,
-            Write = 2,
-            //Update = 3
-        }
-
-        private RwMode rwMode;
-        private bool _exceptionPending; // **see note below
-        private string _baseName;
         private string _baseDir;
+        private string _baseName;
+
+        private uint _currentDiskNumber;
+
         //private bool _isDisposed;
         private string _currentName;
         private string _currentTempName;
-        private uint _currentDiskNumber;
+        private bool _exceptionPending; // **see note below
+        private Stream _innerStream;
         private uint _maxDiskNumber;
         private int _maxSegmentSize;
-        private System.IO.Stream _innerStream;
+
+        private RwMode rwMode;
 
         // **Note regarding exceptions:
         //
@@ -63,22 +57,85 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         // appropriate. Need to be careful: any additional exceptions
         // will mask the original one.
 
-        private ZipSegmentedStream() : base()
+        private ZipSegmentedStream()
         {
             _exceptionPending = false;
         }
 
-        public static ZipSegmentedStream ForReading(string name,
-                                                    uint initialDiskNumber,
-                                                    uint maxDiskNumber)
+        public bool ContiguousWrite { get; set; }
+
+
+        public uint CurrentSegment
         {
-            ZipSegmentedStream zss = new ZipSegmentedStream()
-                {
-                    rwMode = RwMode.ReadOnly,
-                    CurrentSegment = initialDiskNumber,
-                    _maxDiskNumber = maxDiskNumber,
-                    _baseName = name,
-                };
+            get => _currentDiskNumber;
+            private set
+            {
+                _currentDiskNumber = value;
+                _currentName = null; // it will get updated next time referenced
+            }
+        }
+
+        /// <summary>
+        ///   Name of the filesystem file corresponding to the current segment.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     The name is not always the name currently being used in the
+        ///     filesystem.  When rwMode is RwMode.Write, the filesystem file has a
+        ///     temporary name until the stream is closed or until the next segment is
+        ///     started.
+        ///   </para>
+        /// </remarks>
+        public string CurrentName
+        {
+            get
+            {
+                if (_currentName == null)
+                    _currentName = _NameForSegment(CurrentSegment);
+
+                return _currentName;
+            }
+        }
+
+
+        public string CurrentTempName => _currentTempName;
+
+
+        public override bool CanRead =>
+            rwMode == RwMode.ReadOnly &&
+            _innerStream != null &&
+            _innerStream.CanRead;
+
+
+        public override bool CanSeek =>
+            _innerStream != null &&
+            _innerStream.CanSeek;
+
+
+        public override bool CanWrite =>
+            rwMode == RwMode.Write &&
+            _innerStream != null &&
+            _innerStream.CanWrite;
+
+        public override long Length => _innerStream.Length;
+
+        public override long Position
+        {
+            get => _innerStream.Position;
+            set => _innerStream.Position = value;
+        }
+
+        public static ZipSegmentedStream ForReading(string name,
+            uint initialDiskNumber,
+            uint maxDiskNumber)
+        {
+            var zss = new ZipSegmentedStream
+            {
+                rwMode = RwMode.ReadOnly,
+                CurrentSegment = initialDiskNumber,
+                _maxDiskNumber = maxDiskNumber,
+                _baseName = name,
+            };
 
             // Console.WriteLine("ZSS: ForReading ({0})",
             //                    Path.GetFileName(zss.CurrentName));
@@ -91,17 +148,17 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
         public static ZipSegmentedStream ForWriting(string name, int maxSegmentSize)
         {
-            ZipSegmentedStream zss = new ZipSegmentedStream()
-                {
-                    rwMode = RwMode.Write,
-                    CurrentSegment = 0,
-                    _baseName = name,
-                    _maxSegmentSize = maxSegmentSize,
-                    _baseDir = Path.GetDirectoryName(name)
-                };
+            var zss = new ZipSegmentedStream
+            {
+                rwMode = RwMode.Write,
+                CurrentSegment = 0,
+                _baseName = name,
+                _maxSegmentSize = maxSegmentSize,
+                _baseDir = Path.GetDirectoryName(name)
+            };
 
             // workitem 9522
-            if (zss._baseDir=="") zss._baseDir=".";
+            if (zss._baseDir == "") zss._baseDir = ".";
 
             zss._SetWriteStream(0);
 
@@ -136,10 +193,10 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 throw new ArgumentOutOfRangeException("diskNumber");
 
             string fname =
-                String.Format("{0}.z{1:D2}",
-                                 Path.Combine(Path.GetDirectoryName(name),
-                                              Path.GetFileNameWithoutExtension(name)),
-                                 diskNumber + 1);
+                string.Format("{0}.z{1:D2}",
+                    Path.Combine(Path.GetDirectoryName(name),
+                        Path.GetFileNameWithoutExtension(name)),
+                    diskNumber + 1);
 
             // Console.WriteLine("ZSS: ForUpdate ({0})",
             //                   Path.GetFileName(fname));
@@ -150,60 +207,9 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             // the end of a segment.
 
             return File.Open(fname,
-                             FileMode.Open,
-                             FileAccess.ReadWrite,
-                             FileShare.None);
-        }
-
-        public bool ContiguousWrite
-        {
-            get;
-            set;
-        }
-
-
-        public UInt32 CurrentSegment
-        {
-            get
-            {
-                return _currentDiskNumber;
-            }
-            private set
-            {
-                _currentDiskNumber = value;
-                _currentName = null; // it will get updated next time referenced
-            }
-        }
-
-        /// <summary>
-        ///   Name of the filesystem file corresponding to the current segment.
-        /// </summary>
-        /// <remarks>
-        ///   <para>
-        ///     The name is not always the name currently being used in the
-        ///     filesystem.  When rwMode is RwMode.Write, the filesystem file has a
-        ///     temporary name until the stream is closed or until the next segment is
-        ///     started.
-        ///   </para>
-        /// </remarks>
-        public String CurrentName
-        {
-            get
-            {
-                if (_currentName==null)
-                    _currentName = _NameForSegment(CurrentSegment);
-
-                return _currentName;
-            }
-        }
-
-
-        public String CurrentTempName
-        {
-            get
-            {
-                return _currentTempName;
-            }
+                FileMode.Open,
+                FileAccess.ReadWrite,
+                FileShare.None);
         }
 
         private string _NameForSegment(uint diskNumber)
@@ -214,10 +220,10 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 throw new OverflowException("The number of zip segments would exceed 99.");
             }
 
-            return String.Format("{0}.z{1:D2}",
-                                 Path.Combine(Path.GetDirectoryName(_baseName),
-                                              Path.GetFileNameWithoutExtension(_baseName)),
-                                 diskNumber + 1);
+            return string.Format("{0}.z{1:D2}",
+                Path.Combine(Path.GetDirectoryName(_baseName),
+                    Path.GetFileNameWithoutExtension(_baseName)),
+                diskNumber + 1);
         }
 
 
@@ -225,7 +231,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         // a block of the given length.
         // This isn't exactly true. It could roll over beyond
         // this number.
-        public UInt32 ComputeSegment(int length)
+        public uint ComputeSegment(int length)
         {
             if (_innerStream.Position + length > _maxSegmentSize)
                 // the block will go AT LEAST into the next segment
@@ -236,12 +242,12 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         }
 
 
-        public override String ToString()
+        public override string ToString()
         {
-            return String.Format("{0}[{1}][{2}], pos=0x{3:X})",
-                                 "ZipSegmentedStream", CurrentName,
-                                 rwMode.ToString(),
-                                 this.Position);
+            return string.Format("{0}[{1}][{2}], pos=0x{3:X})",
+                "ZipSegmentedStream", CurrentName,
+                rwMode.ToString(),
+                Position);
         }
 
 
@@ -289,8 +295,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 if (_innerStream.Position != _innerStream.Length)
                 {
                     _exceptionPending = true;
-                    throw new ZipException(String.Format("Read error in file {0}", CurrentName));
-
+                    throw new ZipException(string.Format("Read error in file {0}", CurrentName));
                 }
 
                 if (CurrentSegment + 1 == _maxDiskNumber)
@@ -303,9 +308,9 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 r1 = _innerStream.Read(buffer, offset, count);
                 r += r1;
             }
+
             return r;
         }
-
 
 
         private void _SetWriteStream(uint increment)
@@ -328,8 +333,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 CurrentSegment += increment;
 
             SharedUtilities.CreateAndOpenUniqueTempFile(_baseDir,
-                                                        out _innerStream,
-                                                        out _currentTempName);
+                out _innerStream,
+                out _currentTempName);
 
             // Console.WriteLine("ZSS: SWS open ({0})",
             //                   Path.GetFileName(_currentTempName));
@@ -394,9 +399,9 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             // Check if it is the same segment.  If it is, very simple.
             if (diskNumber == CurrentSegment)
             {
-                var x =_innerStream.Seek(offset, SeekOrigin.Begin);
+                long x = _innerStream.Seek(offset, SeekOrigin.Begin);
                 // workitem 10178
-                Ionic.Zip.SharedUtilities.Workaround_Ladybug318918(_innerStream);
+                SharedUtilities.Workaround_Ladybug318918(_innerStream);
                 return x;
             }
 
@@ -415,7 +420,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             }
 
             // Now, remove intervening segments.
-            for (uint j= CurrentSegment-1; j > diskNumber; j--)
+            for (uint j = CurrentSegment - 1; j > diskNumber; j--)
             {
                 string s = _NameForSegment(j);
                 // Console.WriteLine("***ZSS.Trunc:  removing file {0}", s);
@@ -436,7 +441,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                     File.Move(CurrentName, _currentTempName);
                     break; // workitem 12403
                 }
-                catch(IOException)
+                catch (IOException)
                 {
                     if (i == 2) throw;
                 }
@@ -445,45 +450,12 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             // open it
             _innerStream = new FileStream(_currentTempName, FileMode.Open);
 
-            var r =  _innerStream.Seek(offset, SeekOrigin.Begin);
+            long r = _innerStream.Seek(offset, SeekOrigin.Begin);
 
             // workitem 10178
-            Ionic.Zip.SharedUtilities.Workaround_Ladybug318918(_innerStream);
+            SharedUtilities.Workaround_Ladybug318918(_innerStream);
 
             return r;
-        }
-
-
-
-        public override bool CanRead
-        {
-            get
-            {
-                return (rwMode == RwMode.ReadOnly &&
-                        (_innerStream != null) &&
-                        _innerStream.CanRead);
-            }
-        }
-
-
-        public override bool CanSeek
-        {
-            get
-            {
-                return (_innerStream != null) &&
-                        _innerStream.CanSeek;
-            }
-        }
-
-
-        public override bool CanWrite
-        {
-            get
-            {
-                return (rwMode == RwMode.Write) &&
-                        (_innerStream != null) &&
-                        _innerStream.CanWrite;
-            }
         }
 
         public override void Flush()
@@ -491,25 +463,11 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             _innerStream.Flush();
         }
 
-        public override long Length
+        public override long Seek(long offset, SeekOrigin origin)
         {
-            get
-            {
-                return _innerStream.Length;
-            }
-        }
-
-        public override long Position
-        {
-            get { return _innerStream.Position; }
-            set { _innerStream.Position = value; }
-        }
-
-        public override long Seek(long offset, System.IO.SeekOrigin origin)
-        {
-            var x = _innerStream.Seek(offset, origin);
+            long x = _innerStream.Seek(offset, origin);
             // workitem 10178
-            Ionic.Zip.SharedUtilities.Workaround_Ladybug318918(_innerStream);
+            SharedUtilities.Workaround_Ladybug318918(_innerStream);
             return x;
         }
 
@@ -520,6 +478,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 _exceptionPending = true;
                 throw new InvalidOperationException();
             }
+
             _innerStream.SetLength(value);
         }
 
@@ -549,14 +508,11 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                             // possibly could try to clean up all the
                             // temp files created so far...
                         }
-                        else
-                        {
-                            // // move the final temp file to the .zNN name
-                            // if (File.Exists(CurrentName))
-                            //     File.Delete(CurrentName);
-                            // if (File.Exists(_currentTempName))
-                            //     File.Move(_currentTempName, CurrentName);
-                        }
+                        // // move the final temp file to the .zNN name
+                        // if (File.Exists(CurrentName))
+                        //     File.Delete(CurrentName);
+                        // if (File.Exists(_currentTempName))
+                        //     File.Move(_currentTempName, CurrentName);
                     }
                 }
             }
@@ -566,6 +522,12 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             }
         }
 
+        enum RwMode
+        {
+            None = 0,
+            ReadOnly = 1,
+            Write = 2,
+            //Update = 3
+        }
     }
-
 }

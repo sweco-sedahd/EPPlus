@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace OfficeOpenXml.FormulaParsing.Utilities
 {
@@ -15,6 +12,7 @@ namespace OfficeOpenXml.FormulaParsing.Utilities
             {
                 throw new InvalidOperationException("IdProvider run out of id:s");
             }
+
             return _lastId++;
         }
     }

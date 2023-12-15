@@ -7,25 +7,23 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Mats Alm   		                Added		                2014-04-13
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
@@ -35,18 +33,20 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
         public override CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
         {
             ValidateArguments(arguments, 1);
-            var address = ArgToAddress(arguments, 0);
+            string address = ArgToAddress(arguments, 0);
             var adr = new ExcelAddress(address);
-            var ws = adr.WorkSheet;
+            string ws = adr.WorkSheet;
             if (string.IsNullOrEmpty(ws))
             {
                 ws = context.Scopes.Current.Address.Worksheet;
             }
-            var result = context.ExcelDataProvider.GetRange(ws, address);
+
+            ExcelDataProvider.IRangeInfo result = context.ExcelDataProvider.GetRange(ws, address);
             if (result.IsEmpty)
             {
                 return CompileResult.Empty;
             }
+
             return new CompileResult(result, DataType.Enumerable);
         }
     }

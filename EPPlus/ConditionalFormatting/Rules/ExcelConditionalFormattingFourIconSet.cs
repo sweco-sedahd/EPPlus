@@ -13,86 +13,80 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Eyal Seagull        Added       		  2012-04-03
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
+
 using System.Xml;
 using OfficeOpenXml.ConditionalFormatting.Contracts;
 
 namespace OfficeOpenXml.ConditionalFormatting
 {
-  /// <summary>
-  /// ExcelConditionalFormattingThreeIconSet
-  /// </summary>
-  public class ExcelConditionalFormattingFourIconSet
-    : ExcelConditionalFormattingIconSetBase<eExcelconditionalFormatting4IconsSetType>, IExcelConditionalFormattingFourIconSet<eExcelconditionalFormatting4IconsSetType>
-  {
-    /****************************************************************************************/
-
-    #region Private Properties
-
-    #endregion Private Properties
-
-    /****************************************************************************************/
-
-    #region Constructors
     /// <summary>
-    /// 
+    /// ExcelConditionalFormattingThreeIconSet
     /// </summary>
-    /// <param name="priority"></param>
-    /// <param name="address"></param>
-    /// <param name="worksheet"></param>
-    /// <param name="itemElementNode"></param>
-    /// <param name="namespaceManager"></param>
-    internal ExcelConditionalFormattingFourIconSet(
-      ExcelAddress address,
-      int priority,
-      ExcelWorksheet worksheet,
-      XmlNode itemElementNode,
-      XmlNamespaceManager namespaceManager)
-      : base(
-        eExcelConditionalFormattingRuleType.FourIconSet,
-        address,
-        priority,
-        worksheet,
-        itemElementNode,
-        (namespaceManager == null) ? worksheet.NameSpaceManager : namespaceManager)
+    public class ExcelConditionalFormattingFourIconSet
+        : ExcelConditionalFormattingIconSetBase<eExcelconditionalFormatting4IconsSetType>, IExcelConditionalFormattingFourIconSet<eExcelconditionalFormatting4IconsSetType>
     {
-        if(itemElementNode!=null && itemElementNode.HasChildNodes)
+        public ExcelConditionalFormattingIconDataBarValue Icon4 { get; internal set; }
+        /****************************************************************************************/
+
+        /****************************************************************************************/
+
+        #region Constructors
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="priority"></param>
+        /// <param name="address"></param>
+        /// <param name="worksheet"></param>
+        /// <param name="itemElementNode"></param>
+        /// <param name="namespaceManager"></param>
+        internal ExcelConditionalFormattingFourIconSet(
+            ExcelAddress address,
+            int priority,
+            ExcelWorksheet worksheet,
+            XmlNode itemElementNode,
+            XmlNamespaceManager namespaceManager)
+            : base(
+                eExcelConditionalFormattingRuleType.FourIconSet,
+                address,
+                priority,
+                worksheet,
+                itemElementNode,
+                namespaceManager ?? worksheet.NameSpaceManager)
         {
-            XmlNode iconNode4 = TopNode.SelectSingleNode("d:iconSet/d:cfvo[position()=4]", NameSpaceManager);
-            Icon4 = new ExcelConditionalFormattingIconDataBarValue(
+            if (itemElementNode != null && itemElementNode.HasChildNodes)
+            {
+                XmlNode iconNode4 = TopNode.SelectSingleNode("d:iconSet/d:cfvo[position()=4]", NameSpaceManager);
+                Icon4 = new ExcelConditionalFormattingIconDataBarValue(
                     eExcelConditionalFormattingRuleType.FourIconSet,
                     address,
                     worksheet,
                     iconNode4,
                     namespaceManager);
-        }
-        else
-        {
-            XmlNode iconSetNode = TopNode.SelectSingleNode("d:iconSet", NameSpaceManager);
-            var iconNode4 = iconSetNode.OwnerDocument.CreateElement(ExcelConditionalFormattingConstants.Paths.Cfvo, ExcelPackage.schemaMain);
-            iconSetNode.AppendChild(iconNode4);
+            }
+            else
+            {
+                XmlNode iconSetNode = TopNode.SelectSingleNode("d:iconSet", NameSpaceManager);
+                XmlElement iconNode4 = iconSetNode.OwnerDocument.CreateElement(ExcelConditionalFormattingConstants.Paths.Cfvo, ExcelPackage.schemaMain);
+                iconSetNode.AppendChild(iconNode4);
 
 
-            Icon4 = new ExcelConditionalFormattingIconDataBarValue(eExcelConditionalFormattingValueObjectType.Percent,
+                Icon4 = new ExcelConditionalFormattingIconDataBarValue(eExcelConditionalFormattingValueObjectType.Percent,
                     75,
                     "",
                     eExcelConditionalFormattingRuleType.ThreeIconSet,
@@ -101,54 +95,49 @@ namespace OfficeOpenXml.ConditionalFormatting
                     worksheet,
                     iconNode4,
                     namespaceManager);
+            }
         }
-    }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="priority"></param>
-    /// <param name="address"></param>
-    /// <param name="worksheet"></param>
-    /// <param name="itemElementNode"></param>
-    internal ExcelConditionalFormattingFourIconSet(
-      ExcelAddress address,
-      int priority,
-      ExcelWorksheet worksheet,
-      XmlNode itemElementNode)
-      : this(
-        address,
-        priority,
-        worksheet,
-        itemElementNode,
-        null)
-    {
-    }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="priority"></param>
+        /// <param name="address"></param>
+        /// <param name="worksheet"></param>
+        /// <param name="itemElementNode"></param>
+        internal ExcelConditionalFormattingFourIconSet(
+            ExcelAddress address,
+            int priority,
+            ExcelWorksheet worksheet,
+            XmlNode itemElementNode)
+            : this(
+                address,
+                priority,
+                worksheet,
+                itemElementNode,
+                null)
+        {
+        }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="priority"></param>
-    /// <param name="address"></param>
-    /// <param name="worksheet"></param>
-    internal ExcelConditionalFormattingFourIconSet(
-      ExcelAddress address,
-      int priority,
-      ExcelWorksheet worksheet)
-      : this(
-        address,
-        priority,
-        worksheet,
-        null,
-        null)
-    {
-    }
-    #endregion Constructors
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="priority"></param>
+        /// <param name="address"></param>
+        /// <param name="worksheet"></param>
+        internal ExcelConditionalFormattingFourIconSet(
+            ExcelAddress address,
+            int priority,
+            ExcelWorksheet worksheet)
+            : this(
+                address,
+                priority,
+                worksheet,
+                null,
+                null)
+        {
+        }
 
-    public ExcelConditionalFormattingIconDataBarValue Icon4
-    {
-        get;
-        internal set;
+        #endregion Constructors
     }
-    }
-  }
+}

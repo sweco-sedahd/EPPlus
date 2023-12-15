@@ -24,7 +24,11 @@
 //
 
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace OfficeOpenXml.Packaging.Ionic.Zip
 {
@@ -37,26 +41,25 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         //private SharedUtilities() { }
 
         // workitem 8423
-        public static Int64 GetFileLength(string fileName)
+        public static long GetFileLength(string fileName)
         {
             if (!File.Exists(fileName))
-                throw new System.IO.FileNotFoundException(fileName);
+                throw new FileNotFoundException(fileName);
 
             long fileLength = 0L;
-            FileShare fs = FileShare.ReadWrite;
+            var fs = FileShare.ReadWrite;
 #if !NETCF
             // FileShare.Delete is not defined for the Compact Framework
             fs |= FileShare.Delete;
 #endif
-            using (var s = File.Open(fileName, FileMode.Open, FileAccess.Read, fs))
-            {
-                fileLength = s.Length;
-            }
+            using FileStream s = File.Open(fileName, FileMode.Open, FileAccess.Read, fs);
+            fileLength = s.Length;
+
             return fileLength;
         }
 
 
-        [System.Diagnostics.Conditional("NETCF")]
+        [Conditional("NETCF")]
         public static void Workaround_Ladybug318918(Stream s)
         {
             // This is a workaround for this issue:
@@ -118,8 +121,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         }
 #endif
 
-        private static System.Text.RegularExpressions.Regex doubleDotRegex1 =
-            new System.Text.RegularExpressions.Regex(@"^(.*/)?([^/\\.]+/\\.\\./)(.+)$");
+        private static readonly Regex doubleDotRegex1 = new(@"^(.*/)?([^/\\.]+/\\.\\./)(.+)$");
 
         private static string SimplifyFwdSlashPath(string path)
         {
@@ -142,11 +144,11 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         public static string NormalizePathForUseInZipFile(string pathName)
         {
             // boundary case
-            if (String.IsNullOrEmpty(pathName)) return pathName;
+            if (string.IsNullOrEmpty(pathName)) return pathName;
 
             // trim volume if necessary
-            if ((pathName.Length >= 2)  && ((pathName[1] == ':') && (pathName[2] == '\\')))
-                pathName =  pathName.Substring(3);
+            if (pathName.Length >= 2 && pathName[1] == ':' && pathName[2] == '\\')
+                pathName = pathName.Substring(3);
 
             // swap slashes
             pathName = pathName.Replace('\\', '/');
@@ -159,17 +161,18 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
 
 #if (Core)
-        static System.Text.Encoding ibm437 = System.Text.Encoding.GetEncoding("UTF-8");   
+        static readonly Encoding ibm437 = Encoding.GetEncoding("UTF-8");
 #else
         static System.Text.Encoding ibm437 = System.Text.Encoding.GetEncoding("IBM437");
 #endif
-        static System.Text.Encoding utf8 = System.Text.Encoding.GetEncoding("UTF-8");
+        static readonly Encoding utf8 = Encoding.GetEncoding("UTF-8");
 
-        internal static byte[] StringToByteArray(string value, System.Text.Encoding encoding)
+        internal static byte[] StringToByteArray(string value, Encoding encoding)
         {
             byte[] a = encoding.GetBytes(value);
             return a;
         }
+
         internal static byte[] StringToByteArray(string value)
         {
             return StringToByteArray(value, ibm437);
@@ -190,7 +193,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             return StringFromBuffer(buf, utf8);
         }
 
-        internal static string StringFromBuffer(byte[] buf, System.Text.Encoding encoding)
+        internal static string StringFromBuffer(byte[] buf, Encoding encoding)
         {
             // this form of the GetString() method is required for .NET CF compatibility
             string s = encoding.GetString(buf, 0, buf.Length);
@@ -198,16 +201,22 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         }
 
 
-        internal static int ReadSignature(System.IO.Stream s)
+        internal static int ReadSignature(Stream s)
         {
             int x = 0;
-            try { x = _ReadFourBytes(s, "n/a"); }
-            catch (BadReadException) { }
+            try
+            {
+                x = _ReadFourBytes(s, "n/a");
+            }
+            catch (BadReadException)
+            {
+            }
+
             return x;
         }
 
 
-        internal static int ReadEntrySignature(System.IO.Stream s)
+        internal static int ReadEntrySignature(Stream s)
         {
             // handle the case of ill-formatted zip archives - includes a data descriptor
             // when none is expected.
@@ -241,17 +250,20 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                     }
                 }
             }
-            catch (BadReadException) { }
+            catch (BadReadException)
+            {
+            }
+
             return x;
         }
 
 
-        internal static int ReadInt(System.IO.Stream s)
+        internal static int ReadInt(Stream s)
         {
             return _ReadFourBytes(s, "Could not read block - no data!  (position 0x{0:X8})");
         }
 
-        private static int _ReadFourBytes(System.IO.Stream s, string message)
+        private static int _ReadFourBytes(Stream s, string message)
         {
             int n = 0;
             byte[] block = new byte[4];
@@ -273,16 +285,15 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             //
             for (int i = 0; i < block.Length; i++)
             {
-                n+= s.Read(block, i, 1);
+                n += s.Read(block, i, 1);
             }
 #else
             n = s.Read(block, 0, block.Length);
 #endif
-            if (n != block.Length) throw new BadReadException(String.Format(message, s.Position));
-            int data = unchecked((((block[3] * 256 + block[2]) * 256) + block[1]) * 256 + block[0]);
+            if (n != block.Length) throw new BadReadException(string.Format(message, s.Position));
+            int data = unchecked(((block[3] * 256 + block[2]) * 256 + block[1]) * 256 + block[0]);
             return data;
         }
-
 
 
         /// <summary>
@@ -306,7 +317,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <param name="stream">The stream to search</param>
         /// <param name="SignatureToFind">The 4-byte signature to find</param>
         /// <returns>The number of bytes read</returns>
-        internal static long FindSignature(System.IO.Stream stream, int SignatureToFind)
+        internal static long FindSignature(Stream stream, int SignatureToFind)
         {
             long startingPosition = stream.Position;
 
@@ -329,17 +340,17 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                         if (batch[i] == targetBytes[3])
                         {
                             long curPosition = stream.Position;
-                            stream.Seek(i - n, System.IO.SeekOrigin.Current);
+                            stream.Seek(i - n, SeekOrigin.Current);
                             // workitem 10178
                             Workaround_Ladybug318918(stream);
 
                             // workitem 7711
                             int sig = ReadSignature(stream);
 
-                            success = (sig == SignatureToFind);
+                            success = sig == SignatureToFind;
                             if (!success)
                             {
-                                stream.Seek(curPosition, System.IO.SeekOrigin.Begin);
+                                stream.Seek(curPosition, SeekOrigin.Begin);
                                 // workitem 10178
                                 Workaround_Ladybug318918(stream);
                             }
@@ -349,20 +360,20 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                     }
                 }
                 else break;
-                if (success) break;
 
+                if (success) break;
             } while (true);
 
             if (!success)
             {
-                stream.Seek(startingPosition, System.IO.SeekOrigin.Begin);
+                stream.Seek(startingPosition, SeekOrigin.Begin);
                 // workitem 10178
                 Workaround_Ladybug318918(stream);
-                return -1;  // or throw?
+                return -1; // or throw?
             }
 
             // subtract 4 for the signature.
-            long bytesRead = (stream.Position - startingPosition) - 4;
+            long bytesRead = stream.Position - startingPosition - 4;
 
             return bytesRead;
         }
@@ -375,10 +386,10 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             if (time.Kind == DateTimeKind.Utc) return time;
             DateTime adjusted = time;
             if (DateTime.Now.IsDaylightSavingTime() && !time.IsDaylightSavingTime())
-                adjusted = time - new System.TimeSpan(1, 0, 0);
+                adjusted = time - new TimeSpan(1, 0, 0);
 
             else if (!DateTime.Now.IsDaylightSavingTime() && time.IsDaylightSavingTime())
-                adjusted = time + new System.TimeSpan(1, 0, 0);
+                adjusted = time + new TimeSpan(1, 0, 0);
 
             return adjusted;
         }
@@ -401,14 +412,14 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 #endif
 
 
-        internal static DateTime PackedToDateTime(Int32 packedDateTime)
+        internal static DateTime PackedToDateTime(int packedDateTime)
         {
             // workitem 7074 & workitem 7170
-            if (packedDateTime == 0xFFFF || packedDateTime == 0)
-                return new System.DateTime(1995, 1, 1, 0, 0, 0, 0);  // return a fixed date when none is supplied.
+            if (packedDateTime is 0xFFFF or 0)
+                return new DateTime(1995, 1, 1, 0, 0, 0, 0); // return a fixed date when none is supplied.
 
-            Int16 packedTime = unchecked((Int16)(packedDateTime & 0x0000ffff));
-            Int16 packedDate = unchecked((Int16)((packedDateTime & 0xffff0000) >> 16));
+            short packedTime = unchecked((short)(packedDateTime & 0x0000ffff));
+            short packedDate = unchecked((short)((packedDateTime & 0xffff0000) >> 16));
 
             int year = 1980 + ((packedDate & 0xFE00) >> 9);
             int month = (packedDate & 0x01E0) >> 5;
@@ -421,35 +432,50 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
             // validation and error checking.
             // this is not foolproof but will catch most errors.
-            if (second >= 60) { minute++; second = 0; }
-            if (minute >= 60) { hour++; minute = 0; }
-            if (hour >= 24) { day++; hour = 0; }
+            if (second >= 60)
+            {
+                minute++;
+                second = 0;
+            }
 
-            DateTime d = System.DateTime.Now;
-            bool success= false;
+            if (minute >= 60)
+            {
+                hour++;
+                minute = 0;
+            }
+
+            if (hour >= 24)
+            {
+                day++;
+                hour = 0;
+            }
+
+            DateTime d = DateTime.Now;
+            bool success = false;
             try
             {
-                d = new System.DateTime(year, month, day, hour, minute, second, 0);
-                success= true;
+                d = new DateTime(year, month, day, hour, minute, second, 0);
+                success = true;
             }
-            catch (System.ArgumentOutOfRangeException)
+            catch (ArgumentOutOfRangeException)
             {
                 if (year == 1980 && (month == 0 || day == 0))
                 {
                     try
                     {
-                        d = new System.DateTime(1980, 1, 1, hour, minute, second, 0);
-                success= true;
+                        d = new DateTime(1980, 1, 1, hour, minute, second, 0);
+                        success = true;
                     }
-                    catch (System.ArgumentOutOfRangeException)
+                    catch (ArgumentOutOfRangeException)
                     {
                         try
                         {
-                            d = new System.DateTime(1980, 1, 1, 0, 0, 0, 0);
-                success= true;
+                            d = new DateTime(1980, 1, 1, 0, 0, 0, 0);
+                            success = true;
                         }
-                        catch (System.ArgumentOutOfRangeException) { }
-
+                        catch (ArgumentOutOfRangeException)
+                        {
+                        }
                     }
                 }
                 // workitem 8814
@@ -469,18 +495,21 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                         while (minute > 59) minute--;
                         while (second < 0) second++;
                         while (second > 59) second--;
-                        d = new System.DateTime(year, month, day, hour, minute, second, 0);
-                        success= true;
+                        d = new DateTime(year, month, day, hour, minute, second, 0);
+                        success = true;
                     }
-                    catch (System.ArgumentOutOfRangeException) { }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                    }
                 }
             }
+
             if (!success)
             {
-                string msg = String.Format("y({0}) m({1}) d({2}) h({3}) m({4}) s({5})", year, month, day, hour, minute, second);
-                throw new ZipException(String.Format("Bad date/time format in the zip file. ({0})", msg));
-
+                string msg = string.Format("y({0}) m({1}) d({2}) h({3}) m({4}) s({5})", year, month, day, hour, minute, second);
+                throw new ZipException(string.Format("Bad date/time format in the zip file. ({0})", msg));
             }
+
             // workitem 6191
             //d = AdjustTime_Reverse(d);
             d = DateTime.SpecifyKind(d, DateTimeKind.Local);
@@ -489,7 +518,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
 
         internal
-         static Int32 DateTimeToPacked(DateTime time)
+            static int DateTimeToPacked(DateTime time)
         {
             // The time is passed in here only for purposes of writing LastModified to the
             // zip archive. It should always be LocalTime, but we convert anyway.  And,
@@ -500,10 +529,10 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             //time = AdjustTime_Forward(time);
 
             // see http://www.vsft.com/hal/dostime.htm for the format
-            UInt16 packedDate = (UInt16)((time.Day & 0x0000001F) | ((time.Month << 5) & 0x000001E0) | (((time.Year - 1980) << 9) & 0x0000FE00));
-            UInt16 packedTime = (UInt16)((time.Second / 2 & 0x0000001F) | ((time.Minute << 5) & 0x000007E0) | ((time.Hour << 11) & 0x0000F800));
+            ushort packedDate = (ushort)((time.Day & 0x0000001F) | ((time.Month << 5) & 0x000001E0) | (((time.Year - 1980) << 9) & 0x0000FE00));
+            ushort packedTime = (ushort)((time.Second / 2 & 0x0000001F) | ((time.Minute << 5) & 0x000007E0) | ((time.Hour << 11) & 0x0000F800));
 
-            Int32 result = (Int32)(((UInt32)(packedDate << 16)) | packedTime);
+            int result = (int)((uint)(packedDate << 16) | packedTime);
             return result;
         }
 
@@ -525,8 +554,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// </para>
         /// </remarks>
         public static void CreateAndOpenUniqueTempFile(string dir,
-                                                       out Stream fs,
-                                                       out string filename)
+            out Stream fs,
+            out string filename)
         {
             // workitem 9763
             // http://dotnet.org.za/markn/archive/2006/04/15/51594.aspx
@@ -544,6 +573,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                     if (i == 2) throw;
                 }
             }
+
             throw new IOException();
         }
 
@@ -589,55 +619,17 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// This could be gracefully handled with an extension attribute, but
         /// This assembly is built for .NET 2.0, so I cannot use them.
         /// </remarks>
-        internal static int ReadWithRetry(System.IO.Stream s, byte[] buffer, int offset, int count, string FileName)
+        internal static int ReadWithRetry(Stream s, byte[] buffer, int offset, int count, string FileName)
         {
             int n = 0;
             bool done = false;
-//#if !NETCF && !SILVERLIGHT
-//            int retries = 0;
-//#endif
+
             do
             {
-                try
-                {
-                    n = s.Read(buffer, offset, count);
-                    done = true;
-                }
-#if NETCF || SILVERLIGHT
-                catch (System.IO.IOException)
-                {
-                    throw;
-                }
-#else
-                catch /*(System.IO.IOException ioexc1)*/
-                {
-                    // Check if we can call GetHRForException,
-                    // which makes unmanaged code calls.
-                    //var p = new SecurityPermission(SecurityPermissionFlag.UnmanagedCode);
-                    //if (p.IsUnrestricted())
-                    //{
-                    //    uint hresult = _HRForException(ioexc1);
-                    //    if (hresult != 0x80070021)  // ERROR_LOCK_VIOLATION
-                    //        throw new System.IO.IOException(String.Format("Cannot read file {0}", FileName), ioexc1);
-                    //    retries++;
-                    //    if (retries > 10)
-                    //        throw new System.IO.IOException(String.Format("Cannot read file {0}, at offset 0x{1:X8} after 10 retries", FileName, offset), ioexc1);
+                n = s.Read(buffer, offset, count);
+                done = true;
 
-                    //    // max time waited on last retry = 250 + 10*550 = 5.75s
-                    //    // aggregate time waited after 10 retries: 250 + 55*550 = 30.5s
-                    //    System.Threading.Thread.Sleep(250 + retries * 550);
-                    //}
-                    //else
-                    //{
-                        // The permission.Demand() failed. Therefore, we cannot call
-                        // GetHRForException, and cannot do the subtle handling of
-                        // ERROR_LOCK_VIOLATION.  Just bail.
-                        throw;
-                    //}
-                }
-#endif
-            }
-            while (!done);
+            } while (!done);
 
             return n;
         }
@@ -663,13 +655,11 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         // generates the JIT-compile time exception.
         //
 #endif
-        private static uint _HRForException(System.Exception ex1)
+        private static uint _HRForException(Exception ex1)
         {
-            return unchecked((uint)System.Runtime.InteropServices.Marshal.GetHRForException(ex1));
+            return unchecked((uint)Marshal.GetHRForException(ex1));
         }
-
     }
-
 
 
     /// <summary>
@@ -710,25 +700,22 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
     ///     <c>Position</c>, it will then do the right thing with the offsets.
     ///   </para>
     /// </remarks>
-    internal class CountingStream : System.IO.Stream
+    internal class CountingStream : Stream
     {
+        private readonly long _initialOffset;
+
         // workitem 12374: this class is now public
-        private System.IO.Stream _s;
-        private Int64 _bytesWritten;
-        private Int64 _bytesRead;
-        private Int64 _initialOffset;
 
         /// <summary>
         /// The constructor.
         /// </summary>
         /// <param name="stream">The underlying stream</param>
-        public CountingStream(System.IO.Stream stream)
-            : base()
+        public CountingStream(Stream stream)
         {
-            _s = stream;
+            WrappedStream = stream;
             try
             {
-                _initialOffset = _s.Position;
+                _initialOffset = WrappedStream.Position;
             }
             catch
             {
@@ -739,28 +726,57 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <summary>
         ///   Gets the wrapped stream.
         /// </summary>
-        public Stream WrappedStream
-        {
-            get
-            {
-                return _s;
-            }
-        }
+        public Stream WrappedStream { get; }
 
         /// <summary>
         ///   The count of bytes written out to the stream.
         /// </summary>
-        public Int64 BytesWritten
-        {
-            get { return _bytesWritten; }
-        }
+        public long BytesWritten { get; private set; }
 
         /// <summary>
         ///   the count of bytes that have been read from the stream.
         /// </summary>
-        public Int64 BytesRead
+        public long BytesRead { get; private set; }
+
+        /// <summary>
+        ///   Whether the stream can be read.
+        /// </summary>
+        public override bool CanRead => WrappedStream.CanRead;
+
+        /// <summary>
+        ///   Whether it is possible to call Seek() on the stream.
+        /// </summary>
+        public override bool CanSeek => WrappedStream.CanSeek;
+
+        /// <summary>
+        ///   Whether it is possible to call Write() on the stream.
+        /// </summary>
+        public override bool CanWrite => WrappedStream.CanWrite;
+
+        /// <summary>
+        ///   The length of the underlying stream.
+        /// </summary>
+        public override long Length => WrappedStream.Length; // bytesWritten??
+
+        /// <summary>
+        ///   Returns the sum of number of bytes written, plus the initial
+        ///   offset before writing.
+        /// </summary>
+        public long ComputedPosition => _initialOffset + BytesWritten;
+
+
+        /// <summary>
+        ///   The Position of the stream.
+        /// </summary>
+        public override long Position
         {
-            get { return _bytesRead; }
+            get => WrappedStream.Position;
+            set
+            {
+                WrappedStream.Seek(value, SeekOrigin.Begin);
+                // workitem 10178
+                SharedUtilities.Workaround_Ladybug318918(WrappedStream);
+            }
         }
 
         /// <summary>
@@ -778,13 +794,13 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         ///     as happens in some cases when saving Zip files.
         ///   </para>
         /// </remarks>
-        public void Adjust(Int64 delta)
+        public void Adjust(long delta)
         {
-            _bytesWritten -= delta;
-            if (_bytesWritten < 0)
+            BytesWritten -= delta;
+            if (BytesWritten < 0)
                 throw new InvalidOperationException();
-            if (_s as CountingStream != null)
-                ((CountingStream)_s).Adjust(delta);
+            if (WrappedStream as CountingStream != null)
+                ((CountingStream)WrappedStream).Adjust(delta);
         }
 
         /// <summary>
@@ -796,8 +812,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <returns>the number of bytes read, after decryption and decompression.</returns>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            int n = _s.Read(buffer, offset, count);
-            _bytesRead += n;
+            int n = WrappedStream.Read(buffer, offset, count);
+            BytesRead += n;
             return n;
         }
 
@@ -810,32 +826,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         public override void Write(byte[] buffer, int offset, int count)
         {
             if (count == 0) return;
-            _s.Write(buffer, offset, count);
-            _bytesWritten += count;
-        }
-
-        /// <summary>
-        ///   Whether the stream can be read.
-        /// </summary>
-        public override bool CanRead
-        {
-            get { return _s.CanRead; }
-        }
-
-        /// <summary>
-        ///   Whether it is possible to call Seek() on the stream.
-        /// </summary>
-        public override bool CanSeek
-        {
-            get { return _s.CanSeek; }
-        }
-
-        /// <summary>
-        ///   Whether it is possible to call Write() on the stream.
-        /// </summary>
-        public override bool CanWrite
-        {
-            get { return _s.CanWrite; }
+            WrappedStream.Write(buffer, offset, count);
+            BytesWritten += count;
         }
 
         /// <summary>
@@ -843,39 +835,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// </summary>
         public override void Flush()
         {
-            _s.Flush();
-        }
-
-        /// <summary>
-        ///   The length of the underlying stream.
-        /// </summary>
-        public override long Length
-        {
-            get { return _s.Length; }   // bytesWritten??
-        }
-
-        /// <summary>
-        ///   Returns the sum of number of bytes written, plus the initial
-        ///   offset before writing.
-        /// </summary>
-        public long ComputedPosition
-        {
-            get { return _initialOffset + _bytesWritten; }
-        }
-
-
-        /// <summary>
-        ///   The Position of the stream.
-        /// </summary>
-        public override long Position
-        {
-            get { return _s.Position; }
-            set
-            {
-                _s.Seek(value, System.IO.SeekOrigin.Begin);
-                // workitem 10178
-                Ionic.Zip.SharedUtilities.Workaround_Ladybug318918(_s);
-            }
+            WrappedStream.Flush();
         }
 
         /// <summary>
@@ -884,9 +844,9 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <param name="offset">the offset point to seek to</param>
         /// <param name="origin">the reference point from which to seek</param>
         /// <returns>The new position</returns>
-        public override long Seek(long offset, System.IO.SeekOrigin origin)
+        public override long Seek(long offset, SeekOrigin origin)
         {
-            return _s.Seek(offset, origin);
+            return WrappedStream.Seek(offset, origin);
         }
 
         /// <summary>
@@ -896,9 +856,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <param name='value'>the length to set on the underlying stream.</param>
         public override void SetLength(long value)
         {
-            _s.SetLength(value);
+            WrappedStream.SetLength(value);
         }
     }
-
-
 }

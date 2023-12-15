@@ -13,29 +13,26 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
+
 using System.Text.RegularExpressions;
-using OfficeOpenXml.FormulaParsing;
 using OfficeOpenXml.FormulaParsing.Utilities;
+using OfficeOpenXml.Utils;
+using Require = OfficeOpenXml.FormulaParsing.Utilities.Require;
 
 namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
 {
@@ -80,24 +77,24 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
         /// <param name="behaviour"></param>
         public virtual void ToColAndRow(string address, out int col, out int row, RangeCalculationBehaviour behaviour)
         {
-            address = Utils.ConvertUtil._invariantTextInfo.ToUpper(address);
-            var alphaPart = GetAlphaPart(address);
+            address = ConvertUtil._invariantTextInfo.ToUpper(address);
+            string alphaPart = GetAlphaPart(address);
             col = 0;
-            var nLettersInAlphabet = 26;
+            int nLettersInAlphabet = 26;
             for (int x = 0; x < alphaPart.Length; x++)
             {
-                var pos = alphaPart.Length - x - 1;
-                var currentNumericValue = GetNumericAlphaValue(alphaPart[x]);
-                col += (nLettersInAlphabet * pos * currentNumericValue);
+                int pos = alphaPart.Length - x - 1;
+                int currentNumericValue = GetNumericAlphaValue(alphaPart[x]);
+                col += nLettersInAlphabet * pos * currentNumericValue;
                 if (pos == 0)
                 {
                     col += currentNumericValue;
                 }
             }
+
             //col--;
             //row = GetIntPart(address) - 1 ?? GetRowIndexByBehaviour(behaviour);
             row = GetIntPart(address) ?? GetRowIndexByBehaviour(behaviour);
-
         }
 
         private int GetRowIndexByBehaviour(RangeCalculationBehaviour behaviour)
@@ -106,12 +103,13 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
             {
                 return 1;
             }
+
             return _excelDataProvider.ExcelMaxRows;
         }
 
         private int GetNumericAlphaValue(char c)
         {
-            return (int)c - 64;
+            return c - 64;
         }
 
         private string GetAlphaPart(string address)
@@ -125,6 +123,7 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
             {
                 return int.Parse(Regex.Match(address, "[0-9]+").Value);
             }
+
             return null;
         }
     }

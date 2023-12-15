@@ -7,61 +7,52 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Mats Alm   		                Added		                2013-12-03
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using OfficeOpenXml.FormulaParsing.ExpressionGraph;
 using OfficeOpenXml.FormulaParsing.ExcelUtilities;
+using OfficeOpenXml.FormulaParsing.ExpressionGraph;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
 {
     public class Match : LookupFunction
     {
-        private enum MatchType
-        {
-            ClosestAbove = -1,
-            ExactMatch = 0,
-            ClosestBelow = 1
-        }
-
         public Match()
             : base(new WildCardValueMatcher(), new CompileResultFactory())
         {
-
         }
 
         public override CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
         {
             ValidateArguments(arguments, 2);
 
-            var searchedValue = arguments.ElementAt(0).Value;
-            var address =  ArgToAddress(arguments,1, context); 
+            object searchedValue = arguments.ElementAt(0).Value;
+            string address = ArgToAddress(arguments, 1, context);
             var rangeAddressFactory = new RangeAddressFactory(context.ExcelDataProvider);
-            var rangeAddress = rangeAddressFactory.Create(address);
-            var matchType = GetMatchType(arguments);
+            RangeAddress rangeAddress = rangeAddressFactory.Create(address);
+            MatchType matchType = GetMatchType(arguments);
             var args = new LookupArguments(searchedValue, address, 0, 0, false, arguments.ElementAt(1).ValueAsRangeInfo);
-            var lookupDirection = GetLookupDirection(rangeAddress);
-            var navigator = LookupNavigatorFactory.Create(lookupDirection, args, context);
+            LookupDirection lookupDirection = GetLookupDirection(rangeAddress);
+            LookupNavigator navigator = LookupNavigatorFactory.Create(lookupDirection, args, context);
             int? lastValidIndex = null;
             do
             {
-                var matchResult = IsMatch(navigator.CurrentValue, searchedValue);
+                int matchResult = IsMatch(navigator.CurrentValue, searchedValue);
 
                 // For all match types, if the match result indicated equality, return the index (1 based)
                 if (matchResult == 0)
@@ -74,12 +65,12 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
                     lastValidIndex = navigator.Index + 1;
                 }
                 // If matchType is ClosestBelow or ClosestAbove and the match result test failed, no more searching is required
-                else if (matchType == MatchType.ClosestBelow || matchType == MatchType.ClosestAbove)
+                else if (matchType is MatchType.ClosestBelow or MatchType.ClosestAbove)
                 {
                     break;
                 }
-            }
-            while (navigator.MoveNext());
+            } while (navigator.MoveNext());
+
             return CreateResult(lastValidIndex, DataType.Integer);
         }
 
@@ -90,7 +81,15 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
             {
                 matchType = (MatchType)ArgToInt(arguments, 2);
             }
+
             return matchType;
+        }
+
+        private enum MatchType
+        {
+            ClosestAbove = -1,
+            ExactMatch = 0,
+            ClosestBelow = 1
         }
     }
 }

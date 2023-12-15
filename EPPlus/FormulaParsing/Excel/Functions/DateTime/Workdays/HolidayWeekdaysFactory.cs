@@ -1,38 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime.Workdays
 {
     public class HolidayWeekdaysFactory
     {
-        private readonly DayOfWeek[] _dayOfWeekArray = new DayOfWeek[]
+        private readonly DayOfWeek[] _dayOfWeekArray =
         {
-            DayOfWeek.Monday, 
-            DayOfWeek.Tuesday, 
-            DayOfWeek.Wednesday, 
+            DayOfWeek.Monday,
+            DayOfWeek.Tuesday,
+            DayOfWeek.Wednesday,
             DayOfWeek.Thursday,
-            DayOfWeek.Friday, 
+            DayOfWeek.Friday,
             DayOfWeek.Saturday,
             DayOfWeek.Sunday
         };
 
         public HolidayWeekdays Create(string weekdays)
         {
-            if(string.IsNullOrEmpty(weekdays) || weekdays.Length != 7)
+            if (string.IsNullOrEmpty(weekdays) || weekdays.Length != 7)
                 throw new ArgumentException("Illegal weekday string", nameof(Weekday));
 
             var retVal = new List<DayOfWeek>();
-            var arr = weekdays.ToCharArray();
-            for(var i = 0; i < arr.Length;i++)
+            char[] arr = weekdays.ToCharArray();
+            for (int i = 0; i < arr.Length; i++)
             {
-                var ch = arr[i];
+                char ch = arr[i];
                 if (ch == '1')
                 {
                     retVal.Add(_dayOfWeekArray[i]);
                 }
             }
+
             return new HolidayWeekdays(retVal.ToArray());
         }
 

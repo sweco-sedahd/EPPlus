@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using OfficeOpenXml.FormulaParsing.Exceptions;
 using OfficeOpenXml.FormulaParsing.Utilities;
 
@@ -10,9 +7,9 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
     public class ArrayLookupNavigator : LookupNavigator
     {
         private readonly FunctionArgument[] _arrayData;
-        private int _index = 0;
         private object _currentValue;
- 
+        private int _index;
+
         public ArrayLookupNavigator(LookupDirection direction, LookupArguments arguments, ParsingContext parsingContext)
             : base(direction, arguments, parsingContext)
         {
@@ -22,19 +19,18 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
             Initialize();
         }
 
+        public override int Index => _index;
+
+        public override object CurrentValue => _arrayData[_index].Value;
+
         private void Initialize()
         {
             if (Arguments.LookupIndex >= _arrayData.Length)
             {
                 throw new ExcelErrorValueException(eErrorType.Ref);
             }
+
             SetCurrentValue();
-
-        }
-
-        public override int Index
-        {
-            get { return _index; }
         }
 
         private void SetCurrentValue()
@@ -46,12 +42,10 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
         {
             if (Direction == LookupDirection.Vertical)
             {
-                return _index < (_arrayData.Length - 1);
+                return _index < _arrayData.Length - 1;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         public override bool MoveNext()
@@ -61,13 +55,9 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
             {
                 _index++;
             }
+
             SetCurrentValue();
             return true;
-        }
-
-        public override object CurrentValue
-        {
-            get { return _arrayData[_index].Value; }
         }
 
         public override object GetLookupValue()

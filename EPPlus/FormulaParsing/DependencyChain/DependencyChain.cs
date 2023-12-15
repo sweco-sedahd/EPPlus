@@ -4,9 +4,10 @@ namespace OfficeOpenXml.FormulaParsing
 {
     internal class DependencyChain
     {
-        internal List<FormulaCell> list = new List<FormulaCell>();
-        internal Dictionary<ulong, int> index = new Dictionary<ulong, int>();
-        internal List<int> CalcOrder = new List<int>();
+        internal List<int> CalcOrder = new();
+        internal Dictionary<ulong, int> index = new();
+        internal List<FormulaCell> list = new();
+
         internal void Add(FormulaCell f)
         {
             list.Add(f);

@@ -13,55 +13,53 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
- * Jan Källman                      Added                       2012-03-04  
+ * Jan Källman                      Added                       2012-03-04
  *******************************************************************************/
 
-using System.Threading;
-using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using OfficeOpenXml.FormulaParsing;
 using OfficeOpenXml.FormulaParsing.Exceptions;
+using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
 
 namespace OfficeOpenXml
 {
     public static class CalculationExtension
     {
-
         public static void Calculate(this ExcelWorkbook workbook)
         {
-            Calculate(workbook, new ExcelCalculationOption(){AllowCirculareReferences=false});
+            Calculate(workbook, new ExcelCalculationOption { AllowCirculareReferences = false });
         }
+
         public static void Calculate(this ExcelWorkbook workbook, ExcelCalculationOption options)
         {
             Init(workbook);
 
-            var dc = DependencyChainFactory.Create(workbook, options);
+            DependencyChain dc = DependencyChainFactory.Create(workbook, options);
             workbook.FormulaParser.InitNewCalc();
             if (workbook.FormulaParser.Logger != null)
             {
-                var msg = string.Format("Starting... number of cells to parse: {0}", dc.list.Count);
+                string msg = string.Format("Starting... number of cells to parse: {0}", dc.list.Count);
                 workbook.FormulaParser.Logger.Log(msg);
             }
 
             //TODO: Remove when tests are done. Outputs the dc to a text file. 
             //var fileDc = new System.IO.StreamWriter("c:\\temp\\dc.txt");
-                        
+
             //for (int i = 0; i < dc.list.Count; i++)
             //{
             //    fileDc.WriteLine(i.ToString() + "," + dc.list[i].Column.ToString() + "," + dc.list[i].Row.ToString() + "," + (dc.list[i].ws==null ? "" : dc.list[i].ws.Name) + "," + dc.list[i].Formula);
@@ -81,52 +79,59 @@ namespace OfficeOpenXml
 
             //workbook._isCalculated = true;
         }
+
         public static void Calculate(this ExcelWorksheet worksheet)
         {
             Calculate(worksheet, new ExcelCalculationOption());
         }
+
         public static void Calculate(this ExcelWorksheet worksheet, ExcelCalculationOption options)
         {
             Init(worksheet.Workbook);
             //worksheet.Workbook._formulaParser = null; TODO:Cant reset. Don't work with userdefined or overrided worksheet functions            
-            var dc = DependencyChainFactory.Create(worksheet, options);
-            var parser = worksheet.Workbook.FormulaParser;
+            DependencyChain dc = DependencyChainFactory.Create(worksheet, options);
+            FormulaParser parser = worksheet.Workbook.FormulaParser;
             parser.InitNewCalc();
             if (parser.Logger != null)
             {
-                var msg = string.Format("Starting... number of cells to parse: {0}", dc.list.Count);
+                string msg = string.Format("Starting... number of cells to parse: {0}", dc.list.Count);
                 parser.Logger.Log(msg);
             }
+
             CalcChain(worksheet.Workbook, parser, dc);
         }
+
         public static void Calculate(this ExcelRangeBase range)
         {
             Calculate(range, new ExcelCalculationOption());
         }
+
         public static void Calculate(this ExcelRangeBase range, ExcelCalculationOption options)
         {
             Init(range._workbook);
-            var parser = range._workbook.FormulaParser;
+            FormulaParser parser = range._workbook.FormulaParser;
             parser.InitNewCalc();
-            var dc = DependencyChainFactory.Create(range, options);
+            DependencyChain dc = DependencyChainFactory.Create(range, options);
             CalcChain(range._workbook, parser, dc);
         }
+
         public static object Calculate(this ExcelWorksheet worksheet, string Formula)
         {
             return Calculate(worksheet, Formula, new ExcelCalculationOption());
         }
+
         public static object Calculate(this ExcelWorksheet worksheet, string Formula, ExcelCalculationOption options)
         {
             try
             {
                 worksheet.CheckSheetType();
-                if(string.IsNullOrEmpty(Formula.Trim())) return null;
+                if (string.IsNullOrEmpty(Formula.Trim())) return null;
                 Init(worksheet.Workbook);
-                var parser = worksheet.Workbook.FormulaParser;
+                FormulaParser parser = worksheet.Workbook.FormulaParser;
                 parser.InitNewCalc();
                 if (Formula[0] == '=') Formula = Formula.Substring(1); //Remove any starting equal sign
-                var dc = DependencyChainFactory.Create(worksheet, Formula, options);
-                var f = dc.list[0];
+                DependencyChain dc = DependencyChainFactory.Create(worksheet, Formula, options);
+                FormulaCell f = dc.list[0];
                 dc.CalcOrder.RemoveAt(dc.CalcOrder.Count - 1);
 
                 CalcChain(worksheet.Workbook, parser, dc);
@@ -138,38 +143,42 @@ namespace OfficeOpenXml
                 return new ExcelErrorValueException(ex.Message, ExcelErrorValue.Create(eErrorType.Value));
             }
         }
+
         private static void CalcChain(ExcelWorkbook wb, FormulaParser parser, DependencyChain dc)
         {
-            var debug = parser.Logger != null;
-            foreach (var ix in dc.CalcOrder)
+            bool debug = parser.Logger != null;
+            foreach (int ix in dc.CalcOrder)
             {
-                var item = dc.list[ix];
+                FormulaCell item = dc.list[ix];
                 try
                 {
-                    var ws = wb.Worksheets.GetBySheetID(item.SheetID);
-                    var v = parser.ParseCell(item.Tokens, ws == null ? "" : ws.Name, item.Row, item.Column);
+                    ExcelWorksheet ws = wb.Worksheets.GetBySheetID(item.SheetID);
+                    object v = parser.ParseCell(item.Tokens, ws == null ? "" : ws.Name, item.Row, item.Column);
                     SetValue(wb, item, v);
                     if (debug)
                     {
                         parser.Logger.LogCellCounted();
                     }
+
                     Thread.Sleep(0);
                 }
                 catch (FormatException fe)
                 {
-                    throw (fe);
+                    throw fe;
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
-                    var error = ExcelErrorValue.Parse(ExcelErrorValue.Values.Value);
+                    ExcelErrorValue error = ExcelErrorValue.Parse(ExcelErrorValue.Values.Value);
                     SetValue(wb, item, error);
                 }
             }
         }
+
         private static void Init(ExcelWorkbook workbook)
         {
-            workbook._formulaTokens = new CellStore<List<Token>>();;
-            foreach (var ws in workbook.Worksheets)
+            workbook._formulaTokens = new CellStore<List<Token>>();
+            ;
+            foreach (ExcelWorksheet ws in workbook.Worksheets)
             {
                 if (!(ws is ExcelChartsheet))
                 {
@@ -177,6 +186,7 @@ namespace OfficeOpenXml
                     {
                         ws._formulaTokens.Dispose();
                     }
+
                     ws._formulaTokens = new CellStore<List<Token>>();
                 }
             }
@@ -192,13 +202,13 @@ namespace OfficeOpenXml
                 }
                 else
                 {
-                    var sh = workbook.Worksheets.GetBySheetID(item.SheetID);
+                    ExcelWorksheet sh = workbook.Worksheets.GetBySheetID(item.SheetID);
                     sh.Names[item.Row].NameValue = v;
                 }
             }
             else
             {
-                var sheet = workbook.Worksheets.GetBySheetID(item.SheetID);
+                ExcelWorksheet sheet = workbook.Worksheets.GetBySheetID(item.SheetID);
                 sheet.SetValueInner(item.Row, item.Column, v);
             }
         }

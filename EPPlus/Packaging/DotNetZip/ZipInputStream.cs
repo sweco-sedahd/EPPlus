@@ -30,14 +30,12 @@
 //
 
 using System;
-using System.Threading;
-using System.Collections.Generic;
 using System.IO;
-using Ionic.Zip;
-using OfficeOpenXml.Packaging.Ionic.Zip;
+using System.Text;
 using OfficeOpenXml.Packaging.Ionic.Crc;
+using OfficeOpenXml.Packaging.Ionic.Zip;
 
-namespace  Ionic.Zip
+namespace Ionic.Zip
 {
     /// <summary>
     ///   Provides a stream metaphor for reading zip files.
@@ -106,6 +104,22 @@ namespace  Ionic.Zip
     /// </remarks>
     internal class ZipInputStream : Stream
     {
+        private bool _closed;
+        private ZipContainer _container;
+        private CrcCalculatorStream _crcStream;
+        private ZipEntry _currentEntry;
+        private long _endOfEntry;
+        private bool _exceptionPending;
+        private bool _findRequired;
+        private bool _firstEntry;
+
+
+        private bool _leaveUnderlyingStreamOpen;
+        private long _LeftToRead;
+        private string _name;
+        private bool _needSetup;
+        internal string _Password;
+
         /// <summary>
         ///   Create a <c>ZipInputStream</c>, wrapping it around an existing stream.
         /// </summary>
@@ -229,8 +243,9 @@ namespace  Ionic.Zip
         /// End Sub
         /// </code>
         /// </example>
-        public ZipInputStream(Stream stream)  : this (stream, false) { }
-
+        public ZipInputStream(Stream stream) : this(stream, false)
+        {
+        }
 
 
         /// <summary>
@@ -309,9 +324,9 @@ namespace  Ionic.Zip
         /// End Sub
         /// </code>
         /// </example>
-        public ZipInputStream(String fileName)
+        public ZipInputStream(string fileName)
         {
-            Stream stream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read );
+            Stream stream = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
             _Init(stream, false, fileName);
         }
 
@@ -338,35 +353,6 @@ namespace  Ionic.Zip
         public ZipInputStream(Stream stream, bool leaveOpen)
         {
             _Init(stream, leaveOpen, null);
-        }
-
-        private void _Init(Stream stream, bool leaveOpen, string name)
-        {
-            _inputStream = stream;
-            if (!_inputStream.CanRead)
-                throw new ZipException("The stream must be readable.");
-            _container= new ZipContainer(this);
-#if (Core)
-            _provisionalAlternateEncoding = System.Text.Encoding.GetEncoding("utf-8");
-#else
-            _provisionalAlternateEncoding = System.Text.Encoding.GetEncoding("IBM437");
-#endif
-            _leaveUnderlyingStreamOpen = leaveOpen;
-            _findRequired= true;
-            _name = name ?? "(stream)";
-        }
-
-
-        /// <summary>Provides a string representation of the instance.</summary>
-        /// <remarks>
-        ///   <para>
-        ///     This can be useful for debugging purposes.
-        ///   </para>
-        /// </remarks>
-        /// <returns>a string representation of the instance.</returns>
-        public override String ToString()
-        {
-            return String.Format ("ZipInputStream::{0}(leaveOpen({1})))", _name, _leaveUnderlyingStreamOpen);
         }
 
 
@@ -422,17 +408,7 @@ namespace  Ionic.Zip
         /// </para>
         ///
         /// </remarks>
-        public System.Text.Encoding ProvisionalAlternateEncoding
-        {
-            get
-            {
-                return _provisionalAlternateEncoding;
-            }
-            set
-            {
-                _provisionalAlternateEncoding = value;
-            }
-        }
+        public Encoding ProvisionalAlternateEncoding { get; set; }
 
 
         /// <summary>
@@ -447,11 +423,7 @@ namespace  Ionic.Zip
         ///   recommendations on how to set it.  You'll have to test it yourself. Or
         ///   just leave it alone and accept the default.
         /// </remarks>
-        public int CodecBufferSize
-        {
-            get;
-            set;
-        }
+        public int CodecBufferSize { get; set; }
 
 
         /// <summary>
@@ -505,17 +477,83 @@ namespace  Ionic.Zip
         ///
         /// </code>
         /// </example>
-        public String Password
+        public string Password
         {
             set
             {
                 if (_closed)
                 {
                     _exceptionPending = true;
-                    throw new System.InvalidOperationException("The stream has been closed.");
+                    throw new InvalidOperationException("The stream has been closed.");
                 }
+
                 _Password = value;
             }
+        }
+
+
+        internal Stream ReadStream { get; private set; }
+
+
+        /// <summary>
+        /// Always returns true.
+        /// </summary>
+        public override bool CanRead => true;
+
+        /// <summary>
+        /// Returns the value of <c>CanSeek</c> for the underlying (wrapped) stream.
+        /// </summary>
+        public override bool CanSeek => ReadStream.CanSeek;
+
+        /// <summary>
+        /// Always returns false.
+        /// </summary>
+        public override bool CanWrite => false;
+
+        /// <summary>
+        /// Returns the length of the underlying stream.
+        /// </summary>
+        public override long Length => ReadStream.Length;
+
+        /// <summary>
+        /// Gets or sets the position of the underlying stream.
+        /// </summary>
+        /// <remarks>
+        /// Setting the position is equivalent to calling <c>Seek(value, SeekOrigin.Begin)</c>.
+        /// </remarks>
+        public override long Position
+        {
+            get => ReadStream.Position;
+            set => Seek(value, SeekOrigin.Begin);
+        }
+
+        private void _Init(Stream stream, bool leaveOpen, string name)
+        {
+            ReadStream = stream;
+            if (!ReadStream.CanRead)
+                throw new ZipException("The stream must be readable.");
+            _container = new ZipContainer(this);
+#if (Core)
+            ProvisionalAlternateEncoding = Encoding.GetEncoding("utf-8");
+#else
+            _provisionalAlternateEncoding = System.Text.Encoding.GetEncoding("IBM437");
+#endif
+            _leaveUnderlyingStreamOpen = leaveOpen;
+            _findRequired = true;
+            _name = name ?? "(stream)";
+        }
+
+
+        /// <summary>Provides a string representation of the instance.</summary>
+        /// <remarks>
+        ///   <para>
+        ///     This can be useful for debugging purposes.
+        ///   </para>
+        /// </remarks>
+        /// <returns>a string representation of the instance.</returns>
+        public override string ToString()
+        {
+            return string.Format("ZipInputStream::{0}(leaveOpen({1})))", _name, _leaveUnderlyingStreamOpen);
         }
 
 
@@ -523,19 +561,9 @@ namespace  Ionic.Zip
         {
             // Seek to the correct posn in the file, and open a
             // stream that can be read.
-            _crcStream= _currentEntry.InternalOpenReader(_Password);
+            _crcStream = _currentEntry.InternalOpenReader(_Password);
             _LeftToRead = _crcStream.Length;
             _needSetup = false;
-        }
-
-
-
-        internal Stream ReadStream
-        {
-            get
-            {
-                return _inputStream;
-            }
         }
 
 
@@ -566,7 +594,7 @@ namespace  Ionic.Zip
             if (_closed)
             {
                 _exceptionPending = true;
-                throw new System.InvalidOperationException("The stream has been closed.");
+                throw new InvalidOperationException("The stream has been closed.");
             }
 
             if (_needSetup)
@@ -574,7 +602,7 @@ namespace  Ionic.Zip
 
             if (_LeftToRead == 0) return 0;
 
-            int len = (_LeftToRead > count) ? count : (int)_LeftToRead;
+            int len = _LeftToRead > count ? count : (int)_LeftToRead;
             int n = _crcStream.Read(buffer, offset, len);
 
             _LeftToRead -= n;
@@ -583,14 +611,13 @@ namespace  Ionic.Zip
             {
                 int CrcResult = _crcStream.Crc;
                 _currentEntry.VerifyCrcAfterExtract(CrcResult);
-                _inputStream.Seek(_endOfEntry, SeekOrigin.Begin);
+                ReadStream.Seek(_endOfEntry, SeekOrigin.Begin);
                 // workitem 10178
-                SharedUtilities.Workaround_Ladybug318918(_inputStream);
+                SharedUtilities.Workaround_Ladybug318918(ReadStream);
             }
 
             return n;
         }
-
 
 
         /// <summary>
@@ -632,30 +659,30 @@ namespace  Ionic.Zip
             if (_findRequired)
             {
                 // find the next signature
-                long d = SharedUtilities.FindSignature(_inputStream, ZipConstants.ZipEntrySignature);
+                long d = SharedUtilities.FindSignature(ReadStream, ZipConstants.ZipEntrySignature);
                 if (d == -1) return null;
                 // back up 4 bytes: ReadEntry assumes the file pointer is positioned before the entry signature
-                _inputStream.Seek(-4, SeekOrigin.Current);
+                ReadStream.Seek(-4, SeekOrigin.Current);
                 // workitem 10178
-                SharedUtilities.Workaround_Ladybug318918(_inputStream);
+                SharedUtilities.Workaround_Ladybug318918(ReadStream);
             }
             // workitem 10923
             else if (_firstEntry)
             {
                 // we've already read one entry.
                 // Seek to the end of it.
-                _inputStream.Seek(_endOfEntry, SeekOrigin.Begin);
-                SharedUtilities.Workaround_Ladybug318918(_inputStream);
+                ReadStream.Seek(_endOfEntry, SeekOrigin.Begin);
+                SharedUtilities.Workaround_Ladybug318918(ReadStream);
             }
 
             _currentEntry = ZipEntry.ReadEntry(_container, !_firstEntry);
             // ReadEntry leaves the file position after all the entry
             // data and the optional bit-3 data descriptpr.  This is
             // where the next entry would normally start.
-            _endOfEntry = _inputStream.Position;
+            _endOfEntry = ReadStream.Position;
             _firstEntry = true;
             _needSetup = true;
-            _findRequired= false;
+            _findRequired = false;
             return _currentEntry;
         }
 
@@ -708,44 +735,12 @@ namespace  Ionic.Zip
 #if NETCF
                     _inputStream.Close();
 #else
-                    _inputStream.Dispose();
+                    ReadStream.Dispose();
 #endif
                 }
             }
-            _closed= true;
-        }
 
-
-        /// <summary>
-        /// Always returns true.
-        /// </summary>
-        public override bool CanRead  { get { return true; }}
-
-        /// <summary>
-        /// Returns the value of <c>CanSeek</c> for the underlying (wrapped) stream.
-        /// </summary>
-        public override bool CanSeek  { get { return _inputStream.CanSeek; } }
-
-        /// <summary>
-        /// Always returns false.
-        /// </summary>
-        public override bool CanWrite { get { return false; } }
-
-        /// <summary>
-        /// Returns the length of the underlying stream.
-        /// </summary>
-        public override long Length   { get { return _inputStream.Length; }}
-
-        /// <summary>
-        /// Gets or sets the position of the underlying stream.
-        /// </summary>
-        /// <remarks>
-        /// Setting the position is equivalent to calling <c>Seek(value, SeekOrigin.Begin)</c>.
-        /// </remarks>
-        public override long Position
-        {
-            get { return _inputStream.Position;}
-            set { Seek(value, SeekOrigin.Begin); }
+            _closed = true;
         }
 
         /// <summary>
@@ -793,10 +788,10 @@ namespace  Ionic.Zip
         /// <returns>The new position</returns>
         public override long Seek(long offset, SeekOrigin origin)
         {
-            _findRequired= true;
-            var x = _inputStream.Seek(offset, origin);
+            _findRequired = true;
+            long x = ReadStream.Seek(offset, origin);
             // workitem 10178
-            SharedUtilities.Workaround_Ladybug318918(_inputStream);
+            SharedUtilities.Workaround_Ladybug318918(ReadStream);
             return x;
         }
 
@@ -808,26 +803,5 @@ namespace  Ionic.Zip
         {
             throw new NotSupportedException();
         }
-
-
-        private Stream _inputStream;
-        private System.Text.Encoding _provisionalAlternateEncoding;
-        private ZipEntry _currentEntry;
-        private bool _firstEntry;
-        private bool _needSetup;
-        private ZipContainer _container;
-        private CrcCalculatorStream _crcStream;
-        private Int64 _LeftToRead;
-        internal String _Password;
-        private Int64 _endOfEntry;
-        private string _name;
-
-        private bool _leaveUnderlyingStreamOpen;
-        private bool _closed;
-        private bool _findRequired;
-        private bool _exceptionPending;
     }
-
-
-
 }

@@ -7,40 +7,35 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Mats Alm   		                Added		                2013-12-03
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using OfficeOpenXml.FormulaParsing.ExcelUtilities;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph;
-using OfficeOpenXml.FormulaParsing.Exceptions;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
 {
     public abstract class LookupFunction : ExcelFunction
     {
-        private readonly ValueMatcher _valueMatcher;
         private readonly CompileResultFactory _compileResultFactory;
+        private readonly ValueMatcher _valueMatcher;
 
         public LookupFunction()
             : this(new LookupValueMatcher(), new CompileResultFactory())
         {
-
         }
 
         public LookupFunction(ValueMatcher valueMatcher, CompileResultFactory compileResultFactory)
@@ -49,13 +44,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
             _compileResultFactory = compileResultFactory;
         }
 
-        public override bool IsLookupFuction
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool IsLookupFuction => true;
 
         protected int IsMatch(object o1, object o2)
         {
@@ -64,8 +53,8 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
 
         protected LookupDirection GetLookupDirection(RangeAddress rangeAddress)
         {
-            var nRows = rangeAddress.ToRow - rangeAddress.FromRow;
-            var nCols = rangeAddress.ToCol - rangeAddress.FromCol;
+            int nRows = rangeAddress.ToRow - rangeAddress.FromRow;
+            int nCols = rangeAddress.ToCol - rangeAddress.FromCol;
             return nCols > nRows ? LookupDirection.Horizontal : LookupDirection.Vertical;
         }
 
@@ -78,9 +67,10 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
             {
                 return new CompileResult(eErrorType.NA);
             }
+
             do
             {
-                var matchResult = IsMatch(navigator.CurrentValue, lookupArgs.SearchedValue);
+                int matchResult = IsMatch(navigator.CurrentValue, lookupArgs.SearchedValue);
                 if (matchResult != 0)
                 {
                     if (lastValue != null && navigator.CurrentValue == null) break;
@@ -90,10 +80,12 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
                     {
                         return new CompileResult(eErrorType.NA);
                     }
+
                     if (lastValue != null && matchResult > 0 && lastMatchResult < 0)
                     {
                         return _compileResultFactory.Create(lastLookupValue);
                     }
+
                     lastMatchResult = matchResult;
                     lastValue = navigator.CurrentValue;
                     lastLookupValue = navigator.GetLookupValue();
@@ -102,8 +94,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup
                 {
                     return _compileResultFactory.Create(navigator.GetLookupValue());
                 }
-            }
-            while (navigator.MoveNext());
+            } while (navigator.MoveNext());
 
             return lookupArgs.RangeLookup ? _compileResultFactory.Create(lastLookupValue) : new CompileResult(eErrorType.NA);
         }

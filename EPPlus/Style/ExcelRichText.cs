@@ -13,17 +13,17 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		                Initial Release		        2009-10-01
@@ -31,12 +31,11 @@
  * Richard Tallent					Fix inadvertent removal of XML node					2012-10-31
  * Richard Tallent					Remove VertAlign node if no alignment specified		2012-10-31
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml;
 using System.Drawing;
 using System.Globalization;
+using System.Xml;
 
 namespace OfficeOpenXml.Style
 {
@@ -45,29 +44,31 @@ namespace OfficeOpenXml.Style
     /// </summary>
     public class ExcelRichText : XmlHelper
     {
+        const string BOLD_PATH = "d:rPr/d:b";
+        const string COLOR_PATH = "d:rPr/d:color/@rgb";
+        const string FONT_PATH = "d:rPr/d:rFont/@val";
+        const string ITALIC_PATH = "d:rPr/d:i";
+        const string SIZE_PATH = "d:rPr/d:sz/@val";
+        const string STRIKE_PATH = "d:rPr/d:strike";
+        const string TEXT_PATH = "d:t";
+        const string UNDERLINE_PATH = "d:rPr/d:u";
+
+        const string VERT_ALIGN_PATH = "d:rPr/d:vertAlign/@val";
+        CallbackDelegate _callback;
+
         internal ExcelRichText(XmlNamespaceManager ns, XmlNode topNode, ExcelRichTextCollection collection) :
             base(ns, topNode)
         {
-            SchemaNodeOrder=new string[] {"rPr", "t", "b", "i","strike", "u", "vertAlign" , "sz", "color", "rFont", "family", "scheme", "charset"};
+            SchemaNodeOrder = new[] { "rPr", "t", "b", "i", "strike", "u", "vertAlign", "sz", "color", "rFont", "family", "scheme", "charset" };
             _collection = collection;
         }
-        internal delegate void CallbackDelegate();
-        CallbackDelegate _callback;
-        internal void SetCallback(CallbackDelegate callback)
-        {
-            _callback=callback;
-        }
-        const string TEXT_PATH="d:t";
+
         /// <summary>
         /// The text
         /// </summary>
-        public string Text 
-        { 
-
-            get
-            {
-                return GetXmlNodeString(TEXT_PATH);
-            }
+        public string Text
+        {
+            get => GetXmlNodeString(TEXT_PATH);
             set
             {
                 _collection.ConvertRichtext();
@@ -76,12 +77,14 @@ namespace OfficeOpenXml.Style
                 SetXmlNodeString(TEXT_PATH, value, false);
                 if (PreserveSpace)
                 {
-                    XmlElement elem = TopNode.SelectSingleNode(TEXT_PATH, NameSpaceManager) as XmlElement;
+                    var elem = TopNode.SelectSingleNode(TEXT_PATH, NameSpaceManager) as XmlElement;
                     elem.SetAttribute("xml:space", "preserve");
                 }
+
                 if (_callback != null) _callback();
             }
         }
+
         /// <summary>
         /// Preserves whitespace. Default true
         /// </summary>
@@ -89,18 +92,17 @@ namespace OfficeOpenXml.Style
         {
             get
             {
-                XmlElement elem = TopNode.SelectSingleNode(TEXT_PATH, NameSpaceManager) as XmlElement;
-                if (elem != null)
+                if (TopNode.SelectSingleNode(TEXT_PATH, NameSpaceManager) is XmlElement elem)
                 {
-                    return elem.GetAttribute("xml:space")=="preserve";
+                    return elem.GetAttribute("xml:space") == "preserve";
                 }
+
                 return false;
             }
             set
             {
                 _collection.ConvertRichtext();
-                XmlElement elem = TopNode.SelectSingleNode(TEXT_PATH, NameSpaceManager) as XmlElement;
-                if (elem != null)
+                if (TopNode.SelectSingleNode(TEXT_PATH, NameSpaceManager) is XmlElement elem)
                 {
                     if (value)
                     {
@@ -111,19 +113,17 @@ namespace OfficeOpenXml.Style
                         elem.RemoveAttribute("xml:space");
                     }
                 }
+
                 if (_callback != null) _callback();
             }
         }
-        const string BOLD_PATH = "d:rPr/d:b";
+
         /// <summary>
         /// Bold text
         /// </summary>
         public bool Bold
         {
-            get
-            {
-                return ExistNode(BOLD_PATH);
-            }
+            get => ExistNode(BOLD_PATH);
             set
             {
                 _collection.ConvertRichtext();
@@ -135,20 +135,19 @@ namespace OfficeOpenXml.Style
                 {
                     DeleteNode(BOLD_PATH);
                 }
-                if(_callback!=null) _callback();
+
+                if (_callback != null) _callback();
             }
         }
-        const string ITALIC_PATH = "d:rPr/d:i";
+
         /// <summary>
         /// Italic text
         /// </summary>
         public bool Italic
         {
-            get
-            {
+            get =>
                 //return GetXmlNodeBool(ITALIC_PATH, false);
-                return ExistNode(ITALIC_PATH);
-            }
+                ExistNode(ITALIC_PATH);
             set
             {
                 _collection.ConvertRichtext();
@@ -160,19 +159,17 @@ namespace OfficeOpenXml.Style
                 {
                     DeleteNode(ITALIC_PATH);
                 }
+
                 if (_callback != null) _callback();
             }
         }
-        const string STRIKE_PATH = "d:rPr/d:strike";
+
         /// <summary>
         /// Strike-out text
         /// </summary>
         public bool Strike
         {
-            get
-            {
-                return ExistNode(STRIKE_PATH);
-            }
+            get => ExistNode(STRIKE_PATH);
             set
             {
                 _collection.ConvertRichtext();
@@ -184,19 +181,17 @@ namespace OfficeOpenXml.Style
                 {
                     DeleteNode(STRIKE_PATH);
                 }
+
                 if (_callback != null) _callback();
             }
         }
-        const string UNDERLINE_PATH = "d:rPr/d:u";
+
         /// <summary>
         /// Underlined text
         /// </summary>
         public bool UnderLine
         {
-            get
-            {
-                return ExistNode(UNDERLINE_PATH);
-            }
+            get => ExistNode(UNDERLINE_PATH);
             set
             {
                 _collection.ConvertRichtext();
@@ -208,11 +203,11 @@ namespace OfficeOpenXml.Style
                 {
                     DeleteNode(UNDERLINE_PATH);
                 }
+
                 if (_callback != null) _callback();
             }
         }
 
-        const string VERT_ALIGN_PATH = "d:rPr/d:vertAlign/@val";
         /// <summary>
         /// Vertical Alignment
         /// </summary>
@@ -220,21 +215,19 @@ namespace OfficeOpenXml.Style
         {
             get
             {
-                string v=GetXmlNodeString(VERT_ALIGN_PATH);
-                if(v=="")
+                string v = GetXmlNodeString(VERT_ALIGN_PATH);
+                if (v == "")
                 {
                     return ExcelVerticalAlignmentFont.None;
                 }
-                else
+
+                try
                 {
-                    try
-                    {
-                        return (ExcelVerticalAlignmentFont)Enum.Parse(typeof(ExcelVerticalAlignmentFont), v, true);
-                    }
-                    catch
-                    {
-                        return ExcelVerticalAlignmentFont.None;
-                    }
+                    return (ExcelVerticalAlignmentFont)Enum.Parse(typeof(ExcelVerticalAlignmentFont), v, true);
+                }
+                catch
+                {
+                    return ExcelVerticalAlignmentFont.None;
                 }
             }
             set
@@ -242,26 +235,26 @@ namespace OfficeOpenXml.Style
                 _collection.ConvertRichtext();
                 if (value == ExcelVerticalAlignmentFont.None)
                 {
-					// If Excel 2010 encounters a vertical align value of blank, it will not load
-					// the spreadsheet. So if None is specified, delete the node, it will be 
-					// recreated if a new value is applied later.
-					DeleteNode(VERT_ALIGN_PATH);
-				} else {
-					SetXmlNodeString(VERT_ALIGN_PATH, value.ToString().ToLowerInvariant());
-				}
+                    // If Excel 2010 encounters a vertical align value of blank, it will not load
+                    // the spreadsheet. So if None is specified, delete the node, it will be 
+                    // recreated if a new value is applied later.
+                    DeleteNode(VERT_ALIGN_PATH);
+                }
+                else
+                {
+                    SetXmlNodeString(VERT_ALIGN_PATH, value.ToString().ToLowerInvariant());
+                }
+
                 if (_callback != null) _callback();
             }
         }
-        const string SIZE_PATH = "d:rPr/d:sz/@val";
+
         /// <summary>
         /// Font size
         /// </summary>
         public float Size
         {
-            get
-            {
-                return Convert.ToSingle(GetXmlNodeDecimal(SIZE_PATH));
-            }
+            get => Convert.ToSingle(GetXmlNodeDecimal(SIZE_PATH));
             set
             {
                 _collection.ConvertRichtext();
@@ -269,16 +262,13 @@ namespace OfficeOpenXml.Style
                 if (_callback != null) _callback();
             }
         }
-        const string FONT_PATH = "d:rPr/d:rFont/@val";
+
         /// <summary>
         /// Name of the font
         /// </summary>
         public string FontName
         {
-            get
-            {
-                return GetXmlNodeString(FONT_PATH);
-            }
+            get => GetXmlNodeString(FONT_PATH);
             set
             {
                 _collection.ConvertRichtext();
@@ -286,7 +276,7 @@ namespace OfficeOpenXml.Style
                 if (_callback != null) _callback();
             }
         }
-        const string COLOR_PATH = "d:rPr/d:color/@rgb";
+
         /// <summary>
         /// Text color
         /// </summary>
@@ -299,19 +289,24 @@ namespace OfficeOpenXml.Style
                 {
                     return Color.Empty;
                 }
-                else
-                {
-                    return Color.FromArgb(int.Parse(col, System.Globalization.NumberStyles.AllowHexSpecifier));
-                }
+
+                return Color.FromArgb(int.Parse(col, NumberStyles.AllowHexSpecifier));
             }
             set
             {
                 _collection.ConvertRichtext();
-                SetXmlNodeString(COLOR_PATH, value.ToArgb().ToString("X")/*.Substring(2, 6)*/);
+                SetXmlNodeString(COLOR_PATH, value.ToArgb().ToString("X") /*.Substring(2, 6)*/);
                 if (_callback != null) _callback();
             }
         }
 
         public ExcelRichTextCollection _collection { get; set; }
+
+        internal void SetCallback(CallbackDelegate callback)
+        {
+            _callback = callback;
+        }
+
+        internal delegate void CallbackDelegate();
     }
 }

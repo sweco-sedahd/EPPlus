@@ -13,22 +13,22 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,41 +37,35 @@ namespace OfficeOpenXml.FormulaParsing.LexicalAnalysis
 {
     public class TokenizerContext
     {
+        private StringBuilder _currentToken;
+        private readonly List<Token> _result;
+
         public TokenizerContext(string formula)
         {
             if (!string.IsNullOrEmpty(formula))
             {
-                _chars = formula.ToArray();
+                FormulaChars = formula.ToArray();
             }
+
             _result = new List<Token>();
             _currentToken = new StringBuilder();
         }
 
-        private char[] _chars;
-        private List<Token> _result;
-        private StringBuilder _currentToken;
+        public char[] FormulaChars { get; }
 
-        public char[] FormulaChars
-        {
-            get { return _chars; }
-        }
+        public IList<Token> Result => _result;
 
-        public IList<Token> Result
-        {
-            get { return _result; }
-        }
+        public bool IsInString { get; private set; }
 
-        public bool IsInString
-        {
-            get;
-            private set;
-        }
+        public bool IsInSheetName { get; private set; }
 
-        public bool IsInSheetName
-        {
-            get;
-            private set;
-        }
+        internal int BracketCount { get; set; }
+
+        public string CurrentToken => _currentToken.ToString();
+
+        public bool CurrentTokenHasValue => !string.IsNullOrEmpty(IsInString ? CurrentToken : CurrentToken.Trim());
+
+        public Token LastToken => _result.Count > 0 ? _result.Last() : null;
 
         public void ToggleIsInString()
         {
@@ -81,22 +75,6 @@ namespace OfficeOpenXml.FormulaParsing.LexicalAnalysis
         public void ToggleIsInSheetName()
         {
             IsInSheetName = !IsInSheetName;
-        }
-
-        internal int BracketCount
-        {
-            get;
-            set;
-        }
-
-        public string CurrentToken
-        {
-            get { return _currentToken.ToString(); }
-        }
-
-        public bool CurrentTokenHasValue
-        {
-            get { return !string.IsNullOrEmpty(IsInString ? CurrentToken : CurrentToken.Trim()); }
         }
 
         public void NewToken()
@@ -126,18 +104,13 @@ namespace OfficeOpenXml.FormulaParsing.LexicalAnalysis
 
         public void ReplaceLastToken(Token newToken)
         {
-            var count = _result.Count;
+            int count = _result.Count;
             if (count > 0)
             {
-                _result.RemoveAt(count - 1);   
+                _result.RemoveAt(count - 1);
             }
+
             _result.Add(newToken);
         }
-
-        public Token LastToken
-        {
-            get { return _result.Count > 0 ? _result.Last() : null; }
-        }
-
     }
 }

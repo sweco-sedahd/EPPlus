@@ -13,25 +13,21 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
-     * All code and executables are provided "as is" with no warranty either express or implied. 
+     * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		    Added       		        2017-11-02
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OfficeOpenXml;
 
 namespace OfficeOpenXml.Compatibility
 {
@@ -40,7 +36,7 @@ namespace OfficeOpenXml.Compatibility
     /// </summary>
     public class CompatibilitySettings
     {
-        private ExcelPackage excelPackage;
+        private readonly ExcelPackage excelPackage;
 
 
         internal CompatibilitySettings(ExcelPackage excelPackage)
@@ -78,17 +74,13 @@ namespace OfficeOpenXml.Compatibility
 
         public bool IsWorksheets1Based
         {
-            get
-            {
-                return excelPackage._worksheetAdd==1;
-            }
+            get { return excelPackage._worksheetAdd == 1; }
             set
             {
                 excelPackage._worksheetAdd = value ? 1 : 0;
-                if(excelPackage._workbook!=null && excelPackage._workbook._worksheets!=null)
+                if (excelPackage._workbook != null && excelPackage._workbook._worksheets != null)
                 {
                     excelPackage.Workbook.Worksheets.ReindexWorksheetDictionary();
-
                 }
             }
         }

@@ -13,28 +13,29 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		    Initial Release		        2009-10-01
  * Jan Källman		    License changed GPL-->LGPL 2011-12-27
  *******************************************************************************/
+
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using System.Xml;
-using System.Linq;
+
 namespace OfficeOpenXml
 {
     /// <summary>
@@ -43,19 +44,27 @@ namespace OfficeOpenXml
     /// <typeparam name="T">The style type</typeparam>
     public class ExcelStyleCollection<T> : IEnumerable<T>
     {
+        readonly Dictionary<string, int> _dic = new(StringComparer.OrdinalIgnoreCase);
+        internal List<T> _list = new();
+        readonly bool _setNextIdManual;
+        internal int NextId;
+
         public ExcelStyleCollection()
         {
             _setNextIdManual = false;
         }
-        bool _setNextIdManual;
+
         public ExcelStyleCollection(bool SetNextIdManual)
         {
             _setNextIdManual = SetNextIdManual;
         }
+
         public XmlNode TopNode { get; set; }
-        internal List<T> _list = new List<T>();
-        Dictionary<string, int> _dic = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        internal int NextId=0;
+
+        public T this[int PositionID] => _list[PositionID];
+
+        public int Count => _list.Count;
+
         #region IEnumerable<T> Members
 
         public IEnumerator<T> GetEnumerator()
@@ -64,27 +73,16 @@ namespace OfficeOpenXml
         }
 
         #endregion
+
         #region IEnumerable Members
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             return _list.GetEnumerator();
         }
+
         #endregion
-        public T this[int PositionID]
-        {
-            get
-            {
-                return _list[PositionID];
-            }
-        }
-        public int Count
-        {
-            get
-            {
-                return _list.Count;
-            }
-        }
+
         //internal int Add(T item)
         //{
         //    _list.Add(item);
@@ -96,8 +94,9 @@ namespace OfficeOpenXml
             _list.Add(item);
             if (!_dic.ContainsKey(key.ToLower(CultureInfo.InvariantCulture))) _dic.Add(key.ToLower(CultureInfo.InvariantCulture), _list.Count - 1);
             if (_setNextIdManual) NextId++;
-            return _list.Count-1;
+            return _list.Count - 1;
         }
+
         /// <summary>
         /// Finds the key 
         /// </summary>
@@ -111,11 +110,10 @@ namespace OfficeOpenXml
                 obj = _list[_dic[key.ToLower(CultureInfo.InvariantCulture)]];
                 return true;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
+
         /// <summary>
         /// Find Index
         /// </summary>
@@ -127,15 +125,15 @@ namespace OfficeOpenXml
             {
                 return _dic[key];
             }
-            else
-            {
-                return int.MinValue;
-            }
+
+            return int.MinValue;
         }
+
         internal bool ExistsKey(string key)
         {
             return _dic.ContainsKey(key);
         }
+
         internal void Sort(Comparison<T> c)
         {
             _list.Sort(c);

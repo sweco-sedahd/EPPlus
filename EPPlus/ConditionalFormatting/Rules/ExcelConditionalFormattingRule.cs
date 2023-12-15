@@ -13,621 +13,586 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Eyal Seagull        Added       		  2012-04-03
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
 using System.Xml;
-using OfficeOpenXml.Utils;
-using System.Text.RegularExpressions;
 using OfficeOpenXml.ConditionalFormatting.Contracts;
 using OfficeOpenXml.Style.Dxf;
+using OfficeOpenXml.Utils;
 
 namespace OfficeOpenXml.ConditionalFormatting
 {
-  /// <summary>
-  /// 
-  /// </summary>
-  public abstract class ExcelConditionalFormattingRule
-    : XmlHelper,
-    IExcelConditionalFormattingRule
-  {
-    /****************************************************************************************/
-
-    #region Private Properties
-    private eExcelConditionalFormattingRuleType? _type;
-    private ExcelWorksheet _worksheet;
-
     /// <summary>
-    /// Sinalize that we are in a Cnaging Priorities opeartion so that we won't enter
-    /// a recursive loop.
+    /// 
     /// </summary>
-    private static bool _changingPriority = false;
-    #endregion Private Properties
-
-    /****************************************************************************************/
-
-    #region Constructors
-    /// <summary>
-    /// Initialize the <see cref="ExcelConditionalFormattingRule"/>
-    /// </summary>
-    /// <param name="type"></param>
-    /// <param name="address"></param>
-    /// <param name="priority">Used also as the cfRule unique key</param>
-    /// <param name="worksheet"></param>
-    /// <param name="itemElementNode"></param>
-    /// <param name="namespaceManager"></param>
-    internal ExcelConditionalFormattingRule(
-      eExcelConditionalFormattingRuleType type,
-      ExcelAddress address,
-      int priority,
-      ExcelWorksheet worksheet,
-      XmlNode itemElementNode,
-      XmlNamespaceManager namespaceManager)
-      : base(
-        namespaceManager,
-        itemElementNode)
+    public abstract class ExcelConditionalFormattingRule
+        : XmlHelper,
+            IExcelConditionalFormattingRule
     {
-      Require.Argument(address).IsNotNull("address");
+        /****************************************************************************************/
 
-  	  // While MSDN states that 1 is the "highest priority," it also defines this
-	  // field as W3C XML Schema int, which would allow values less than 1. Excel
-	  // itself will, on occasion, use a value of 0, so this check will allow a 0.
-      Require.Argument(priority).IsInRange(0, int.MaxValue, "priority");
+        #region Private Properties
 
-      Require.Argument(worksheet).IsNotNull("worksheet");
+        private eExcelConditionalFormattingRuleType? _type;
+        private readonly ExcelWorksheet _worksheet;
 
-      _type = type;
-      _worksheet = worksheet;
-      SchemaNodeOrder = _worksheet.SchemaNodeOrder;
+        /// <summary>
+        /// Sinalize that we are in a Cnaging Priorities opeartion so that we won't enter
+        /// a recursive loop.
+        /// </summary>
+        private static bool _changingPriority;
 
-      if (itemElementNode == null)
-      {
-        // Create/Get the <cfRule> inside <conditionalFormatting>
-        itemElementNode = CreateComplexNode(
-          _worksheet.WorksheetXml.DocumentElement,
-          string.Format(
-            "{0}[{1}='{2}']/{1}='{2}'/{3}[{4}='{5}']/{4}='{5}'",
-          //{0}
-            ExcelConditionalFormattingConstants.Paths.ConditionalFormatting,
-          // {1}
-            ExcelConditionalFormattingConstants.Paths.SqrefAttribute,
-          // {2}
-            address.AddressSpaceSeparated,          //CF node don't what to have comma between multi addresses, use space instead.
-          // {3}
-            ExcelConditionalFormattingConstants.Paths.CfRule,
-          //{4}
-            ExcelConditionalFormattingConstants.Paths.PriorityAttribute,
-          //{5}
-            priority));
-      }
+        #endregion Private Properties
 
-      // Point to <cfRule>
-      TopNode = itemElementNode;
+        /****************************************************************************************/
 
-      Address = address;
-      Priority = priority;
-      Type = type;
-      if (DxfId >= 0)
-      {
-          worksheet.Workbook.Styles.Dxfs[DxfId].AllowChange = true;  //This Id is referenced by CF, so we can use it when we save.
-          _style = worksheet.Workbook.Styles.Dxfs[DxfId].Clone();    //Clone, so it can be altered without effecting other dxf styles
-      }
-    }
+        #region Constructors
 
-    /// <summary>
-    /// Initialize the <see cref="ExcelConditionalFormattingRule"/>
-    /// </summary>
-    /// <param name="type"></param>
-    /// <param name="address"></param>
-    /// <param name="priority"></param>
-    /// <param name="worksheet"></param>
-    /// <param name="namespaceManager"></param>
-    internal ExcelConditionalFormattingRule(
-      eExcelConditionalFormattingRuleType type,
-      ExcelAddress address,
-      int priority,
-      ExcelWorksheet worksheet,
-      XmlNamespaceManager namespaceManager)
-      : this(
-        type,
-        address,
-        priority,
-        worksheet,
-        null,
-        namespaceManager)
-    {
-    }
-    #endregion Constructors
-
-    /****************************************************************************************/
-
-    #region Methods
-    #endregion Methods
-
-    /****************************************************************************************/
-
-    #region Exposed Properties
-    /// <summary>
-    /// Get the &lt;cfRule&gt; node
-    /// </summary>
-    public XmlNode Node
-    {
-      get { return TopNode; }
-    }
-
-    /// <summary>
-    /// Address of the conditional formatting rule
-    /// </summary>
-    /// <remarks>
-    /// The address is stores in a parent node called &lt;conditionalFormatting&gt; in the
-    /// @sqref attribute. Excel groups rules that have the same address inside one node.
-    /// </remarks>
-    public ExcelAddress Address
-    {
-      get
-      {
-        return new ExcelAddress(
-          Node.ParentNode.Attributes[ExcelConditionalFormattingConstants.Attributes.Sqref].Value);
-      }
-      set
-      {
-        // Check if the address is to be changed
-        if (Address.Address != value.Address)
+        /// <summary>
+        /// Initialize the <see cref="ExcelConditionalFormattingRule"/>
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="address"></param>
+        /// <param name="priority">Used also as the cfRule unique key</param>
+        /// <param name="worksheet"></param>
+        /// <param name="itemElementNode"></param>
+        /// <param name="namespaceManager"></param>
+        internal ExcelConditionalFormattingRule(
+            eExcelConditionalFormattingRuleType type,
+            ExcelAddress address,
+            int priority,
+            ExcelWorksheet worksheet,
+            XmlNode itemElementNode,
+            XmlNamespaceManager namespaceManager)
+            : base(
+                namespaceManager,
+                itemElementNode)
         {
-          // Save the old parente node
-          XmlNode oldNode = Node;
-          XmlNode oldParentNode = Node.ParentNode;
+            Require.Argument(address).IsNotNull("address");
 
-          // Create/Get the new <conditionalFormatting> parent node
-          XmlNode newParentNode = CreateComplexNode(
-            _worksheet.WorksheetXml.DocumentElement,
-            string.Format(
-              "{0}[{1}='{2}']/{1}='{2}'",
-            //{0}
-              ExcelConditionalFormattingConstants.Paths.ConditionalFormatting,
-            // {1}
-              ExcelConditionalFormattingConstants.Paths.SqrefAttribute,
-            // {2}
-              value.AddressSpaceSeparated)); 
+            // While MSDN states that 1 is the "highest priority," it also defines this
+            // field as W3C XML Schema int, which would allow values less than 1. Excel
+            // itself will, on occasion, use a value of 0, so this check will allow a 0.
+            Require.Argument(priority).IsInRange(0, int.MaxValue, "priority");
 
-          // Move the <cfRule> node to the new <conditionalFormatting> parent node
-          TopNode = newParentNode.AppendChild(Node);
+            Require.Argument(worksheet).IsNotNull("worksheet");
 
-          // Check if the old <conditionalFormatting> parent node has <cfRule> node inside it
-          if (!oldParentNode.HasChildNodes)
-          {
-            // Remove the old parent node
-            oldParentNode.ParentNode.RemoveChild(oldParentNode);
-          }
-        }
-      }
-    }
+            _type = type;
+            _worksheet = worksheet;
+            SchemaNodeOrder = _worksheet.SchemaNodeOrder;
 
-    /// <summary>
-    /// Type of conditional formatting rule. ST_CfType §18.18.12.
-    /// </summary>
-    public eExcelConditionalFormattingRuleType Type
-    {
-      get
-      {
-        // Transform the @type attribute to EPPlus Rule Type (slighty diferente)
-        if(_type==null)
-        {
-          _type = ExcelConditionalFormattingRuleType.GetTypeByAttrbiute(
-          GetXmlNodeString(ExcelConditionalFormattingConstants.Paths.TypeAttribute),
-          TopNode,
-          _worksheet.NameSpaceManager);
-        }
-        return (eExcelConditionalFormattingRuleType)_type;
-      }
-      internal set
-      {
-          _type = value;
-          // Transform the EPPlus Rule Type to @type attribute (slighty diferente)
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.TypeAttribute,
-          ExcelConditionalFormattingRuleType.GetAttributeByType(value),
-          true);
-      }
-    }
-
-    /// <summary>
-    /// The priority of this conditional formatting rule. This value is used to determine
-    /// which format should be evaluated and rendered. Lower numeric values are higher
-    /// priority than higher numeric values, where 1 is the highest priority.
-    /// </summary>
-    public int Priority
-    {
-      get
-      {
-        return GetXmlNodeInt(
-          ExcelConditionalFormattingConstants.Paths.PriorityAttribute);
-      }
-      set
-      {
-        // Save the current CF rule priority
-        int priority = Priority;
-
-        // Check if the @priority is to be changed
-        if (priority != value)
-        {
-          // Check if we are not already inside a "Change Priority" operation
-          if (!_changingPriority)
-          {
-            if (value < 1)
+            if (itemElementNode == null)
             {
-              throw new IndexOutOfRangeException(
-                ExcelConditionalFormattingConstants.Errors.InvalidPriority);
+                // Create/Get the <cfRule> inside <conditionalFormatting>
+                itemElementNode = CreateComplexNode(
+                    _worksheet.WorksheetXml.DocumentElement,
+                    string.Format(
+                        "{0}[{1}='{2}']/{1}='{2}'/{3}[{4}='{5}']/{4}='{5}'",
+                        //{0}
+                        ExcelConditionalFormattingConstants.Paths.ConditionalFormatting,
+                        // {1}
+                        ExcelConditionalFormattingConstants.Paths.SqrefAttribute,
+                        // {2}
+                        address.AddressSpaceSeparated, //CF node don't what to have comma between multi addresses, use space instead.
+                        // {3}
+                        ExcelConditionalFormattingConstants.Paths.CfRule,
+                        //{4}
+                        ExcelConditionalFormattingConstants.Paths.PriorityAttribute,
+                        //{5}
+                        priority));
             }
 
-            // Sinalize that we are already changing cfRules priorities
-            _changingPriority = true;
+            // Point to <cfRule>
+            TopNode = itemElementNode;
 
-            // Check if we lowered the priority
-            if (priority > value)
+            Address = address;
+            Priority = priority;
+            Type = type;
+            if (DxfId >= 0)
             {
-              for (int i = priority - 1; i >= value; i--)
-              {
-                var cfRule = _worksheet.ConditionalFormatting.RulesByPriority(i);
+                worksheet.Workbook.Styles.Dxfs[DxfId].AllowChange = true; //This Id is referenced by CF, so we can use it when we save.
+                _style = worksheet.Workbook.Styles.Dxfs[DxfId].Clone(); //Clone, so it can be altered without effecting other dxf styles
+            }
+        }
 
-                if (cfRule != null)
+        /// <summary>
+        /// Initialize the <see cref="ExcelConditionalFormattingRule"/>
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="address"></param>
+        /// <param name="priority"></param>
+        /// <param name="worksheet"></param>
+        /// <param name="namespaceManager"></param>
+        internal ExcelConditionalFormattingRule(
+            eExcelConditionalFormattingRuleType type,
+            ExcelAddress address,
+            int priority,
+            ExcelWorksheet worksheet,
+            XmlNamespaceManager namespaceManager)
+            : this(
+                type,
+                address,
+                priority,
+                worksheet,
+                null,
+                namespaceManager)
+        {
+        }
+
+        #endregion Constructors
+
+        /****************************************************************************************/
+
+        /****************************************************************************************/
+
+        #region Exposed Properties
+
+        /// <summary>
+        /// Get the &lt;cfRule&gt; node
+        /// </summary>
+        public XmlNode Node => TopNode;
+
+        /// <summary>
+        /// Address of the conditional formatting rule
+        /// </summary>
+        /// <remarks>
+        /// The address is stores in a parent node called &lt;conditionalFormatting&gt; in the
+        /// @sqref attribute. Excel groups rules that have the same address inside one node.
+        /// </remarks>
+        public ExcelAddress Address
+        {
+            get =>
+                new(
+                    Node.ParentNode.Attributes[ExcelConditionalFormattingConstants.Attributes.Sqref].Value);
+            set
+            {
+                // Check if the address is to be changed
+                if (Address.Address != value.Address)
                 {
-                  cfRule.Priority++;
-                }
-              }
-            }
-            else
-            {
-              for (int i = priority + 1; i <= value; i++)
-              {
-                var cfRule = _worksheet.ConditionalFormatting.RulesByPriority(i);
+                    // Save the old parente node
+                    XmlNode oldNode = Node;
+                    XmlNode oldParentNode = Node.ParentNode;
 
-                if (cfRule != null)
+                    // Create/Get the new <conditionalFormatting> parent node
+                    XmlNode newParentNode = CreateComplexNode(
+                        _worksheet.WorksheetXml.DocumentElement,
+                        string.Format(
+                            "{0}[{1}='{2}']/{1}='{2}'",
+                            //{0}
+                            ExcelConditionalFormattingConstants.Paths.ConditionalFormatting,
+                            // {1}
+                            ExcelConditionalFormattingConstants.Paths.SqrefAttribute,
+                            // {2}
+                            value.AddressSpaceSeparated));
+
+                    // Move the <cfRule> node to the new <conditionalFormatting> parent node
+                    TopNode = newParentNode.AppendChild(Node);
+
+                    // Check if the old <conditionalFormatting> parent node has <cfRule> node inside it
+                    if (!oldParentNode.HasChildNodes)
+                    {
+                        // Remove the old parent node
+                        oldParentNode.ParentNode.RemoveChild(oldParentNode);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Type of conditional formatting rule. ST_CfType §18.18.12.
+        /// </summary>
+        public eExcelConditionalFormattingRuleType Type
+        {
+            get
+            {
+                // Transform the @type attribute to EPPlus Rule Type (slighty diferente)
+                if (_type == null)
                 {
-                  cfRule.Priority--;
+                    _type = ExcelConditionalFormattingRuleType.GetTypeByAttrbiute(
+                        GetXmlNodeString(ExcelConditionalFormattingConstants.Paths.TypeAttribute),
+                        TopNode,
+                        _worksheet.NameSpaceManager);
                 }
-              }
+
+                return (eExcelConditionalFormattingRuleType)_type;
             }
-
-            // Sinalize that we are no longer changing cfRules priorities
-            _changingPriority = false;
-          }
-
-          // Change the priority in the XML
-          SetXmlNodeString(
-            ExcelConditionalFormattingConstants.Paths.PriorityAttribute,
-            value.ToString(),
-            true);
-        }
-      }
-    }
-
-    /// <summary>
-    /// If this flag is true, no rules with lower priority shall be applied over this rule,
-    /// when this rule evaluates to true.
-    /// </summary>
-    public bool StopIfTrue
-    {
-      get
-      {
-        return GetXmlNodeBool(
-          ExcelConditionalFormattingConstants.Paths.StopIfTrueAttribute);
-      }
-      set
-      {
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.StopIfTrueAttribute,
-          (value == true) ? "1" : string.Empty,
-          true);
-      }
-    }
-
-    /// <summary>
-    /// DxfId Style Attribute
-    /// </summary>
-    internal int DxfId
-    {
-      get
-      {
-        return GetXmlNodeInt(
-          ExcelConditionalFormattingConstants.Paths.DxfIdAttribute);
-      }
-      set
-      {
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.DxfIdAttribute,
-          (value == int.MinValue) ? string.Empty : value.ToString(),
-          true);
-      }
-    }
-    internal ExcelDxfStyleConditionalFormatting _style = null;
-    public ExcelDxfStyleConditionalFormatting Style
-    {
-        get
-        {
-            if (_style == null)
+            internal set
             {
-                _style = new ExcelDxfStyleConditionalFormatting(NameSpaceManager, null, _worksheet.Workbook.Styles);
+                _type = value;
+                // Transform the EPPlus Rule Type to @type attribute (slighty diferente)
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.TypeAttribute,
+                    ExcelConditionalFormattingRuleType.GetAttributeByType(value),
+                    true);
             }
-            return _style;
         }
-    }
-    /// <summary>
-    /// StdDev (zero is not allowed and will be converted to 1)
-    /// </summary>
-    public UInt16 StdDev
-    {
-      get
-      {
-        return Convert.ToUInt16(GetXmlNodeInt(
-          ExcelConditionalFormattingConstants.Paths.StdDevAttribute));
-      }
-      set
-      {
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.StdDevAttribute,
-          (value == 0) ? "1" : value.ToString(),
-          true);
-      }
-    }
 
-    /// <summary>
-    /// Rank (zero is not allowed and will be converted to 1)
-    /// </summary>
-    public UInt16 Rank
-    {
-      get
-      {
-        return Convert.ToUInt16(GetXmlNodeInt(
-          ExcelConditionalFormattingConstants.Paths.RankAttribute));
-      }
-      set
-      {
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.RankAttribute,
-          (value == 0) ? "1" : value.ToString(),
-          true);
-      }
-    }
-    #endregion Exposed Properties
-
-    /****************************************************************************************/
-
-    #region Internal Properties
-    /// <summary>
-    /// AboveAverage
-    /// </summary>
-    internal protected bool? AboveAverage
-    {
-      get
-      {
-        bool? aboveAverage = GetXmlNodeBoolNullable(
-          ExcelConditionalFormattingConstants.Paths.AboveAverageAttribute);
-
-        // Above Avarege if TRUE or if attribute does not exists
-        return (aboveAverage == true) || (aboveAverage == null);
-      }
-      set
-      {
-        string aboveAverageValue = string.Empty;
-
-        // Only the types that needs the @AboveAverage
-        if ((_type == eExcelConditionalFormattingRuleType.BelowAverage)
-          || (_type == eExcelConditionalFormattingRuleType.BelowOrEqualAverage)
-          || (_type == eExcelConditionalFormattingRuleType.BelowStdDev))
+        /// <summary>
+        /// The priority of this conditional formatting rule. This value is used to determine
+        /// which format should be evaluated and rendered. Lower numeric values are higher
+        /// priority than higher numeric values, where 1 is the highest priority.
+        /// </summary>
+        public int Priority
         {
-          aboveAverageValue = "0";
+            get =>
+                GetXmlNodeInt(
+                    ExcelConditionalFormattingConstants.Paths.PriorityAttribute);
+            set
+            {
+                // Save the current CF rule priority
+                int priority = Priority;
+
+                // Check if the @priority is to be changed
+                if (priority != value)
+                {
+                    // Check if we are not already inside a "Change Priority" operation
+                    if (!_changingPriority)
+                    {
+                        if (value < 1)
+                        {
+                            throw new IndexOutOfRangeException(
+                                ExcelConditionalFormattingConstants.Errors.InvalidPriority);
+                        }
+
+                        // Sinalize that we are already changing cfRules priorities
+                        _changingPriority = true;
+
+                        // Check if we lowered the priority
+                        if (priority > value)
+                        {
+                            for (int i = priority - 1; i >= value; i--)
+                            {
+                                IExcelConditionalFormattingRule cfRule = _worksheet.ConditionalFormatting.RulesByPriority(i);
+
+                                if (cfRule != null)
+                                {
+                                    cfRule.Priority++;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            for (int i = priority + 1; i <= value; i++)
+                            {
+                                IExcelConditionalFormattingRule cfRule = _worksheet.ConditionalFormatting.RulesByPriority(i);
+
+                                if (cfRule != null)
+                                {
+                                    cfRule.Priority--;
+                                }
+                            }
+                        }
+
+                        // Sinalize that we are no longer changing cfRules priorities
+                        _changingPriority = false;
+                    }
+
+                    // Change the priority in the XML
+                    SetXmlNodeString(
+                        ExcelConditionalFormattingConstants.Paths.PriorityAttribute,
+                        value.ToString(),
+                        true);
+                }
+            }
         }
 
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.AboveAverageAttribute,
-          aboveAverageValue,
-          true);
-      }
-    }
-
-    /// <summary>
-    /// EqualAverage
-    /// </summary>
-    internal protected bool? EqualAverage
-    {
-      get
-      {
-        bool? equalAverage = GetXmlNodeBoolNullable(
-          ExcelConditionalFormattingConstants.Paths.EqualAverageAttribute);
-
-        // Equal Avarege only if TRUE
-        return (equalAverage == true);
-      }
-      set
-      {
-        string equalAverageValue = string.Empty;
-
-        // Only the types that needs the @EqualAverage
-        if ((_type == eExcelConditionalFormattingRuleType.AboveOrEqualAverage)
-          || (_type == eExcelConditionalFormattingRuleType.BelowOrEqualAverage))
+        /// <summary>
+        /// If this flag is true, no rules with lower priority shall be applied over this rule,
+        /// when this rule evaluates to true.
+        /// </summary>
+        public bool StopIfTrue
         {
-          equalAverageValue = "1";
+            get =>
+                GetXmlNodeBool(
+                    ExcelConditionalFormattingConstants.Paths.StopIfTrueAttribute);
+            set =>
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.StopIfTrueAttribute,
+                    value ? "1" : string.Empty,
+                    true);
         }
 
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.EqualAverageAttribute,
-          equalAverageValue,
-          true);
-      }
-    }
-
-    /// <summary>
-    /// Bottom attribute
-    /// </summary>
-    internal protected bool? Bottom
-    {
-      get
-      {
-        bool? bottom = GetXmlNodeBoolNullable(
-          ExcelConditionalFormattingConstants.Paths.BottomAttribute);
-
-        // Bottom if TRUE
-        return (bottom == true);
-      }
-      set
-      {
-        string bottomValue = string.Empty;
-
-        // Only the types that needs the @Bottom
-        if ((_type == eExcelConditionalFormattingRuleType.Bottom)
-          || (_type == eExcelConditionalFormattingRuleType.BottomPercent))
+        /// <summary>
+        /// DxfId Style Attribute
+        /// </summary>
+        internal int DxfId
         {
-          bottomValue = "1";
+            get =>
+                GetXmlNodeInt(
+                    ExcelConditionalFormattingConstants.Paths.DxfIdAttribute);
+            set =>
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.DxfIdAttribute,
+                    value == int.MinValue ? string.Empty : value.ToString(),
+                    true);
         }
 
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.BottomAttribute,
-          bottomValue,
-          true);
-      }
-    }
+        internal ExcelDxfStyleConditionalFormatting _style;
 
-    /// <summary>
-    /// Percent attribute
-    /// </summary>
-    internal protected bool? Percent
-    {
-      get
-      {
-        bool? percent = GetXmlNodeBoolNullable(
-          ExcelConditionalFormattingConstants.Paths.PercentAttribute);
-
-        // Bottom if TRUE
-        return (percent == true);
-      }
-      set
-      {
-        string percentValue = string.Empty;
-
-        // Only the types that needs the @Bottom
-        if ((_type == eExcelConditionalFormattingRuleType.BottomPercent)
-          || (_type == eExcelConditionalFormattingRuleType.TopPercent))
+        public ExcelDxfStyleConditionalFormatting Style
         {
-          percentValue = "1";
+            get
+            {
+                if (_style == null)
+                {
+                    _style = new ExcelDxfStyleConditionalFormatting(NameSpaceManager, null, _worksheet.Workbook.Styles);
+                }
+
+                return _style;
+            }
         }
 
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.PercentAttribute,
-          percentValue,
-          true);
-      }
+        /// <summary>
+        /// StdDev (zero is not allowed and will be converted to 1)
+        /// </summary>
+        public ushort StdDev
+        {
+            get =>
+                Convert.ToUInt16(GetXmlNodeInt(
+                    ExcelConditionalFormattingConstants.Paths.StdDevAttribute));
+            set =>
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.StdDevAttribute,
+                    value == 0 ? "1" : value.ToString(),
+                    true);
+        }
+
+        /// <summary>
+        /// Rank (zero is not allowed and will be converted to 1)
+        /// </summary>
+        public ushort Rank
+        {
+            get =>
+                Convert.ToUInt16(GetXmlNodeInt(
+                    ExcelConditionalFormattingConstants.Paths.RankAttribute));
+            set =>
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.RankAttribute,
+                    value == 0 ? "1" : value.ToString(),
+                    true);
+        }
+
+        #endregion Exposed Properties
+
+        /****************************************************************************************/
+
+        #region Internal Properties
+
+        /// <summary>
+        /// AboveAverage
+        /// </summary>
+        protected internal bool? AboveAverage
+        {
+            get
+            {
+                bool? aboveAverage = GetXmlNodeBoolNullable(
+                    ExcelConditionalFormattingConstants.Paths.AboveAverageAttribute);
+
+                // Above Avarege if TRUE or if attribute does not exists
+                return aboveAverage is true or null;
+            }
+            set
+            {
+                string aboveAverageValue = string.Empty;
+
+                // Only the types that needs the @AboveAverage
+                if (_type is eExcelConditionalFormattingRuleType.BelowAverage or eExcelConditionalFormattingRuleType.BelowOrEqualAverage or eExcelConditionalFormattingRuleType.BelowStdDev)
+                {
+                    aboveAverageValue = "0";
+                }
+
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.AboveAverageAttribute,
+                    aboveAverageValue,
+                    true);
+            }
+        }
+
+        /// <summary>
+        /// EqualAverage
+        /// </summary>
+        protected internal bool? EqualAverage
+        {
+            get
+            {
+                bool? equalAverage = GetXmlNodeBoolNullable(
+                    ExcelConditionalFormattingConstants.Paths.EqualAverageAttribute);
+
+                // Equal Avarege only if TRUE
+                return equalAverage == true;
+            }
+            set
+            {
+                string equalAverageValue = string.Empty;
+
+                // Only the types that needs the @EqualAverage
+                if (_type is eExcelConditionalFormattingRuleType.AboveOrEqualAverage or eExcelConditionalFormattingRuleType.BelowOrEqualAverage)
+                {
+                    equalAverageValue = "1";
+                }
+
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.EqualAverageAttribute,
+                    equalAverageValue,
+                    true);
+            }
+        }
+
+        /// <summary>
+        /// Bottom attribute
+        /// </summary>
+        protected internal bool? Bottom
+        {
+            get
+            {
+                bool? bottom = GetXmlNodeBoolNullable(
+                    ExcelConditionalFormattingConstants.Paths.BottomAttribute);
+
+                // Bottom if TRUE
+                return bottom == true;
+            }
+            set
+            {
+                string bottomValue = string.Empty;
+
+                // Only the types that needs the @Bottom
+                if (_type is eExcelConditionalFormattingRuleType.Bottom or eExcelConditionalFormattingRuleType.BottomPercent)
+                {
+                    bottomValue = "1";
+                }
+
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.BottomAttribute,
+                    bottomValue,
+                    true);
+            }
+        }
+
+        /// <summary>
+        /// Percent attribute
+        /// </summary>
+        protected internal bool? Percent
+        {
+            get
+            {
+                bool? percent = GetXmlNodeBoolNullable(
+                    ExcelConditionalFormattingConstants.Paths.PercentAttribute);
+
+                // Bottom if TRUE
+                return percent == true;
+            }
+            set
+            {
+                string percentValue = string.Empty;
+
+                // Only the types that needs the @Bottom
+                if (_type is eExcelConditionalFormattingRuleType.BottomPercent or eExcelConditionalFormattingRuleType.TopPercent)
+                {
+                    percentValue = "1";
+                }
+
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.PercentAttribute,
+                    percentValue,
+                    true);
+            }
+        }
+
+        /// <summary>
+        /// TimePeriod
+        /// </summary>
+        protected internal eExcelConditionalFormattingTimePeriodType TimePeriod
+        {
+            get =>
+                ExcelConditionalFormattingTimePeriodType.GetTypeByAttribute(
+                    GetXmlNodeString(ExcelConditionalFormattingConstants.Paths.TimePeriodAttribute));
+            set =>
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.TimePeriodAttribute,
+                    ExcelConditionalFormattingTimePeriodType.GetAttributeByType(value),
+                    true);
+        }
+
+        /// <summary>
+        /// Operator
+        /// </summary>
+        protected internal eExcelConditionalFormattingOperatorType Operator
+        {
+            get =>
+                ExcelConditionalFormattingOperatorType.GetTypeByAttribute(
+                    GetXmlNodeString(ExcelConditionalFormattingConstants.Paths.OperatorAttribute));
+            set =>
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.OperatorAttribute,
+                    ExcelConditionalFormattingOperatorType.GetAttributeByType(value),
+                    true);
+        }
+
+        /// <summary>
+        /// Formula
+        /// </summary>
+        public string Formula
+        {
+            get =>
+                GetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.Formula);
+            set =>
+                SetXmlNodeString(
+                    ExcelConditionalFormattingConstants.Paths.Formula,
+                    value);
+        }
+
+        /// <summary>
+        /// Formula2
+        /// </summary>
+        public string Formula2
+        {
+            get =>
+                GetXmlNodeString(
+                    string.Format(
+                        "{0}[position()=2]",
+                        // {0}
+                        ExcelConditionalFormattingConstants.Paths.Formula));
+            set
+            {
+                // Create/Get the first <formula> node (ensure that it exists)
+                XmlNode firstNode = CreateComplexNode(
+                    TopNode,
+                    string.Format(
+                        "{0}[position()=1]",
+                        // {0}
+                        ExcelConditionalFormattingConstants.Paths.Formula));
+
+                // Create/Get the seconde <formula> node (ensure that it exists)
+                XmlNode secondNode = CreateComplexNode(
+                    TopNode,
+                    string.Format(
+                        "{0}[position()=2]",
+                        // {0}
+                        ExcelConditionalFormattingConstants.Paths.Formula));
+
+                // Save the formula in the second <formula> node
+                secondNode.InnerText = value;
+            }
+        }
+
+        #endregion Internal Properties
+
+        /****************************************************************************************/
     }
-
-    /// <summary>
-    /// TimePeriod
-    /// </summary>
-    internal protected eExcelConditionalFormattingTimePeriodType TimePeriod
-    {
-      get
-      {
-        return ExcelConditionalFormattingTimePeriodType.GetTypeByAttribute(
-          GetXmlNodeString(ExcelConditionalFormattingConstants.Paths.TimePeriodAttribute));
-      }
-      set
-      {
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.TimePeriodAttribute,
-          ExcelConditionalFormattingTimePeriodType.GetAttributeByType(value),
-          true);
-      }
-    }
-
-    /// <summary>
-    /// Operator
-    /// </summary>
-    internal protected eExcelConditionalFormattingOperatorType Operator
-    {
-      get
-      {
-        return ExcelConditionalFormattingOperatorType.GetTypeByAttribute(
-          GetXmlNodeString(ExcelConditionalFormattingConstants.Paths.OperatorAttribute));
-      }
-      set
-      {
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.OperatorAttribute,
-          ExcelConditionalFormattingOperatorType.GetAttributeByType(value),
-          true);
-      }
-    }
-
-    /// <summary>
-    /// Formula
-    /// </summary>
-    public string Formula
-    {
-      get
-      {
-        return GetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.Formula);
-      }
-      set
-      {
-        SetXmlNodeString(
-          ExcelConditionalFormattingConstants.Paths.Formula,
-          value);
-      }
-    }
-
-    /// <summary>
-    /// Formula2
-    /// </summary>
-    public string Formula2
-    {
-      get
-      {
-        return GetXmlNodeString(
-          string.Format(
-            "{0}[position()=2]",
-          // {0}
-            ExcelConditionalFormattingConstants.Paths.Formula));
-      }
-      set
-      {
-        // Create/Get the first <formula> node (ensure that it exists)
-        var firstNode = CreateComplexNode(
-          TopNode,
-          string.Format(
-            "{0}[position()=1]",
-          // {0}
-            ExcelConditionalFormattingConstants.Paths.Formula));
-
-        // Create/Get the seconde <formula> node (ensure that it exists)
-        var secondNode = CreateComplexNode(
-          TopNode,
-          string.Format(
-            "{0}[position()=2]",
-          // {0}
-            ExcelConditionalFormattingConstants.Paths.Formula));
-
-        // Save the formula in the second <formula> node
-        secondNode.InnerText = value;
-      }
-    }
-    #endregion Internal Properties
-    /****************************************************************************************/
-  }
 }

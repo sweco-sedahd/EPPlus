@@ -13,25 +13,24 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		Added this class		        2010-01-24
  * Jan Källman		License changed GPL-->LGPL 2011-12-27
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OfficeOpenXml
 {
@@ -47,7 +46,7 @@ namespace OfficeOpenXml
         public ExcelHyperLink(string uriString) :
             base(uriString)
         {
-            OriginalUri = (Uri)this;
+            OriginalUri = this;
         }
 #if !Core
         /// <summary>
@@ -70,100 +69,52 @@ namespace OfficeOpenXml
         public ExcelHyperLink(string uriString, UriKind uriKind) :
             base(uriString, uriKind)
         {
-            OriginalUri = (Uri)this;
+            OriginalUri = this;
         }
+
         /// <summary>
         /// Sheet internal reference
         /// </summary>
         /// <param name="referenceAddress">Address</param>
         /// <param name="display">Displayed text</param>
         public ExcelHyperLink(string referenceAddress, string display) :
-            base("xl://internal")   //URI is not used on internal links so put a dummy uri here.
+            base("xl://internal") //URI is not used on internal links so put a dummy uri here.
         {
-            _referenceAddress = referenceAddress;
-            _display = display;
+            ReferenceAddress = referenceAddress;
+            Display = display;
         }
-        string _referenceAddress = null;
+
         /// <summary>
         /// The Excel address for internal links.
         /// </summary>
-        public string ReferenceAddress
-        {
-            get
-            {
-                return _referenceAddress;
-            }
-            set
-            {
-                _referenceAddress = value;
-            }
-        }
-        string _display = "";
+        public string ReferenceAddress { get; set; }
+
         /// <summary>
         /// Displayed text
         /// </summary>
-        public string Display
-        {
-            get
-            {
-                return _display;
-            }
-            set
-            {
-                _display = value;
-            }
-        }
+        public string Display { get; set; } = "";
+
         /// <summary>
         /// Tooltip
         /// </summary>
-        public string ToolTip
-        {
-            get;
-            set;
-        }
-        int _colSpann = 0;
+        public string ToolTip { get; set; }
+
         /// <summary>
         /// If the hyperlink spans multiple columns
         /// </summary>
-        public int ColSpann
-        {
-            get
-            {
-                return _colSpann;
-            }
-            set
-            {
-                _colSpann = value;
-            }
-        }
-        int _rowSpann = 0;
+        public int ColSpann { get; set; } = 0;
+
         /// <summary>
         /// If the hyperlink spans multiple rows
         /// </summary>
-        public int RowSpann
-        {
-            get
-            {
-                return _rowSpann;
-            }
-            set
-            {
-                _rowSpann = value;
-            }
-        }
+        public int RowSpann { get; set; } = 0;
+
         /// <summary>
         /// Used to handle non absolute URI's. 
         /// Is used if IsAblsoluteUri is true. The base URI will have a dummy value of xl://nonAbsolute.
         /// </summary>
-        public Uri OriginalUri
-        {
-            get;
-            internal set;
-        }
-        internal string RId
-        {
-            get;
-            set;
-        }
+        public Uri OriginalUri { get; internal set; }
+
+        internal string RId { get; set; }
     }
 }

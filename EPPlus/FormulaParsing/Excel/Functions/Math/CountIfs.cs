@@ -7,59 +7,53 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Mats Alm   		                Added		                2015-01-11
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Xml.XPath;
-using OfficeOpenXml.FormulaParsing.ExcelUtilities;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph;
-using OfficeOpenXml.FormulaParsing.Utilities;
-using OfficeOpenXml.Utils;
-using Require = OfficeOpenXml.FormulaParsing.Utilities.Require;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
 {
     public class CountIfs : MultipleRangeCriteriasFunction
     {
-
         public override CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
         {
-            var functionArguments = arguments as FunctionArgument[] ?? arguments.ToArray();
+            FunctionArgument[] functionArguments = arguments as FunctionArgument[] ?? arguments.ToArray();
             ValidateArguments(functionArguments, 2);
             var argRanges = new List<ExcelDataProvider.IRangeInfo>();
             var criterias = new List<string>();
-            for (var ix = 0; ix < 30; ix +=2)
+            for (int ix = 0; ix < 30; ix += 2)
             {
                 if (functionArguments.Length <= ix) break;
-                var rangeInfo = functionArguments[ix].ValueAsRangeInfo;
+                ExcelDataProvider.IRangeInfo rangeInfo = functionArguments[ix].ValueAsRangeInfo;
                 argRanges.Add(rangeInfo);
-                var value = functionArguments[ix + 1].Value != null ? functionArguments[ix + 1].Value.ToString() : null;
+                string value = functionArguments[ix + 1].Value != null ? functionArguments[ix + 1].Value.ToString() : null;
                 criterias.Add(value);
             }
+
             IEnumerable<int> matchIndexes = GetMatchIndexes(argRanges[0], criterias[0]);
-            var enumerable = matchIndexes as IList<int> ?? matchIndexes.ToList();
-            for (var ix = 1; ix < argRanges.Count && enumerable.Any(); ix++)
+            IList<int> enumerable = matchIndexes as IList<int> ?? matchIndexes.ToList();
+            for (int ix = 1; ix < argRanges.Count && enumerable.Any(); ix++)
             {
-                var indexes = GetMatchIndexes(argRanges[ix], criterias[ix]);
+                List<int> indexes = GetMatchIndexes(argRanges[ix], criterias[ix]);
                 matchIndexes = enumerable.Intersect(indexes);
             }
-            
+
             return CreateResult((double)matchIndexes.Count(), DataType.Integer);
         }
     }

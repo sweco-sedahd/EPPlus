@@ -1,25 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Xml;
 
 namespace OfficeOpenXml.Style.Dxf
 {
     public abstract class DxfStyleBase<T>
     {
         protected ExcelStyles _styles;
+
         internal DxfStyleBase(ExcelStyles styles)
         {
             _styles = styles;
             AllowChange = false; //Don't touch this value in the styles.xml (by default). When Dxfs is fully implemented this can be removed.
         }
+
         protected internal abstract string Id { get; }
-        protected internal abstract bool HasValue{get;}
+        protected internal abstract bool HasValue { get; }
+
+        /// <summary>
+        /// Is this value allowed to be changed?
+        /// </summary>
+        protected internal bool AllowChange { get; set; }
+
         protected internal abstract void CreateNodes(XmlHelper helper, string path);
         protected internal abstract T Clone();
-        protected void SetValueColor(XmlHelper helper,string path, ExcelDxfColor color)
+
+        protected void SetValueColor(XmlHelper helper, string path, ExcelDxfColor color)
         {
             if (color != null && color.HasValue)
             {
@@ -39,12 +44,14 @@ namespace OfficeOpenXml.Style.Dxf
                 {
                     SetValue(helper, path + "/@indexed", color.Index);
                 }
+
                 if (color.Tint != null)
                 {
                     SetValue(helper, path + "/@tint", color.Tint);
                 }
             }
         }
+
         /// <summary>
         /// Same as SetValue but will set first char to lower case.
         /// </summary>
@@ -59,11 +66,12 @@ namespace OfficeOpenXml.Style.Dxf
             }
             else
             {
-                var s = v.ToString();
+                string s = v.ToString();
                 s = s.Substring(0, 1).ToLower(CultureInfo.InvariantCulture) + s.Substring(1);
                 helper.SetXmlNodeString(path, s);
             }
         }
+
         protected void SetValue(XmlHelper helper, string path, object v)
         {
             if (v == null)
@@ -75,6 +83,7 @@ namespace OfficeOpenXml.Style.Dxf
                 helper.SetXmlNodeString(path, v.ToString());
             }
         }
+
         protected void SetValueBool(XmlHelper helper, string path, bool? v)
         {
             if (v == null)
@@ -86,13 +95,10 @@ namespace OfficeOpenXml.Style.Dxf
                 helper.SetXmlNodeBool(path, (bool)v);
             }
         }
+
         protected internal string GetAsString(object v)
         {
             return (v ?? "").ToString();
         }
-        /// <summary>
-        /// Is this value allowed to be changed?
-        /// </summary>
-        protected internal bool AllowChange { get; set; }
     }
 }

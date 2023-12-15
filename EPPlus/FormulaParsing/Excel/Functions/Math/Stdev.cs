@@ -7,28 +7,27 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Mats Alm   		                Added		                2013-12-03
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.Exceptions;
-using MathObj = System.Math;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph;
+using MathObj = System.Math;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
 {
@@ -37,7 +36,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
         public override CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
         {
             ValidateArguments(arguments, 1);
-            var values = ArgsToDoubleEnumerable(arguments, context, false).Select(x => (double)x);
+            IEnumerable<double> values = ArgsToDoubleEnumerable(arguments, context, false).Select(x => (double)x);
             return CreateResult(StandardDeviation(values), DataType.Decimal);
         }
 
@@ -46,17 +45,17 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
             double ret = 0;
             if (values.Any())
             {
-                var nValues = values.Count();
-                if(nValues == 1) throw new ExcelErrorValueException(eErrorType.Div0);
+                int nValues = values.Count();
+                if (nValues == 1) throw new ExcelErrorValueException(eErrorType.Div0);
                 //Compute the Average       
                 double avg = values.Average();
                 //Perform the Sum of (value-avg)_2_2       
                 double sum = values.Sum(d => MathObj.Pow(d - avg, 2));
                 //Put it all together       
-                ret = MathObj.Sqrt(Divide(sum, (values.Count() - 1)));
+                ret = MathObj.Sqrt(Divide(sum, values.Count() - 1));
             }
-            return ret;
-        } 
 
+            return ret;
+        }
     }
 }

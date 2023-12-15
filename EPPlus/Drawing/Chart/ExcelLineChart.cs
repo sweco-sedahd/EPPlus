@@ -13,26 +13,26 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		Initial Release		        2009-10-01
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml;
+using OfficeOpenXml.Packaging;
 using OfficeOpenXml.Table.PivotTable;
 
 namespace OfficeOpenXml.Drawing.Chart
@@ -42,55 +42,30 @@ namespace OfficeOpenXml.Drawing.Chart
     /// </summary>
     public class ExcelLineChart : ExcelChart
     {
-        #region "Constructors"
-        internal ExcelLineChart(ExcelDrawings drawings, XmlNode node, Uri uriChart, Packaging.ZipPackagePart part, XmlDocument chartXml, XmlNode chartNode) :
-            base(drawings, node, uriChart, part, chartXml, chartNode)
-        {
-        }
+        //string _chartTopPath = "c:chartSpace/c:chart/c:plotArea/{0}";
+        ExcelChartDataLabel _DataLabel;
+        readonly string MARKER_PATH = "c:marker/@val";
 
-        internal ExcelLineChart (ExcelChart topChart, XmlNode chartNode) :
-            base(topChart, chartNode)
-        {
-        }
-        internal ExcelLineChart(ExcelDrawings drawings, XmlNode node, eChartType type, ExcelChart topChart, ExcelPivotTable PivotTableSource) :
-            base(drawings, node, type, topChart, PivotTableSource)
-        {
-            Smooth = false;
-        }
-        #endregion
-        string MARKER_PATH="c:marker/@val";
+        readonly string SMOOTH_PATH = "c:smooth/@val";
+
         /// <summary>
         /// If the series has markers
         /// </summary>
         public bool Marker
         {
-            get
-            {
-                return _chartXmlHelper.GetXmlNodeBool(MARKER_PATH, false);
-            }
-            set
-            {
-                _chartXmlHelper.SetXmlNodeBool(MARKER_PATH, value, false);
-            }
+            get => _chartXmlHelper.GetXmlNodeBool(MARKER_PATH, false);
+            set => _chartXmlHelper.SetXmlNodeBool(MARKER_PATH, value, false);
         }
 
-        string SMOOTH_PATH = "c:smooth/@val";
         /// <summary>
         /// If the series has smooth lines
         /// </summary>
         public bool Smooth
         {
-            get
-            {
-                return _chartXmlHelper.GetXmlNodeBool(SMOOTH_PATH, false);
-            }
-            set
-            {
-                _chartXmlHelper.SetXmlNodeBool(SMOOTH_PATH, value);
-            }
+            get => _chartXmlHelper.GetXmlNodeBool(SMOOTH_PATH, false);
+            set => _chartXmlHelper.SetXmlNodeBool(SMOOTH_PATH, value);
         }
-        //string _chartTopPath = "c:chartSpace/c:chart/c:plotArea/{0}";
-        ExcelChartDataLabel _DataLabel = null;
+
         /// <summary>
         /// Access to datalabel properties
         /// </summary>
@@ -102,49 +77,69 @@ namespace OfficeOpenXml.Drawing.Chart
                 {
                     _DataLabel = new ExcelChartDataLabel(NameSpaceManager, ChartNode);
                 }
+
                 return _DataLabel;
             }
         }
+
         internal override eChartType GetChartType(string name)
         {
-               if(name=="lineChart")
-               {
-                   if(Marker)
-                   {
-                       if(Grouping==eGrouping.Stacked)
-                       {
-                           return eChartType.LineMarkersStacked;
-                       }
-                       else if (Grouping == eGrouping.PercentStacked)
-                       {
-                           return eChartType.LineMarkersStacked100;
-                       }
-                       else
-                       {
-                           return eChartType.LineMarkers;
-                       }
-                   }
-                   else
-                   {
-                       if(Grouping==eGrouping.Stacked)
-                       {
-                           return eChartType.LineStacked;
-                       }
-                       else if (Grouping == eGrouping.PercentStacked)
-                       {
-                           return eChartType.LineStacked100;
-                       }
-                       else
-                       {
-                           return eChartType.Line;
-                       }
-                   }
-               }
-               else if (name=="line3DChart")
-               {
-                   return eChartType.Line3D;               
-               }
-               return base.GetChartType(name);
+            if (name == "lineChart")
+            {
+                if (Marker)
+                {
+                    if (Grouping == eGrouping.Stacked)
+                    {
+                        return eChartType.LineMarkersStacked;
+                    }
+
+                    if (Grouping == eGrouping.PercentStacked)
+                    {
+                        return eChartType.LineMarkersStacked100;
+                    }
+
+                    return eChartType.LineMarkers;
+                }
+
+                if (Grouping == eGrouping.Stacked)
+                {
+                    return eChartType.LineStacked;
+                }
+
+                if (Grouping == eGrouping.PercentStacked)
+                {
+                    return eChartType.LineStacked100;
+                }
+
+                return eChartType.Line;
+            }
+
+            if (name == "line3DChart")
+            {
+                return eChartType.Line3D;
+            }
+
+            return base.GetChartType(name);
         }
+
+        #region "Constructors"
+
+        internal ExcelLineChart(ExcelDrawings drawings, XmlNode node, Uri uriChart, ZipPackagePart part, XmlDocument chartXml, XmlNode chartNode) :
+            base(drawings, node, uriChart, part, chartXml, chartNode)
+        {
+        }
+
+        internal ExcelLineChart(ExcelChart topChart, XmlNode chartNode) :
+            base(topChart, chartNode)
+        {
+        }
+
+        internal ExcelLineChart(ExcelDrawings drawings, XmlNode node, eChartType type, ExcelChart topChart, ExcelPivotTable PivotTableSource) :
+            base(drawings, node, type, topChart, PivotTableSource)
+        {
+            Smooth = false;
+        }
+
+        #endregion
     }
 }

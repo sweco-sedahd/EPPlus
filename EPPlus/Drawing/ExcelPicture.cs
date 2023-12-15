@@ -13,33 +13,33 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		                Initial Release		        2009-10-01
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
-using System.Xml;
-using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Diagnostics;
-using OfficeOpenXml.Utils;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using System.Xml;
 using OfficeOpenXml.Compatibility;
+using OfficeOpenXml.Packaging;
+using OfficeOpenXml.Utils;
 
 namespace OfficeOpenXml.Drawing
 {
@@ -48,7 +48,207 @@ namespace OfficeOpenXml.Drawing
     /// </summary>
     public sealed class ExcelPicture : ExcelDrawing
     {
+        ExcelDrawingBorder _border;
+        ExcelDrawingFill _fill;
+
+        Image _image;
+        internal ZipPackagePart Part;
+
+        internal string ImageHash { get; set; }
+
+        /// <summary>
+        /// The Image
+        /// </summary>
+        public Image Image
+        {
+            get => _image;
+            set
+            {
+                if (value != null)
+                {
+                    _image = value;
+                    try
+                    {
+                        string relID = SavePicture(value);
+
+                        //Create relationship
+                        TopNode.SelectSingleNode("xdr:pic/xdr:blipFill/a:blip/@r:embed", NameSpaceManager).Value = relID;
+                        //_image.Save(Part.GetStream(FileMode.Create, FileAccess.Write), _imageFormat);   //Always JPEG here at this point. 
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("Can't save image - " + ex.Message, ex);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Image format
+        /// If the picture is created from an Image this type is always Jpeg
+        /// </summary>
+        public ImageFormat ImageFormat { get; internal set; } = ImageFormat.Jpeg;
+
+        internal string ContentType { get; set; }
+
+        internal Uri UriPic { get; set; }
+        internal ZipPackageRelationship RelPic { get; set; }
+        internal ZipPackageRelationship HypRel { get; set; }
+
+        internal new string Id => Name;
+
+        /// <summary>
+        /// Fill
+        /// </summary>
+        public ExcelDrawingFill Fill
+        {
+            get
+            {
+                if (_fill == null)
+                {
+                    _fill = new ExcelDrawingFill(NameSpaceManager, TopNode, "xdr:pic/xdr:spPr");
+                }
+
+                return _fill;
+            }
+        }
+
+        /// <summary>
+        /// Border
+        /// </summary>
+        public ExcelDrawingBorder Border
+        {
+            get
+            {
+                if (_border == null)
+                {
+                    _border = new ExcelDrawingBorder(NameSpaceManager, TopNode, "xdr:pic/xdr:spPr/a:ln");
+                }
+
+                return _border;
+            }
+        }
+
+        /// <summary>
+        /// Hyperlink
+        /// </summary>
+        public Uri Hyperlink { get; private set; }
+
+        private string SavePicture(Image image)
+        {
+#if (Core)
+            byte[] img = ImageCompat.GetImageAsByteArray(image);
+#else
+            ImageConverter ic = new ImageConverter();
+            byte[] img = (byte[])ic.ConvertTo(image, typeof(byte[]));
+#endif
+            ExcelPackage.ImageInfo ii = _drawings._package.AddImage(img);
+
+
+            ImageHash = ii.Hash;
+            if (_drawings._hashes.ContainsKey(ii.Hash))
+            {
+                string relID = _drawings._hashes[ii.Hash];
+                ZipPackageRelationship rel = _drawings.Part.GetRelationship(relID);
+                UriPic = UriHelper.ResolvePartUri(rel.SourceUri, rel.TargetUri);
+                return relID;
+            }
+
+            UriPic = ii.Uri;
+            ImageHash = ii.Hash;
+
+            //Set the Image and save it to the package.
+            RelPic = _drawings.Part.CreateRelationship(UriHelper.GetRelativeUri(_drawings.UriDrawing, UriPic), TargetMode.Internal, ExcelPackage.schemaRelationships + "/image");
+
+            //AddNewPicture(img, picRelation.Id);
+            _drawings._hashes.Add(ii.Hash, RelPic.Id);
+
+            return RelPic.Id;
+        }
+
+        private void SetPosDefaults(Image image)
+        {
+            EditAs = eEditAs.OneCell;
+            SetPixelWidth(image.Width, image.HorizontalResolution);
+            SetPixelHeight(image.Height, image.VerticalResolution);
+        }
+
+        private string PicStartXml()
+        {
+            var xml = new StringBuilder();
+
+            xml.Append("<xdr:nvPicPr>");
+
+            if (Hyperlink == null)
+            {
+                xml.AppendFormat("<xdr:cNvPr id=\"{0}\" descr=\"\" />", _id);
+            }
+            else
+            {
+                HypRel = _drawings.Part.CreateRelationship(Hyperlink, TargetMode.External, ExcelPackage.schemaHyperlink);
+                xml.AppendFormat("<xdr:cNvPr id=\"{0}\" descr=\"\">", _id);
+                if (HypRel != null)
+                {
+                    if (Hyperlink is ExcelHyperLink)
+                    {
+                        xml.AppendFormat("<a:hlinkClick xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" r:id=\"{0}\" tooltip=\"{1}\"/>",
+                            HypRel.Id, ((ExcelHyperLink)Hyperlink).ToolTip);
+                    }
+                    else
+                    {
+                        xml.AppendFormat("<a:hlinkClick xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" r:id=\"{0}\" />",
+                            HypRel.Id);
+                    }
+                }
+
+                xml.Append("</xdr:cNvPr>");
+            }
+
+            xml.Append("<xdr:cNvPicPr><a:picLocks noChangeAspect=\"1\" /></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" r:embed=\"\" cstate=\"print\" /><a:stretch><a:fillRect /> </a:stretch> </xdr:blipFill> <xdr:spPr> <a:xfrm> <a:off x=\"0\" y=\"0\" />  <a:ext cx=\"0\" cy=\"0\" /> </a:xfrm> <a:prstGeom prst=\"rect\"> <a:avLst /> </a:prstGeom> </xdr:spPr>");
+
+            return xml.ToString();
+        }
+
+        /// <summary>
+        /// Set the size of the image in percent from the orginal size
+        /// Note that resizing columns / rows after using this function will effect the size of the picture
+        /// </summary>
+        /// <param name="Percent">Percent</param>
+        public override void SetSize(int Percent)
+        {
+            if (Image == null)
+            {
+                base.SetSize(Percent);
+            }
+            else
+            {
+                _width = Image.Width;
+                _height = Image.Height;
+
+                _width = (int)(_width * ((decimal)Percent / 100));
+                _height = (int)(_height * ((decimal)Percent / 100));
+
+                SetPixelWidth(_width, Image.HorizontalResolution);
+                SetPixelHeight(_height, Image.VerticalResolution);
+            }
+        }
+
+        internal override void DeleteMe()
+        {
+            _drawings._package.RemoveImage(ImageHash);
+            base.DeleteMe();
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            Hyperlink = null;
+            _image.Dispose();
+            _image = null;
+        }
+
         #region "Constructors"
+
         internal ExcelPicture(ExcelDrawings drawings, XmlNode node) :
             base(drawings, node, "xdr:pic/xdr:nvPicPr/xdr:cNvPr/@name")
         {
@@ -59,17 +259,17 @@ namespace OfficeOpenXml.Drawing
                 UriPic = UriHelper.ResolvePartUri(drawings.UriDrawing, RelPic.TargetUri);
 
                 Part = drawings.Part.Package.GetPart(UriPic);
-                FileInfo f = new FileInfo(UriPic.OriginalString);
+                var f = new FileInfo(UriPic.OriginalString);
                 ContentType = GetContentType(f.Extension);
                 _image = Image.FromStream(Part.GetStream());
 
 #if (Core)
                 byte[] iby = ImageCompat.GetImageAsByteArray(_image);
 #else
-                ImageConverter ic =new ImageConverter();
-                var iby=(byte[])ic.ConvertTo(_image, typeof(byte[]));
+                ImageConverter ic = new ImageConverter();
+                var iby = (byte[])ic.ConvertTo(_image, typeof(byte[]));
 #endif
-                var ii = _drawings._package.LoadImage(iby, UriPic, Part);
+                ExcelPackage.ImageInfo ii = _drawings._package.LoadImage(iby, UriPic, Part);
                 ImageHash = ii.Hash;
 
                 //_height = _image.Height;
@@ -80,27 +280,29 @@ namespace OfficeOpenXml.Drawing
                     HypRel = drawings.Part.GetRelationship(relID);
                     if (HypRel.TargetUri.IsAbsoluteUri)
                     {
-                        _hyperlink = new ExcelHyperLink(HypRel.TargetUri.AbsoluteUri);
+                        Hyperlink = new ExcelHyperLink(HypRel.TargetUri.AbsoluteUri);
                     }
                     else
                     {
-                        _hyperlink = new ExcelHyperLink(HypRel.TargetUri.OriginalString, UriKind.Relative);
+                        Hyperlink = new ExcelHyperLink(HypRel.TargetUri.OriginalString, UriKind.Relative);
                     }
-                    ((ExcelHyperLink)_hyperlink).ToolTip = GetXmlNodeString("xdr:pic/xdr:nvPicPr/xdr:cNvPr/a:hlinkClick/@tooltip");
+
+                    ((ExcelHyperLink)Hyperlink).ToolTip = GetXmlNodeString("xdr:pic/xdr:nvPicPr/xdr:cNvPr/a:hlinkClick/@tooltip");
                 }
             }
         }
+
         internal ExcelPicture(ExcelDrawings drawings, XmlNode node, Image image, Uri hyperlink) :
             base(drawings, node, "xdr:pic/xdr:nvPicPr/xdr:cNvPr/@name")
         {
             XmlElement picNode = node.OwnerDocument.CreateElement("xdr", "pic", ExcelPackage.schemaSheetDrawings);
-            node.InsertAfter(picNode,node.SelectSingleNode("xdr:to",NameSpaceManager));
-            _hyperlink = hyperlink;
+            node.InsertAfter(picNode, node.SelectSingleNode("xdr:to", NameSpaceManager));
+            Hyperlink = hyperlink;
             picNode.InnerXml = PicStartXml();
 
             node.InsertAfter(node.OwnerDocument.CreateElement("xdr", "clientData", ExcelPackage.schemaSheetDrawings), picNode);
 
-            var package = drawings.Worksheet._package.Package;
+            ZipPackage package = drawings.Worksheet._package.Package;
             //Get the picture if it exists or save it if not.
             _image = image;
             string relID = SavePicture(image);
@@ -112,24 +314,25 @@ namespace OfficeOpenXml.Drawing
             SetPosDefaults(image);
             package.Flush();
         }
+
         internal ExcelPicture(ExcelDrawings drawings, XmlNode node, FileInfo imageFile, Uri hyperlink) :
             base(drawings, node, "xdr:pic/xdr:nvPicPr/xdr:cNvPr/@name")
         {
             XmlElement picNode = node.OwnerDocument.CreateElement("xdr", "pic", ExcelPackage.schemaSheetDrawings);
             node.InsertAfter(picNode, node.SelectSingleNode("xdr:to", NameSpaceManager));
-            _hyperlink = hyperlink;
+            Hyperlink = hyperlink;
             picNode.InnerXml = PicStartXml();
 
             node.InsertAfter(node.OwnerDocument.CreateElement("xdr", "clientData", ExcelPackage.schemaSheetDrawings), picNode);
 
             //Changed to stream 2/4-13 (issue 14834). Thnx SClause
-            var package = drawings.Worksheet._package.Package;
+            ZipPackage package = drawings.Worksheet._package.Package;
             ContentType = GetContentType(imageFile.Extension);
             var imagestream = new FileStream(imageFile.FullName, FileMode.Open, FileAccess.Read);
             _image = Image.FromStream(imagestream);
 
 #if (Core)
-            var img=ImageCompat.GetImageAsByteArray(_image);
+            byte[] img = ImageCompat.GetImageAsByteArray(_image);
 #else
             ImageConverter ic = new ImageConverter();
             var img = (byte[])ic.ConvertTo(_image, typeof(byte[]));
@@ -137,12 +340,12 @@ namespace OfficeOpenXml.Drawing
 
             imagestream.Close();
             UriPic = GetNewUri(package, "/xl/media/{0}" + imageFile.Name);
-            var ii = _drawings._package.AddImage(img, UriPic, ContentType);
+            ExcelPackage.ImageInfo ii = _drawings._package.AddImage(img, UriPic, ContentType);
             string relID;
-            if(!drawings._hashes.ContainsKey(ii.Hash))
+            if (!drawings._hashes.ContainsKey(ii.Hash))
             {
                 Part = ii.Part;
-                RelPic = drawings.Part.CreateRelationship(UriHelper.GetRelativeUri(drawings.UriDrawing, ii.Uri), Packaging.TargetMode.Internal, ExcelPackage.schemaRelationships + "/image");
+                RelPic = drawings.Part.CreateRelationship(UriHelper.GetRelativeUri(drawings.UriDrawing, ii.Uri), TargetMode.Internal, ExcelPackage.schemaRelationships + "/image");
                 relID = RelPic.Id;
                 _drawings._hashes.Add(ii.Hash, relID);
                 AddNewPicture(img, relID);
@@ -150,9 +353,10 @@ namespace OfficeOpenXml.Drawing
             else
             {
                 relID = drawings._hashes[ii.Hash];
-                var rel = _drawings.Part.GetRelationship(relID);
+                ZipPackageRelationship rel = _drawings.Part.GetRelationship(relID);
                 UriPic = UriHelper.ResolvePartUri(rel.SourceUri, rel.TargetUri);
             }
+
             ImageHash = ii.Hash;
             _height = Image.Height;
             _width = Image.Width;
@@ -167,7 +371,7 @@ namespace OfficeOpenXml.Drawing
             switch (extension.ToLower(CultureInfo.InvariantCulture))
             {
                 case ".bmp":
-                    return  "image/bmp";
+                    return "image/bmp";
                 case ".jpg":
                 case ".jpeg":
                     return "image/jpeg";
@@ -192,9 +396,9 @@ namespace OfficeOpenXml.Drawing
                     return "image/x-wmf";
                 default:
                     return "image/jpeg";
-
             }
         }
+
         internal static ImageFormat GetImageFormat(string contentType)
         {
             switch (contentType.ToLower(CultureInfo.InvariantCulture))
@@ -215,9 +419,9 @@ namespace OfficeOpenXml.Drawing
                     return ImageFormat.Wmf;
                 default:
                     return ImageFormat.Jpeg;
-
             }
-        }        //Add a new image to the compare collection
+        } //Add a new image to the compare collection
+
         private void AddNewPicture(byte[] img, string relID)
         {
             var newPic = new ExcelDrawings.ImageCompare();
@@ -225,219 +429,7 @@ namespace OfficeOpenXml.Drawing
             newPic.relID = relID;
             //_drawings._pics.Add(newPic);
         }
+
         #endregion
-        private string SavePicture(Image image)
-        {
-#if (Core)
-            byte[] img = ImageCompat.GetImageAsByteArray(image);
-#else
-            ImageConverter ic = new ImageConverter();
-            byte[] img = (byte[])ic.ConvertTo(image, typeof(byte[]));
-#endif
-            var ii = _drawings._package.AddImage(img);
-            
-
-            ImageHash = ii.Hash;
-            if (_drawings._hashes.ContainsKey(ii.Hash))
-            {
-                var relID = _drawings._hashes[ii.Hash];
-                var rel = _drawings.Part.GetRelationship(relID);
-                UriPic = UriHelper.ResolvePartUri(rel.SourceUri, rel.TargetUri);
-                return relID;
-            }
-            else
-            {
-                UriPic = ii.Uri;
-                ImageHash = ii.Hash;
-            }
-
-            //Set the Image and save it to the package.
-            RelPic = _drawings.Part.CreateRelationship(UriHelper.GetRelativeUri(_drawings.UriDrawing, UriPic), Packaging.TargetMode.Internal, ExcelPackage.schemaRelationships + "/image");
-            
-            //AddNewPicture(img, picRelation.Id);
-            _drawings._hashes.Add(ii.Hash, RelPic.Id);
-
-            return RelPic.Id;
-        }
-        private void SetPosDefaults(Image image)
-        {
-            EditAs = eEditAs.OneCell;
-            SetPixelWidth(image.Width, image.HorizontalResolution);
-            SetPixelHeight(image.Height, image.VerticalResolution);
-        }
-
-        private string PicStartXml()
-        {
-            StringBuilder xml = new StringBuilder();
-            
-            xml.Append("<xdr:nvPicPr>");
-            
-            if (_hyperlink == null)
-            {
-                xml.AppendFormat("<xdr:cNvPr id=\"{0}\" descr=\"\" />", _id);
-            }
-            else
-            {
-               HypRel = _drawings.Part.CreateRelationship(_hyperlink, Packaging.TargetMode.External, ExcelPackage.schemaHyperlink);
-               xml.AppendFormat("<xdr:cNvPr id=\"{0}\" descr=\"\">", _id);
-               if (HypRel != null)
-               {
-                   if (_hyperlink is ExcelHyperLink)
-                   {
-                       xml.AppendFormat("<a:hlinkClick xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" r:id=\"{0}\" tooltip=\"{1}\"/>",
-                         HypRel.Id, ((ExcelHyperLink)_hyperlink).ToolTip);
-                   }
-                   else
-                   {
-                       xml.AppendFormat("<a:hlinkClick xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" r:id=\"{0}\" />",
-                         HypRel.Id);
-                   }
-               }
-               xml.Append("</xdr:cNvPr>");
-            }
-           
-            xml.Append("<xdr:cNvPicPr><a:picLocks noChangeAspect=\"1\" /></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" r:embed=\"\" cstate=\"print\" /><a:stretch><a:fillRect /> </a:stretch> </xdr:blipFill> <xdr:spPr> <a:xfrm> <a:off x=\"0\" y=\"0\" />  <a:ext cx=\"0\" cy=\"0\" /> </a:xfrm> <a:prstGeom prst=\"rect\"> <a:avLst /> </a:prstGeom> </xdr:spPr>");
-
-            return xml.ToString();
-        }
-
-        internal string ImageHash { get; set; }
-        Image _image = null;
-        /// <summary>
-        /// The Image
-        /// </summary>
-        public Image Image 
-        {
-            get
-            {
-                return _image;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    _image = value;
-                    try
-                    {
-                        string relID = SavePicture(value);
-
-                        //Create relationship
-                        TopNode.SelectSingleNode("xdr:pic/xdr:blipFill/a:blip/@r:embed", NameSpaceManager).Value = relID;
-                        //_image.Save(Part.GetStream(FileMode.Create, FileAccess.Write), _imageFormat);   //Always JPEG here at this point. 
-                    }
-                    catch(Exception ex)
-                    {
-                        throw(new Exception("Can't save image - " + ex.Message, ex));
-                    }
-                }
-            }
-        }
-        ImageFormat _imageFormat=ImageFormat.Jpeg;
-        /// <summary>
-        /// Image format
-        /// If the picture is created from an Image this type is always Jpeg
-        /// </summary>
-        public ImageFormat ImageFormat
-        {
-            get
-            {
-                return _imageFormat;
-            }
-            internal set
-            {
-                _imageFormat = value;
-            }
-        }
-        internal string ContentType
-        {
-            get;
-            set;
-        }
-        /// <summary>
-        /// Set the size of the image in percent from the orginal size
-        /// Note that resizing columns / rows after using this function will effect the size of the picture
-        /// </summary>
-        /// <param name="Percent">Percent</param>
-        public override void SetSize(int Percent)
-        {
-            if(Image == null)
-            {
-                base.SetSize(Percent);
-            }
-            else
-            {
-                _width = Image.Width;
-                _height = Image.Height;
-
-                _width = (int)(_width * ((decimal)Percent / 100));
-                _height = (int)(_height * ((decimal)Percent / 100));
-
-                SetPixelWidth(_width, Image.HorizontalResolution);
-                SetPixelHeight(_height, Image.VerticalResolution);
-            }
-        }
-        internal Uri UriPic { get; set; }
-        internal Packaging.ZipPackageRelationship RelPic {get; set;}
-        internal Packaging.ZipPackageRelationship HypRel { get; set; }
-        internal Packaging.ZipPackagePart Part;
-
-        internal new string Id
-        {
-            get { return Name; }
-        }
-        ExcelDrawingFill _fill = null;
-        /// <summary>
-        /// Fill
-        /// </summary>
-        public ExcelDrawingFill Fill
-        {
-            get
-            {
-                if (_fill == null)
-                {
-                    _fill = new ExcelDrawingFill(NameSpaceManager, TopNode, "xdr:pic/xdr:spPr");
-                }
-                return _fill;
-            }
-        }
-        ExcelDrawingBorder _border = null;
-        /// <summary>
-        /// Border
-        /// </summary>
-        public ExcelDrawingBorder Border
-        {
-            get
-            {
-                if (_border == null)
-                {
-                    _border = new ExcelDrawingBorder(NameSpaceManager, TopNode, "xdr:pic/xdr:spPr/a:ln");
-                }
-                return _border;
-            }
-        }
-
-        private Uri _hyperlink = null;
-        /// <summary>
-        /// Hyperlink
-        /// </summary>
-        public Uri Hyperlink
-        {
-           get
-           {
-              return _hyperlink;
-           }
-        }
-        internal override void DeleteMe()
-        {
-            _drawings._package.RemoveImage(ImageHash);
-            base.DeleteMe();
-        }
-        public override void Dispose()
-        {
-            base.Dispose();
-            _hyperlink = null;
-            _image.Dispose();
-            _image = null;            
-        }
     }
 }

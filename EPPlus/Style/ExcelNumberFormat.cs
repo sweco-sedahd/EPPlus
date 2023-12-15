@@ -13,27 +13,22 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		                Initial Release		        2009-10-01
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Globalization;
 
 namespace OfficeOpenXml.Style
 {
@@ -42,25 +37,21 @@ namespace OfficeOpenXml.Style
     /// </summary>
     public sealed class ExcelNumberFormat : StyleBase
     {
-        internal ExcelNumberFormat(ExcelStyles styles, OfficeOpenXml.XmlHelper.ChangedEventHandler ChangedEvent, int PositionID, string Address, int index) :
+        internal ExcelNumberFormat(ExcelStyles styles, XmlHelper.ChangedEventHandler ChangedEvent, int PositionID, string Address, int index) :
             base(styles, ChangedEvent, PositionID, Address)
         {
             Index = index;
         }
+
         /// <summary>
         /// The numeric index fror the format
         /// </summary>
-        public int NumFmtID 
-        {
-            get
-            {
-                return Index;
-            }
-            //set
-            //{
-            //    _ChangedEvent(this, new StyleChangeEventArgs(eStyleClass.Numberformat, "NumFmtID", value, _workSheetID, _address));
-            //}
-        }
+        public int NumFmtID => Index;
+
+        //set
+        //{
+        //    _ChangedEvent(this, new StyleChangeEventArgs(eStyleClass.Numberformat, "NumFmtID", value, _workSheetID, _address));
+        //}
         /// <summary>
         /// The numberformat 
         /// </summary>
@@ -68,32 +59,25 @@ namespace OfficeOpenXml.Style
         {
             get
             {
-                for(int i=0;i<_styles.NumberFormats.Count;i++)
+                for (int i = 0; i < _styles.NumberFormats.Count; i++)
                 {
-                    if(Index==_styles.NumberFormats[i].NumFmtId)
+                    if (Index == _styles.NumberFormats[i].NumFmtId)
                     {
                         return _styles.NumberFormats[i].Format;
                     }
                 }
+
                 return "general";
             }
-            set
-            {                
-                _ChangedEvent(this, new StyleChangeEventArgs(eStyleClass.Numberformat, eStyleProperty.Format, (string.IsNullOrEmpty(value) ? "General" : value), _positionID, _address));
-            }
+            set => _ChangedEvent(this, new StyleChangeEventArgs(eStyleClass.Numberformat, eStyleProperty.Format, string.IsNullOrEmpty(value) ? "General" : value, _positionID, _address));
         }
 
-        internal override string Id
-        {
-            get 
-            {
-                return Format;
-            }
-        }
+        internal override string Id => Format;
+
         /// <summary>
         /// If the numeric format is a build-in from.
         /// </summary>
-        public bool BuildIn { get; private set; }
+        public bool BuildIn { get; }
 
         internal static string GetFromBuildInFromID(int _numFmtId)
         {
@@ -159,6 +143,7 @@ namespace OfficeOpenXml.Style
                     return string.Empty;
             }
         }
+
         internal static int GetFromBuildIdFromFormat(string format)
         {
             switch (format)
@@ -208,7 +193,7 @@ namespace OfficeOpenXml.Style
                     return 38;
                 case "#,##0.00;(#,##0.00)":
                     return 39;
-                case "#,##0.00;[Red](#,##0.00)":                      
+                case "#,##0.00;[Red](#,##0.00)":
                     return 40;
                 case "mm:ss":
                     return 45;

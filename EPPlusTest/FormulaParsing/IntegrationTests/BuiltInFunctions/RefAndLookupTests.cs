@@ -336,7 +336,7 @@ namespace EPPlusTest.FormulaParsing.IntegrationTests.BuiltInFunctions
         [TestMethod, Ignore]
         public void VLookupShouldHandleNames()
         {
-            using (var package = new ExcelPackage(new FileInfo(@"c:\temp\Book3.xlsx")))
+            using (var package = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\Book3.xlsx")))
             {
                 var s1 = package.Workbook.Worksheets.First();
                 var v = s1.Cells["X10"].Formula;

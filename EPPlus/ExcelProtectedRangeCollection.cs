@@ -1,15 +1,15 @@
-﻿using OfficeOpenXml.Utils;
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
 using System.Xml;
+using OfficeOpenXml.Utils;
 
 namespace OfficeOpenXml
 {
     public class ExcelProtectedRangeCollection : XmlHelper, IEnumerable<ExcelProtectedRange>
     {
+        private readonly List<ExcelProtectedRange> _baseList = new();
+
         internal ExcelProtectedRangeCollection(XmlNamespaceManager nsm, XmlNode topNode, ExcelWorksheet ws)
             : base(nsm, topNode)
         {
@@ -22,7 +22,19 @@ namespace OfficeOpenXml
             }
         }
 
-        private List<ExcelProtectedRange> _baseList = new List<ExcelProtectedRange>();
+        public int Count => _baseList.Count;
+
+        public ExcelProtectedRange this[int index] => _baseList[index];
+
+        IEnumerator<ExcelProtectedRange> IEnumerable<ExcelProtectedRange>.GetEnumerator()
+        {
+            return _baseList.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _baseList.GetEnumerator();
+        }
 
         public ExcelProtectedRange Add(string name, ExcelAddress address)
         {
@@ -30,16 +42,18 @@ namespace OfficeOpenXml
             {
                 CreateNode("d:protectedRanges");
             }
-            foreach(var pr in _baseList)
+
+            foreach (ExcelProtectedRange pr in _baseList)
             {
-                if(name.Equals(pr.Name,StringComparison.CurrentCultureIgnoreCase))
+                if (name.Equals(pr.Name, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    throw (new InvalidOperationException($"A protected range with the namn {name} already exists"));
+                    throw new InvalidOperationException($"A protected range with the namn {name} already exists");
                 }
             }
-            var newNode = TopNode.OwnerDocument.CreateElement("protectedRange", ExcelPackage.schemaMain);
-            TopNode.SelectSingleNode("d:protectedRanges",NameSpaceManager).AppendChild(newNode);
-            var item = new ExcelProtectedRange(name, address, base.NameSpaceManager, newNode);
+
+            XmlElement newNode = TopNode.OwnerDocument.CreateElement("protectedRange", ExcelPackage.schemaMain);
+            TopNode.SelectSingleNode("d:protectedRanges", NameSpaceManager).AppendChild(newNode);
+            var item = new ExcelProtectedRange(name, address, NameSpaceManager, newNode);
             _baseList.Add(item);
             return item;
         }
@@ -60,11 +74,6 @@ namespace OfficeOpenXml
             _baseList.CopyTo(array, arrayIndex);
         }
 
-        public int Count
-        {
-            get { return _baseList.Count; }
-        }
-
         public bool Remove(ExcelProtectedRange item)
         {
             DeleteAllNode("d:protectedRanges/d:protectedRange[@name='" + item.Name + "' and @sqref='" + item.Address.Address + "']");
@@ -81,24 +90,6 @@ namespace OfficeOpenXml
         public void RemoveAt(int index)
         {
             _baseList.RemoveAt(index);
-        }
-
-        public ExcelProtectedRange this[int index]
-        {
-            get
-            {
-                return _baseList[index];
-            }
-        }
-
-        IEnumerator<ExcelProtectedRange> IEnumerable<ExcelProtectedRange>.GetEnumerator()
-        {
-            return _baseList.GetEnumerator();
-        }
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return _baseList.GetEnumerator();
         }
     }
 }

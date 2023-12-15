@@ -13,30 +13,29 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		                Initial Release		        2009-10-01
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Xml;
-using OfficeOpenXml.Style.XmlAccess;
-using OfficeOpenXml.Drawing;
 using OfficeOpenXml.Style;
+
 /// <summary>
 /// Shape style
 /// </summary>
@@ -230,6 +229,7 @@ public enum eShapeStyle
     WedgeRoundRectCallout,
     VerticalScroll
 }
+
 /// <summary>
 /// Text alignment
 /// </summary>
@@ -243,6 +243,7 @@ public enum eTextAlignment
     JustifiedLow,
     ThaiDistributed
 }
+
 /// <summary>
 /// Fillstyle.
 /// </summary>
@@ -255,6 +256,7 @@ public enum eFillStyle
     BlipFill,
     GroupFill
 }
+
 namespace OfficeOpenXml.Drawing
 {
     /// <summary>
@@ -267,6 +269,7 @@ namespace OfficeOpenXml.Drawing
         {
             init();
         }
+
         internal ExcelShape(ExcelDrawings drawings, XmlNode node, eShapeStyle style) :
             base(drawings, node, "xdr:sp/xdr:nvSpPr/xdr:cNvPr/@name")
         {
@@ -279,12 +282,29 @@ namespace OfficeOpenXml.Drawing
             shapeNode.InnerXml = ShapeStartXml();
             node.AppendChild(shapeNode.OwnerDocument.CreateElement("xdr", "clientData", ExcelPackage.schemaSheetDrawings));
         }
+
+        internal new string Id => Name + Text;
+
         private void init()
         {
-            SchemaNodeOrder = new string[] { "prstGeom", "ln", "pPr", "defRPr", "solidFill", "uFill", "latin", "cs", "r", "rPr", "t" };
+            SchemaNodeOrder = new[] { "prstGeom", "ln", "pPr", "defRPr", "solidFill", "uFill", "latin", "cs", "r", "rPr", "t" };
         }
+
+        #region "Private Methods"
+
+        private string ShapeStartXml()
+        {
+            var xml = new StringBuilder();
+            xml.AppendFormat("<xdr:nvSpPr><xdr:cNvPr id=\"{0}\" name=\"{1}\" /><xdr:cNvSpPr /></xdr:nvSpPr><xdr:spPr><a:prstGeom prst=\"rect\"><a:avLst /></a:prstGeom></xdr:spPr><xdr:style><a:lnRef idx=\"2\"><a:schemeClr val=\"accent1\"><a:shade val=\"50000\" /></a:schemeClr></a:lnRef><a:fillRef idx=\"1\"><a:schemeClr val=\"accent1\" /></a:fillRef><a:effectRef idx=\"0\"><a:schemeClr val=\"accent1\" /></a:effectRef><a:fontRef idx=\"minor\"><a:schemeClr val=\"lt1\" /></a:fontRef></xdr:style><xdr:txBody><a:bodyPr vertOverflow=\"clip\" rtlCol=\"0\" anchor=\"ctr\" /><a:lstStyle /><a:p></a:p></xdr:txBody>", _id, Name);
+            return xml.ToString();
+        }
+
+        #endregion
+
         #region "public methods"
+
         const string ShapeStylePath = "xdr:sp/xdr:spPr/a:prstGeom/@prst";
+
         /// <summary>
         /// Shape style
         /// </summary>
@@ -299,7 +319,7 @@ namespace OfficeOpenXml.Drawing
                 }
                 catch
                 {
-                    throw (new Exception(string.Format("Invalid shapetype {0}", v)));
+                    throw new Exception(string.Format("Invalid shapetype {0}", v));
                 }
             }
             set
@@ -309,7 +329,9 @@ namespace OfficeOpenXml.Drawing
                 SetXmlNodeString(ShapeStylePath, v);
             }
         }
-        ExcelDrawingFill _fill = null;
+
+        ExcelDrawingFill _fill;
+
         /// <summary>
         /// Fill
         /// </summary>
@@ -321,14 +343,17 @@ namespace OfficeOpenXml.Drawing
                 {
                     _fill = new ExcelDrawingFill(NameSpaceManager, TopNode, "xdr:sp/xdr:spPr");
                 }
+
                 return _fill;
             }
         }
-        ExcelDrawingBorder _border = null;
+
+        ExcelDrawingBorder _border;
+
         /// <summary>
         /// Border
         /// </summary>
-        public ExcelDrawingBorder Border        
+        public ExcelDrawingBorder Border
         {
             get
             {
@@ -336,10 +361,13 @@ namespace OfficeOpenXml.Drawing
                 {
                     _border = new ExcelDrawingBorder(NameSpaceManager, TopNode, "xdr:sp/xdr:spPr/a:ln");
                 }
+
                 return _border;
             }
         }
-        ExcelDrawingLineEnd _ends = null;
+
+        ExcelDrawingLineEnd _ends;
+
         /// <summary>
         /// Line Ends
         /// </summary>
@@ -351,12 +379,15 @@ namespace OfficeOpenXml.Drawing
                 {
                     _ends = new ExcelDrawingLineEnd(NameSpaceManager, TopNode, "xdr:sp/xdr:spPr/a:ln");
                 }
+
                 return _ends;
             }
         }
-        string[] paragraphNodeOrder = new string[] { "pPr", "defRPr", "solidFill", "uFill", "latin", "cs", "r", "rPr", "t" };
+
+        readonly string[] paragraphNodeOrder = { "pPr", "defRPr", "solidFill", "uFill", "latin", "cs", "r", "rPr", "t" };
         const string PARAGRAPH_PATH = "xdr:sp/xdr:txBody/a:p";
-        ExcelTextFont _font=null;
+        ExcelTextFont _font;
+
         public ExcelTextFont Font
         {
             get
@@ -364,48 +395,43 @@ namespace OfficeOpenXml.Drawing
                 if (_font == null)
                 {
                     XmlNode node = TopNode.SelectSingleNode(PARAGRAPH_PATH, NameSpaceManager);
-                    if(node==null)
+                    if (node == null)
                     {
-                        Text="";    //Creates the node p element
+                        Text = ""; //Creates the node p element
                         node = TopNode.SelectSingleNode(PARAGRAPH_PATH, NameSpaceManager);
                     }
+
                     _font = new ExcelTextFont(NameSpaceManager, TopNode, "xdr:sp/xdr:txBody/a:p/a:pPr/a:defRPr", paragraphNodeOrder);
                 }
+
                 return _font;
             }
         }
+
         const string TextPath = "xdr:sp/xdr:txBody/a:p/a:r/a:t";
+
         /// <summary>
         /// Text inside the shape
         /// </summary>
         public string Text
         {
-            get
-            {
-                return GetXmlNodeString(TextPath);
-            }
-            set
-            {
-                SetXmlNodeString(TextPath, value);
-            }
-
+            get => GetXmlNodeString(TextPath);
+            set => SetXmlNodeString(TextPath, value);
         }
-        string lockTextPath = "xdr:sp/@fLocksText";
+
+        readonly string lockTextPath = "xdr:sp/@fLocksText";
+
         /// <summary>
         /// Lock drawing
         /// </summary>
         public bool LockText
         {
-            get
-            {
-                return GetXmlNodeBool(lockTextPath, true);
-            }
-            set
-            {
-                SetXmlNodeBool(lockTextPath, value);
-            }
+            get => GetXmlNodeBool(lockTextPath, true);
+            set => SetXmlNodeBool(lockTextPath, value);
         }
-        ExcelParagraphCollection _richText = null;
+
+        ExcelParagraphCollection _richText;
+
         /// <summary>
         /// Richtext collection. Used to format specific parts of the text
         /// </summary>
@@ -420,36 +446,32 @@ namespace OfficeOpenXml.Drawing
                     //{
                     //    CreateNode(PARAGRAPH_PATH);
                     //}
-                        _richText = new ExcelParagraphCollection(NameSpaceManager, TopNode, PARAGRAPH_PATH, paragraphNodeOrder);
+                    _richText = new ExcelParagraphCollection(NameSpaceManager, TopNode, PARAGRAPH_PATH, paragraphNodeOrder);
                 }
+
                 return _richText;
             }
         }
+
         const string TextAnchoringPath = "xdr:sp/xdr:txBody/a:bodyPr/@anchor";
+
         /// <summary>
         /// Text Anchoring
         /// </summary>
         public eTextAnchoringType TextAnchoring
         {
-            get
-            {
-                return GetTextAchoringEnum(GetXmlNodeString(TextAnchoringPath));
-            }
-            set
-            {
-                SetXmlNodeString(TextAnchoringPath, GetTextAchoringText(value));
-            }
+            get => GetTextAchoringEnum(GetXmlNodeString(TextAnchoringPath));
+            set => SetXmlNodeString(TextAnchoringPath, GetTextAchoringText(value));
         }
+
         const string TextAnchoringCtlPath = "xdr:sp/xdr:txBody/a:bodyPr/@anchorCtr";
+
         /// <summary>
         /// Specifies the centering of the text box.
         /// </summary>
         public bool TextAnchoringControl
         {
-            get
-            {
-                return GetXmlNodeBool(TextAnchoringCtlPath);
-            }
+            get => GetXmlNodeBool(TextAnchoringCtlPath);
             set
             {
                 if (value)
@@ -462,7 +484,9 @@ namespace OfficeOpenXml.Drawing
                 }
             }
         }
+
         const string TEXT_ALIGN_PATH = "xdr:sp/xdr:txBody/a:p/a:pPr/@algn";
+
         /// <summary>
         /// How the text is aligned
         /// </summary>
@@ -470,23 +494,23 @@ namespace OfficeOpenXml.Drawing
         {
             get
             {
-               switch(GetXmlNodeString(TEXT_ALIGN_PATH))
-               {
-                   case "ctr":
-                       return eTextAlignment.Center;
-                   case "r":
-                       return eTextAlignment.Right;
-                   case "dist":
-                       return eTextAlignment.Distributed;
-                   case "just":
-                       return eTextAlignment.Justified;
-                   case "justLow":
-                       return eTextAlignment.JustifiedLow;
-                   case "thaiDist":
-                       return eTextAlignment.ThaiDistributed;
-                   default: 
-                       return eTextAlignment.Left;
-               }
+                switch (GetXmlNodeString(TEXT_ALIGN_PATH))
+                {
+                    case "ctr":
+                        return eTextAlignment.Center;
+                    case "r":
+                        return eTextAlignment.Right;
+                    case "dist":
+                        return eTextAlignment.Distributed;
+                    case "just":
+                        return eTextAlignment.Justified;
+                    case "justLow":
+                        return eTextAlignment.JustifiedLow;
+                    case "thaiDist":
+                        return eTextAlignment.ThaiDistributed;
+                    default:
+                        return eTextAlignment.Left;
+                }
             }
             set
             {
@@ -513,56 +537,40 @@ namespace OfficeOpenXml.Drawing
                     default:
                         DeleteNode(TEXT_ALIGN_PATH);
                         break;
-                }                
+                }
             }
         }
+
         const string INDENT_ALIGN_PATH = "xdr:sp/xdr:txBody/a:p/a:pPr/@lvl";
+
         /// <summary>
         /// Indentation
         /// </summary>
         public int Indent
         {
-            get
-            {
-                return GetXmlNodeInt(INDENT_ALIGN_PATH);
-            }
+            get => GetXmlNodeInt(INDENT_ALIGN_PATH);
             set
             {
-                if (value < 0 || value > 8)
+                if (value is < 0 or > 8)
                 {
-                    throw(new ArgumentOutOfRangeException("Indent level must be between 0 and 8"));
+                    throw new ArgumentOutOfRangeException("Indent level must be between 0 and 8");
                 }
+
                 SetXmlNodeString(INDENT_ALIGN_PATH, value.ToString());
             }
         }
+
         const string TextVerticalPath = "xdr:sp/xdr:txBody/a:bodyPr/@vert";
+
         /// <summary>
         /// Vertical text
         /// </summary>
         public eTextVerticalType TextVertical
         {
-            get
-            {
-                return GetTextVerticalEnum(GetXmlNodeString(TextVerticalPath));
-            }
-            set
-            {
-                SetXmlNodeString(TextVerticalPath, GetTextVerticalText(value));
-            }
+            get => GetTextVerticalEnum(GetXmlNodeString(TextVerticalPath));
+            set => SetXmlNodeString(TextVerticalPath, GetTextVerticalText(value));
         }
 
         #endregion
-        #region "Private Methods"
-        private string ShapeStartXml()
-        {
-            StringBuilder xml = new StringBuilder();
-            xml.AppendFormat("<xdr:nvSpPr><xdr:cNvPr id=\"{0}\" name=\"{1}\" /><xdr:cNvSpPr /></xdr:nvSpPr><xdr:spPr><a:prstGeom prst=\"rect\"><a:avLst /></a:prstGeom></xdr:spPr><xdr:style><a:lnRef idx=\"2\"><a:schemeClr val=\"accent1\"><a:shade val=\"50000\" /></a:schemeClr></a:lnRef><a:fillRef idx=\"1\"><a:schemeClr val=\"accent1\" /></a:fillRef><a:effectRef idx=\"0\"><a:schemeClr val=\"accent1\" /></a:effectRef><a:fontRef idx=\"minor\"><a:schemeClr val=\"lt1\" /></a:fontRef></xdr:style><xdr:txBody><a:bodyPr vertOverflow=\"clip\" rtlCol=\"0\" anchor=\"ctr\" /><a:lstStyle /><a:p></a:p></xdr:txBody>", _id, Name);
-            return xml.ToString();
-        }
-        #endregion
-        internal new string Id
-        {
-            get { return Name + Text; }
-        }
     }
 }

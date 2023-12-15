@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph;
@@ -11,17 +8,17 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Text
 {
     public class Value : ExcelFunction
     {
-        private readonly string _groupSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator;
+        private readonly DateValue _dateValueFunc = new();
         private readonly string _decimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-        private readonly string _timeSeparator = CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator;
+        private readonly string _groupSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator;
         private readonly string _shortTimePattern = CultureInfo.CurrentCulture.DateTimeFormat.ShortTimePattern;
-        private readonly DateValue _dateValueFunc = new DateValue();
-        private readonly TimeValue _timeValueFunc = new TimeValue();
+        private readonly string _timeSeparator = CultureInfo.CurrentCulture.DateTimeFormat.TimeSeparator;
+        private readonly TimeValue _timeValueFunc = new();
 
         public override CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
         {
             ValidateArguments(arguments, 1);
-            var val = ArgToString(arguments, 0);
+            string val = ArgToString(arguments, 0);
             double result = 0d;
             if (string.IsNullOrEmpty(val)) return CreateResult(result, DataType.Integer);
             val = val.TrimEnd(' ');
@@ -36,26 +33,31 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Text
                 {
                     result = double.Parse(val);
                 }
+
                 return CreateResult(result, DataType.Decimal);
             }
+
             if (double.TryParse(val, NumberStyles.Float, CultureInfo.CurrentCulture, out result))
             {
                 return CreateResult(result, DataType.Decimal);
             }
-            var timeSeparator = Regex.Escape(_timeSeparator);
+
+            string timeSeparator = Regex.Escape(_timeSeparator);
             if (Regex.IsMatch(val, @"^[\d]{1,2}" + timeSeparator + @"[\d]{2}(" + timeSeparator + @"[\d]{2})?$"))
             {
-                var timeResult = _timeValueFunc.Execute(val);
+                CompileResult timeResult = _timeValueFunc.Execute(val);
                 if (timeResult.DataType == DataType.Date)
                 {
                     return timeResult;
                 }
             }
-            var dateResult = _dateValueFunc.Execute(val);
+
+            CompileResult dateResult = _dateValueFunc.Execute(val);
             if (dateResult.DataType == DataType.Date)
             {
                 return dateResult;
             }
+
             return CreateResult(ExcelErrorValue.Create(eErrorType.Value), DataType.ExcelError);
         }
     }

@@ -11,17 +11,16 @@
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author Change                      Date
  *******************************************************************************
  * Mats Alm Added		                2018-12-27
  *******************************************************************************/
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Logical;
-using OfficeOpenXml.FormulaParsing.ExpressionGraph;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using OfficeOpenXml.FormulaParsing.ExpressionGraph;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
 {
@@ -30,16 +29,17 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
         public override CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
         {
             ValidateArguments(arguments, 1);
-            var arg = arguments.First();
-            if(!arg.IsExcelRange)throw new InvalidOperationException("CountBlank only support ranges as arguments");
-            var result = arg.ValueAsRangeInfo.GetNCells();
-            foreach (var cell in arg.ValueAsRangeInfo)
+            FunctionArgument arg = arguments.First();
+            if (!arg.IsExcelRange) throw new InvalidOperationException("CountBlank only support ranges as arguments");
+            int result = arg.ValueAsRangeInfo.GetNCells();
+            foreach (ExcelDataProvider.ICellInfo cell in arg.ValueAsRangeInfo)
             {
                 if (!(cell.Value == null || cell.Value.ToString() == string.Empty))
                 {
                     result--;
                 }
             }
+
             return CreateResult(result, DataType.Integer);
         }
     }

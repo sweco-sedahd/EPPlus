@@ -28,7 +28,7 @@ namespace EPPlusTest.Excel.Functions
         [TestMethod, Ignore]
         public void IfShouldIgnoreCase()
         {
-            using (var pck = new ExcelPackage(new FileInfo(@"c:\temp\book1.xlsx")))
+            using (var pck = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\book1.xlsx")))
             {
                 pck.Workbook.Calculate();
                 Assert.AreEqual("Sant", pck.Workbook.Worksheets.First().Cells["C3"].Value);

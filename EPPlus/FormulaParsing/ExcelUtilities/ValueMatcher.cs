@@ -13,25 +13,23 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
 {
@@ -52,14 +50,17 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
             {
                 return CompareStringToString(o1.ToString().ToLower(), o2.ToString().ToLower());
             }
-            else if( o1.GetType() == typeof(string))
+
+            if (o1.GetType() == typeof(string))
             {
                 return CompareStringToObject(o1.ToString(), o2);
             }
-            else if (o2.GetType() == typeof(string))
+
+            if (o2.GetType() == typeof(string))
             {
                 return CompareObjectToString(o1, o2.ToString());
             }
+
             return Convert.ToDouble(o1).CompareTo(Convert.ToDouble(o2));
         }
 
@@ -67,18 +68,20 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
         {
             if (v is ExcelDataProvider.IRangeInfo)
             {
-                var r = ((ExcelDataProvider.IRangeInfo)v);
+                var r = (ExcelDataProvider.IRangeInfo)v;
                 if (r.GetNCells() > 1)
                 {
                     v = ExcelErrorValue.Create(eErrorType.NA);
                 }
+
                 v = r.GetOffset(0, 0);
             }
             else if (v is ExcelDataProvider.INameInfo)
             {
-                var n = ((ExcelDataProvider.INameInfo)v);
+                var n = (ExcelDataProvider.INameInfo)v;
                 v = CheckGetRange(n);
             }
+
             return v;
         }
 
@@ -89,31 +92,31 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
 
         protected virtual int CompareStringToObject(string o1, object o2)
         {
-            double d1;
-            if (double.TryParse(o1, out d1))
+            if (double.TryParse(o1, out double d1))
             {
                 return d1.CompareTo(Convert.ToDouble(o2));
             }
-            bool b1;
-            if (bool.TryParse(o1, out b1))
+
+            if (bool.TryParse(o1, out bool b1))
             {
                 return b1.CompareTo(Convert.ToBoolean(o2));
             }
-            DateTime dt1;
-            if (DateTime.TryParse(o1, out dt1))
+
+            if (DateTime.TryParse(o1, out DateTime dt1))
             {
                 return dt1.CompareTo(Convert.ToDateTime(o2));
             }
+
             return IncompatibleOperands;
         }
 
         protected virtual int CompareObjectToString(object o1, string o2)
         {
-            double d2;
-            if (double.TryParse(o2, out d2))
+            if (double.TryParse(o2, out double d2))
             {
                 return Convert.ToDouble(o1).CompareTo(d2);
             }
+
             return IncompatibleOperands;
         }
     }

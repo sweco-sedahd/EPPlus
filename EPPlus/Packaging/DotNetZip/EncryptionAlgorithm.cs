@@ -131,5 +131,4 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
         // others... not implemented (yet?)
     }
-
 }

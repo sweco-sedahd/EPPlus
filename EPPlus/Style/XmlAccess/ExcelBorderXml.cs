@@ -13,26 +13,25 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		                Initial Release		        2009-10-01
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 using System.Xml;
+
 namespace OfficeOpenXml.Style.XmlAccess
 {
     /// <summary>
@@ -40,178 +39,105 @@ namespace OfficeOpenXml.Style.XmlAccess
     /// </summary>
     public sealed class ExcelBorderXml : StyleXmlHelper
     {
+        const string bottomPath = "d:bottom";
+        const string diagonalDownPath = "@diagonalDown";
+        const string diagonalPath = "d:diagonal";
+        const string diagonalUpPath = "@diagonalUp";
+        const string leftPath = "d:left";
+        const string rightPath = "d:right";
+        const string topPath = "d:top";
+
         internal ExcelBorderXml(XmlNamespaceManager nameSpaceManager)
             : base(nameSpaceManager)
         {
-
         }
+
         internal ExcelBorderXml(XmlNamespaceManager nsm, XmlNode topNode) :
             base(nsm, topNode)
         {
-            _left = new ExcelBorderItemXml(nsm, topNode.SelectSingleNode(leftPath, nsm));
-            _right = new ExcelBorderItemXml(nsm, topNode.SelectSingleNode(rightPath, nsm));
-            _top = new ExcelBorderItemXml(nsm, topNode.SelectSingleNode(topPath, nsm));
-            _bottom = new ExcelBorderItemXml(nsm, topNode.SelectSingleNode(bottomPath, nsm));
-            _diagonal = new ExcelBorderItemXml(nsm, topNode.SelectSingleNode(diagonalPath, nsm));
-            _diagonalUp = GetBoolValue(topNode, diagonalUpPath);
-            _diagonalDown = GetBoolValue(topNode, diagonalDownPath);
+            Left = new ExcelBorderItemXml(nsm, topNode.SelectSingleNode(leftPath, nsm));
+            Right = new ExcelBorderItemXml(nsm, topNode.SelectSingleNode(rightPath, nsm));
+            Top = new ExcelBorderItemXml(nsm, topNode.SelectSingleNode(topPath, nsm));
+            Bottom = new ExcelBorderItemXml(nsm, topNode.SelectSingleNode(bottomPath, nsm));
+            Diagonal = new ExcelBorderItemXml(nsm, topNode.SelectSingleNode(diagonalPath, nsm));
+            DiagonalUp = GetBoolValue(topNode, diagonalUpPath);
+            DiagonalDown = GetBoolValue(topNode, diagonalDownPath);
         }
-        internal override string Id
-        {
-            get
-            {
-                return Left.Id + Right.Id + Top.Id + Bottom.Id + Diagonal.Id + DiagonalUp.ToString() + DiagonalDown.ToString();
-            }
-        }
-        const string leftPath = "d:left";
-        ExcelBorderItemXml _left = null;
+
+        internal override string Id => Left.Id + Right.Id + Top.Id + Bottom.Id + Diagonal.Id + DiagonalUp + DiagonalDown;
+
         /// <summary>
         /// Left border style properties
         /// </summary>
-        public ExcelBorderItemXml Left
-        {
-            get
-            {
-                return _left;
-            }
-            internal set
-            {
-                _left = value;
-            }
-        }
-        const string rightPath = "d:right";
-        ExcelBorderItemXml _right = null;
+        public ExcelBorderItemXml Left { get; internal set; }
+
         /// <summary>
         /// Right border style properties
         /// </summary>
-        public ExcelBorderItemXml Right
-        {
-            get
-            {
-                return _right;
-            }
-            internal set
-            {
-                _right = value;
-            }
-        }
-        const string topPath = "d:top";
-        ExcelBorderItemXml _top = null;
+        public ExcelBorderItemXml Right { get; internal set; }
+
         /// <summary>
         /// Top border style properties
         /// </summary>
-        public ExcelBorderItemXml Top
-        {
-            get
-            {
-                return _top;
-            }
-            internal set
-            {
-                _top = value;
-            }
-        }
-        const string bottomPath = "d:bottom";
-        ExcelBorderItemXml _bottom = null;
+        public ExcelBorderItemXml Top { get; internal set; }
+
         /// <summary>
         /// Bottom border style properties
         /// </summary>
-        public ExcelBorderItemXml Bottom
-        {
-            get
-            {
-                return _bottom;
-            }
-            internal set
-            {
-                _bottom = value;
-            }
-        }
-        const string diagonalPath = "d:diagonal";
-        ExcelBorderItemXml _diagonal = null;
+        public ExcelBorderItemXml Bottom { get; internal set; }
+
         /// <summary>
         /// Diagonal border style properties
         /// </summary>
-        public ExcelBorderItemXml Diagonal
-        {
-            get
-            {
-                return _diagonal;
-            }
-            internal set
-            {
-                _diagonal = value;
-            }
-        }
-        const string diagonalUpPath = "@diagonalUp";
-        bool _diagonalUp = false;
+        public ExcelBorderItemXml Diagonal { get; internal set; }
+
         /// <summary>
         /// Diagonal up border
         /// </summary>
-        public bool DiagonalUp
-        {
-            get
-            {
-                return _diagonalUp;
-            }
-            internal set
-            {
-                _diagonalUp = value;
-            }
-        }
-        const string diagonalDownPath = "@diagonalDown";
-        bool _diagonalDown = false;
+        public bool DiagonalUp { get; internal set; }
+
         /// <summary>
         /// Diagonal down border
         /// </summary>
-        public bool DiagonalDown
-        {
-            get
-            {
-                return _diagonalDown;
-            }
-            internal set
-            {
-                _diagonalDown = value;
-            }
-        }
+        public bool DiagonalDown { get; internal set; }
 
         internal ExcelBorderXml Copy()
         {
-            ExcelBorderXml newBorder = new ExcelBorderXml(NameSpaceManager);
-            newBorder.Bottom = _bottom.Copy();
-            newBorder.Diagonal = _diagonal.Copy();
-            newBorder.Left = _left.Copy();
-            newBorder.Right = _right.Copy();
-            newBorder.Top = _top.Copy();
-            newBorder.DiagonalUp = _diagonalUp;
-            newBorder.DiagonalDown = _diagonalDown;
+            var newBorder = new ExcelBorderXml(NameSpaceManager);
+            newBorder.Bottom = Bottom.Copy();
+            newBorder.Diagonal = Diagonal.Copy();
+            newBorder.Left = Left.Copy();
+            newBorder.Right = Right.Copy();
+            newBorder.Top = Top.Copy();
+            newBorder.DiagonalUp = DiagonalUp;
+            newBorder.DiagonalDown = DiagonalDown;
 
             return newBorder;
-
         }
 
         internal override XmlNode CreateXmlNode(XmlNode topNode)
         {
             TopNode = topNode;
             CreateNode(leftPath);
-            topNode.AppendChild(_left.CreateXmlNode(TopNode.SelectSingleNode(leftPath, NameSpaceManager)));
+            topNode.AppendChild(Left.CreateXmlNode(TopNode.SelectSingleNode(leftPath, NameSpaceManager)));
             CreateNode(rightPath);
-            topNode.AppendChild(_right.CreateXmlNode(TopNode.SelectSingleNode(rightPath, NameSpaceManager)));
+            topNode.AppendChild(Right.CreateXmlNode(TopNode.SelectSingleNode(rightPath, NameSpaceManager)));
             CreateNode(topPath);
-            topNode.AppendChild(_top.CreateXmlNode(TopNode.SelectSingleNode(topPath, NameSpaceManager)));
+            topNode.AppendChild(Top.CreateXmlNode(TopNode.SelectSingleNode(topPath, NameSpaceManager)));
             CreateNode(bottomPath);
-            topNode.AppendChild(_bottom.CreateXmlNode(TopNode.SelectSingleNode(bottomPath, NameSpaceManager)));
+            topNode.AppendChild(Bottom.CreateXmlNode(TopNode.SelectSingleNode(bottomPath, NameSpaceManager)));
             CreateNode(diagonalPath);
-            topNode.AppendChild(_diagonal.CreateXmlNode(TopNode.SelectSingleNode(diagonalPath, NameSpaceManager)));
-            if (_diagonalUp)
+            topNode.AppendChild(Diagonal.CreateXmlNode(TopNode.SelectSingleNode(diagonalPath, NameSpaceManager)));
+            if (DiagonalUp)
             {
                 SetXmlNodeString(diagonalUpPath, "1");
             }
-            if (_diagonalDown)
+
+            if (DiagonalDown)
             {
                 SetXmlNodeString(diagonalDownPath, "1");
             }
+
             return topNode;
         }
     }

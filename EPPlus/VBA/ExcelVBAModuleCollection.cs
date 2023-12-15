@@ -13,26 +13,27 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Jan Källman		Added		12-APR-2012
  *******************************************************************************/
-using OfficeOpenXml.Compatibility;
+
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
+using OfficeOpenXml.Compatibility;
 
 namespace OfficeOpenXml.VBA
 {
@@ -42,47 +43,40 @@ namespace OfficeOpenXml.VBA
     /// <typeparam name="T"></typeparam>
     public class ExcelVBACollectionBase<T> : IEnumerable<T>
     {
-        internal protected List<T> _list=new List<T>();        
-        public IEnumerator<T> GetEnumerator()
-        {
-            return _list.GetEnumerator();
-        }
+        protected internal List<T> _list = new();
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return _list.GetEnumerator();
-        }
         /// <summary>
         /// Indexer
         /// </summary>
         /// <param name="Name">Name</param>
         /// <returns></returns>
-        public T this [string Name]
+        public T this[string Name]
         {
-            get
-            {
-                return _list.Find((f) => TypeCompat.GetPropertyValue(f,"Name").ToString().Equals(Name,StringComparison.OrdinalIgnoreCase));
-            }
+            get { return _list.Find(f => TypeCompat.GetPropertyValue(f, "Name").ToString().Equals(Name, StringComparison.OrdinalIgnoreCase)); }
         }
+
         /// <summary>
         /// Indexer
         /// </summary>
         /// <param name="Index">Position</param>
         /// <returns></returns>
-        public T this[int Index]
-        {
-            get
-            {
-                return _list[Index];
-            }
-        }
+        public T this[int Index] => _list[Index];
+
         /// <summary>
         /// Number of items in the collection
         /// </summary>
-        public int Count
+        public int Count => _list.Count;
+
+        public IEnumerator<T> GetEnumerator()
         {
-            get { return _list.Count; }
+            return _list.GetEnumerator();
         }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _list.GetEnumerator();
+        }
+
         /// <summary>
         /// If a specific name exists in the collection
         /// </summary>
@@ -90,8 +84,9 @@ namespace OfficeOpenXml.VBA
         /// <returns>True if the name exists</returns>
         public bool Exists(string Name)
         {
-            return _list.Exists((f) => TypeCompat.GetPropertyValue(f,"Name").ToString().Equals(Name,StringComparison.OrdinalIgnoreCase));
+            return _list.Exists(f => TypeCompat.GetPropertyValue(f, "Name").ToString().Equals(Name, StringComparison.OrdinalIgnoreCase));
         }
+
         /// <summary>
         /// Removes the item
         /// </summary>
@@ -100,6 +95,7 @@ namespace OfficeOpenXml.VBA
         {
             _list.Remove(Item);
         }
+
         /// <summary>
         /// Removes the item at the specified index
         /// </summary>
@@ -108,26 +104,30 @@ namespace OfficeOpenXml.VBA
         {
             _list.RemoveAt(index);
         }
-        
+
         internal void Clear()
         {
             _list.Clear();
         }
     }
+
     /// <summary>
     /// Collection class for VBA modules
     /// </summary>
     public class ExcelVbaModuleCollection : ExcelVBACollectionBase<ExcelVBAModule>
     {
         ExcelVbaProject _project;
-        internal ExcelVbaModuleCollection (ExcelVbaProject project)
-	    {
-            _project=project;
-	    }
+
+        internal ExcelVbaModuleCollection(ExcelVbaProject project)
+        {
+            _project = project;
+        }
+
         internal void Add(ExcelVBAModule Item)
         {
             _list.Add(Item);
         }
+
         /// <summary>
         /// Adds a new VBA Module
         /// </summary>
@@ -137,16 +137,18 @@ namespace OfficeOpenXml.VBA
         {
             if (this[Name] != null)
             {
-                throw(new ArgumentException("Vba modulename already exist."));
+                throw new ArgumentException("Vba modulename already exist.");
             }
+
             var m = new ExcelVBAModule();
             m.Name = Name;
             m.Type = eModuleType.Module;
-            m.Attributes._list.Add(new ExcelVbaModuleAttribute() { Name = "VB_Name", Value = Name, DataType = eAttributeDataType.String });
+            m.Attributes._list.Add(new ExcelVbaModuleAttribute { Name = "VB_Name", Value = Name, DataType = eAttributeDataType.String });
             m.Type = eModuleType.Module;
             _list.Add(m);
             return m;
         }
+
         /// <summary>
         /// Adds a new VBA class
         /// </summary>
@@ -156,16 +158,16 @@ namespace OfficeOpenXml.VBA
         public ExcelVBAModule AddClass(string Name, bool Exposed)
         {
             var m = new ExcelVBAModule();
-            m.Name = Name;            
+            m.Name = Name;
             m.Type = eModuleType.Class;
-            m.Attributes._list.Add(new ExcelVbaModuleAttribute() { Name = "VB_Name", Value = Name, DataType = eAttributeDataType.String });
-            m.Attributes._list.Add(new ExcelVbaModuleAttribute() { Name = "VB_Base", Value = "0{FCFB3D2A-A0FA-1068-A738-08002B3371B5}", DataType = eAttributeDataType.String });
-            m.Attributes._list.Add(new ExcelVbaModuleAttribute() { Name = "VB_GlobalNameSpace", Value = "False", DataType = eAttributeDataType.NonString });
-            m.Attributes._list.Add(new ExcelVbaModuleAttribute() { Name = "VB_Creatable", Value = "False", DataType = eAttributeDataType.NonString });
-            m.Attributes._list.Add(new ExcelVbaModuleAttribute() { Name = "VB_PredeclaredId", Value = "False", DataType = eAttributeDataType.NonString });
-            m.Attributes._list.Add(new ExcelVbaModuleAttribute() { Name = "VB_Exposed", Value = Exposed ? "True" : "False", DataType = eAttributeDataType.NonString });
-            m.Attributes._list.Add(new ExcelVbaModuleAttribute() { Name = "VB_TemplateDerived", Value = "False", DataType = eAttributeDataType.NonString });
-            m.Attributes._list.Add(new ExcelVbaModuleAttribute() { Name = "VB_Customizable", Value = "False", DataType = eAttributeDataType.NonString });
+            m.Attributes._list.Add(new ExcelVbaModuleAttribute { Name = "VB_Name", Value = Name, DataType = eAttributeDataType.String });
+            m.Attributes._list.Add(new ExcelVbaModuleAttribute { Name = "VB_Base", Value = "0{FCFB3D2A-A0FA-1068-A738-08002B3371B5}", DataType = eAttributeDataType.String });
+            m.Attributes._list.Add(new ExcelVbaModuleAttribute { Name = "VB_GlobalNameSpace", Value = "False", DataType = eAttributeDataType.NonString });
+            m.Attributes._list.Add(new ExcelVbaModuleAttribute { Name = "VB_Creatable", Value = "False", DataType = eAttributeDataType.NonString });
+            m.Attributes._list.Add(new ExcelVbaModuleAttribute { Name = "VB_PredeclaredId", Value = "False", DataType = eAttributeDataType.NonString });
+            m.Attributes._list.Add(new ExcelVbaModuleAttribute { Name = "VB_Exposed", Value = Exposed ? "True" : "False", DataType = eAttributeDataType.NonString });
+            m.Attributes._list.Add(new ExcelVbaModuleAttribute { Name = "VB_TemplateDerived", Value = "False", DataType = eAttributeDataType.NonString });
+            m.Attributes._list.Add(new ExcelVbaModuleAttribute { Name = "VB_Customizable", Value = "False", DataType = eAttributeDataType.NonString });
 
             //m.Code = _project.GetBlankClassModule(Name, Exposed);
             m.Private = !Exposed;
@@ -174,15 +176,16 @@ namespace OfficeOpenXml.VBA
             return m;
         }
     }
+
     /// <summary>
     /// A collection of the vba projects references
     /// </summary>
     public class ExcelVbaReferenceCollection : ExcelVBACollectionBase<ExcelVbaReference>
-    {        
+    {
         internal ExcelVbaReferenceCollection()
         {
-
         }
+
         /// <summary>
         /// Adds a new reference 
         /// </summary>
@@ -192,6 +195,7 @@ namespace OfficeOpenXml.VBA
             _list.Add(Item);
         }
     }
+
     /// <summary>
     /// A collection of the module level attributes
     /// </summary>
@@ -199,12 +203,13 @@ namespace OfficeOpenXml.VBA
     {
         internal string GetAttributeText()
         {
-            StringBuilder sb=new StringBuilder();
+            var sb = new StringBuilder();
 
-            foreach (var attr in this)
+            foreach (ExcelVbaModuleAttribute attr in this)
             {
-                sb.AppendFormat("Attribute {0} = {1}\r\n", attr.Name, attr.DataType==eAttributeDataType.String ? "\"" + attr.Value + "\"" : attr.Value);
+                sb.AppendFormat("Attribute {0} = {1}\r\n", attr.Name, attr.DataType == eAttributeDataType.String ? "\"" + attr.Value + "\"" : attr.Value);
             }
+
             return sb.ToString();
         }
     }

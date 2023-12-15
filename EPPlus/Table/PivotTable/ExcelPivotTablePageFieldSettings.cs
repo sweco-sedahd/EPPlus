@@ -13,25 +13,23 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		Added		21-MAR-2011
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 using System.Xml;
 
 namespace OfficeOpenXml.Table.PivotTable
@@ -39,43 +37,36 @@ namespace OfficeOpenXml.Table.PivotTable
     /// <summary>
     /// A page / report filter field
     /// </summary>
-    public class ExcelPivotTablePageFieldSettings  : XmlHelper
+    public class ExcelPivotTablePageFieldSettings : XmlHelper
     {
         ExcelPivotTableField _field;
+
         internal ExcelPivotTablePageFieldSettings(XmlNamespaceManager ns, XmlNode topNode, ExcelPivotTableField field, int index) :
             base(ns, topNode)
         {
-            if (GetXmlNodeString("@hier")=="")
+            if (GetXmlNodeString("@hier") == "")
             {
                 Hier = -1;
             }
+
             _field = field;
         }
-        internal int Index 
-        { 
-            get
-            {
-                return GetXmlNodeInt("@fld");
-            }
-            set
-            {
-                SetXmlNodeString("@fld",value.ToString());
-            }
+
+        internal int Index
+        {
+            get => GetXmlNodeInt("@fld");
+            set => SetXmlNodeString("@fld", value.ToString());
         }
+
         /// <summary>
         /// The Name of the field
         /// </summary>
         public string Name
         {
-            get
-            {
-                return GetXmlNodeString("@name");
-            }
-            set
-            {
-                SetXmlNodeString("@name", value);
-            }
+            get => GetXmlNodeString("@name");
+            set => SetXmlNodeString("@name", value);
         }
+
         /***** Dont work. Need items to be populated. ****/
         ///// <summary>
         ///// The selected item 
@@ -94,25 +85,14 @@ namespace OfficeOpenXml.Table.PivotTable
         //}
         internal int NumFmtId
         {
-            get
-            {
-                return GetXmlNodeInt("@numFmtId");
-            }
-            set
-            {
-                SetXmlNodeString("@numFmtId", value.ToString());
-            }
+            get => GetXmlNodeInt("@numFmtId");
+            set => SetXmlNodeString("@numFmtId", value.ToString());
         }
+
         internal int Hier
         {
-            get
-            {
-                return GetXmlNodeInt("@hier");
-            }
-            set
-            {
-                SetXmlNodeString("@hier", value.ToString());
-            }
+            get => GetXmlNodeInt("@hier");
+            set => SetXmlNodeString("@hier", value.ToString());
         }
     }
 }

@@ -1,11 +1,8 @@
-﻿using OfficeOpenXml.Style;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
 using System.Drawing;
-using System.Xml;
 using System.Globalization;
+using System.Xml;
+using OfficeOpenXml.Style;
 
 namespace OfficeOpenXml.Sparkline
 {
@@ -14,10 +11,10 @@ namespace OfficeOpenXml.Sparkline
     /// </summary>
     public class ExcelSparklineColor : XmlHelper, IColor
     {
-        internal ExcelSparklineColor(XmlNamespaceManager ns , XmlNode node) : base(ns, node)
+        internal ExcelSparklineColor(XmlNamespaceManager ns, XmlNode node) : base(ns, node)
         {
-            
         }
+
         /// <summary>
         /// Indexed color
         /// </summary>
@@ -26,11 +23,11 @@ namespace OfficeOpenXml.Sparkline
             get => GetXmlNodeInt("@indexed");
             set
             {
-                if (value < 0 || value > 65)
+                if (value is < 0 or > 65)
                 {
-                    throw (new ArgumentOutOfRangeException("Index out of range"));
+                    throw new ArgumentOutOfRangeException("Index out of range");
                 }
-                    
+
                 SetXmlNodeString("@indexed", value.ToString(CultureInfo.InvariantCulture));
             }
         }
@@ -41,12 +38,9 @@ namespace OfficeOpenXml.Sparkline
         public string Rgb
         {
             get => GetXmlNodeString("@rgb");
-            internal set
-            {
-                SetXmlNodeString("@rgb", value);
-            }
+            internal set => SetXmlNodeString("@rgb", value);
         }
-        
+
 
         public string Theme => GetXmlNodeString("@theme");
 
@@ -55,13 +49,14 @@ namespace OfficeOpenXml.Sparkline
         /// </summary>
         public decimal Tint
         {
-            get=> GetXmlNodeDecimal("@tint");
+            get => GetXmlNodeDecimal("@tint");
             set
             {
-                if (value > 1 || value < -1)
+                if (value is > 1 or < -1)
                 {
-                    throw (new ArgumentOutOfRangeException("Value must be between -1 and 1"));
+                    throw new ArgumentOutOfRangeException("Value must be between -1 and 1");
                 }
+
                 SetXmlNodeString("@tint", value.ToString(CultureInfo.InvariantCulture));
             }
         }

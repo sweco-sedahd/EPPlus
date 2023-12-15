@@ -11,19 +11,13 @@
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author Change                      Date
  *******************************************************************************
  * Mats Alm Added		                2016-12-27
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
-using OfficeOpenXml.FormulaParsing.ExpressionGraph;
+
 using OfficeOpenXml.FormulaParsing.ExcelUtilities;
-using OfficeOpenXml.FormulaParsing;
 using OfficeOpenXml.FormulaParsing.Logging;
 
 namespace OfficeOpenXml.FormulaParsing
@@ -33,7 +27,9 @@ namespace OfficeOpenXml.FormulaParsing
     /// </summary>
     public class ParsingContext : IParsingLifetimeEventHandler
     {
-        private ParsingContext() { }
+        private ParsingContext()
+        {
+        }
 
         /// <summary>
         /// The <see cref="FormulaParser"/> of the current context.
@@ -71,9 +67,11 @@ namespace OfficeOpenXml.FormulaParsing
         /// <summary>
         /// Returns true if a <see cref="IFormulaParserLogger"/> is attached to the parser.
         /// </summary>
-        public bool Debug
+        public bool Debug => Configuration.Logger != null;
+
+        void IParsingLifetimeEventHandler.ParsingCompleted()
         {
-            get { return Configuration.Logger != null; }
+            AddressCache.Clear();
         }
 
         /// <summary>
@@ -87,11 +85,6 @@ namespace OfficeOpenXml.FormulaParsing
             context.Scopes = new ParsingScopes(context);
             context.AddressCache = new ExcelAddressCache();
             return context;
-        }
-
-        void IParsingLifetimeEventHandler.ParsingCompleted()
-        {
-            AddressCache.Clear();
         }
     }
 }

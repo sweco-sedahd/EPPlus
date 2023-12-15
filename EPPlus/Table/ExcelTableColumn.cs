@@ -13,26 +13,25 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		Added		30-AUG-2010
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using System.Xml;
 using OfficeOpenXml.Utils;
 
@@ -43,7 +42,7 @@ namespace OfficeOpenXml.Table
     /// </summary>
     public enum RowFunctions
     {
-        Average,        
+        Average,
         Count,
         CountNums,
         Custom,
@@ -60,35 +59,32 @@ namespace OfficeOpenXml.Table
     /// </summary>
     public class ExcelTableColumn : XmlHelper
     {
+        const string CALCULATEDCOLUMNFORMULA_PATH = "d:calculatedColumnFormula";
+        const string DATACELLSTYLE_PATH = "@dataCellStyle";
+        const string TOTALSROWFORMULA_PATH = "d:totalsRowFormula";
         internal ExcelTable _tbl;
+
         internal ExcelTableColumn(XmlNamespaceManager ns, XmlNode topNode, ExcelTable tbl, int pos) :
             base(ns, topNode)
         {
             _tbl = tbl;
             Position = pos;
         }
+
         /// <summary>
         /// The column id
         /// </summary>
-        public int Id 
+        public int Id
         {
-            get
-            {
-                return GetXmlNodeInt("@id");
-            }
-            set
-            {
-                SetXmlNodeString("@id", value.ToString());
-            }
+            get => GetXmlNodeInt("@id");
+            set => SetXmlNodeString("@id", value.ToString());
         }
+
         /// <summary>
         /// The position of the column
         /// </summary>
-        public int Position
-        {
-            get;
-            private set;
-        }
+        public int Position { get; }
+
         /// <summary>
         /// The name of the column
         /// </summary>
@@ -96,45 +92,43 @@ namespace OfficeOpenXml.Table
         {
             get
             {
-                var n=GetXmlNodeString("@name");
+                string n = GetXmlNodeString("@name");
                 if (string.IsNullOrEmpty(n))
                 {
                     if (_tbl.ShowHeader)
                     {
-                        n = ConvertUtil.ExcelDecodeString(_tbl.WorkSheet.GetValue<string>(_tbl.Address._fromRow, _tbl.Address._fromCol + this.Position));
+                        n = ConvertUtil.ExcelDecodeString(_tbl.WorkSheet.GetValue<string>(_tbl.Address._fromRow, _tbl.Address._fromCol + Position));
                     }
                     else
                     {
-                        n = "Column" + (this.Position+1).ToString();
+                        n = "Column" + (Position + 1);
                     }
                 }
+
                 return n;
             }
             set
             {
-                var v = ConvertUtil.ExcelEncodeString(value);
+                string v = ConvertUtil.ExcelEncodeString(value);
                 SetXmlNodeString("@name", v);
                 if (_tbl.ShowHeader)
                 {
-                    _tbl.WorkSheet.SetValue(_tbl.Address._fromRow, _tbl.Address._fromCol + this.Position, value);
+                    _tbl.WorkSheet.SetValue(_tbl.Address._fromRow, _tbl.Address._fromCol + Position, value);
                 }
+
                 _tbl.WorkSheet.SetTableTotalFunction(_tbl, this);
             }
         }
+
         /// <summary>
         /// A string text in the total row
         /// </summary>
         public string TotalsRowLabel
         {
-            get
-            {
-                return GetXmlNodeString("@totalsRowLabel");
-            }
-            set
-            {
-                SetXmlNodeString("@totalsRowLabel", value);
-            }
+            get => GetXmlNodeString("@totalsRowLabel");
+            set => SetXmlNodeString("@totalsRowLabel", value);
         }
+
         /// <summary>
         /// Build-in total row functions.
         /// To set a custom Total row formula use the TotalsRowFormula property
@@ -148,24 +142,23 @@ namespace OfficeOpenXml.Table
                 {
                     return RowFunctions.None;
                 }
-                else
-                {
-                    return (RowFunctions)Enum.Parse(typeof(RowFunctions), GetXmlNodeString("@totalsRowFunction"), true);
-                }
+
+                return (RowFunctions)Enum.Parse(typeof(RowFunctions), GetXmlNodeString("@totalsRowFunction"), true);
             }
             set
             {
                 if (value == RowFunctions.Custom)
                 {
-                    throw(new Exception("Use the TotalsRowFormula-property to set a custom table formula"));
+                    throw new Exception("Use the TotalsRowFormula-property to set a custom table formula");
                 }
+
                 string s = value.ToString();
                 s = s.Substring(0, 1).ToLower(CultureInfo.InvariantCulture) + s.Substring(1, s.Length - 1);
                 SetXmlNodeString("@totalsRowFunction", s);
                 _tbl.WorkSheet.SetTableTotalFunction(_tbl, this);
             }
         }
-        const string TOTALSROWFORMULA_PATH = "d:totalsRowFormula";
+
         /// <summary>
         /// Sets a custom Totals row Formula.
         /// Be carefull with this property since it is not validated. 
@@ -175,39 +168,34 @@ namespace OfficeOpenXml.Table
         /// </summary>
         public string TotalsRowFormula
         {
-            get
-            {
-                return GetXmlNodeString(TOTALSROWFORMULA_PATH);
-            }
+            get => GetXmlNodeString(TOTALSROWFORMULA_PATH);
             set
             {
                 if (value.StartsWith("=")) value = value.Substring(1, value.Length - 1);
-                SetXmlNodeString("@totalsRowFunction", "custom");                
+                SetXmlNodeString("@totalsRowFunction", "custom");
                 SetXmlNodeString(TOTALSROWFORMULA_PATH, value);
                 _tbl.WorkSheet.SetTableTotalFunction(_tbl, this);
             }
         }
-        const string DATACELLSTYLE_PATH = "@dataCellStyle";
+
         /// <summary>
         /// The named style for datacells in the column
         /// </summary>
         public string DataCellStyleName
         {
-            get
-            {
-                return GetXmlNodeString(DATACELLSTYLE_PATH);
-            }
+            get => GetXmlNodeString(DATACELLSTYLE_PATH);
             set
             {
-                if(_tbl.WorkSheet.Workbook.Styles.NamedStyles.FindIndexByID(value)<0)
+                if (_tbl.WorkSheet.Workbook.Styles.NamedStyles.FindIndexByID(value) < 0)
                 {
-                    throw(new Exception(string.Format("Named style {0} does not exist.",value)));
+                    throw new Exception(string.Format("Named style {0} does not exist.", value));
                 }
-                SetXmlNodeString(TopNode, DATACELLSTYLE_PATH, value,true);
-               
-                int fromRow=_tbl.Address._fromRow + (_tbl.ShowHeader?1:0),
-                    toRow=_tbl.Address._toRow - (_tbl.ShowTotal?1:0),
-                    col=_tbl.Address._fromCol+Position;
+
+                SetXmlNodeString(TopNode, DATACELLSTYLE_PATH, value, true);
+
+                int fromRow = _tbl.Address._fromRow + (_tbl.ShowHeader ? 1 : 0),
+                    toRow = _tbl.Address._toRow - (_tbl.ShowTotal ? 1 : 0),
+                    col = _tbl.Address._fromCol + Position;
 
                 if (fromRow <= toRow)
                 {
@@ -215,26 +203,22 @@ namespace OfficeOpenXml.Table
                 }
             }
         }
-  		const string CALCULATEDCOLUMNFORMULA_PATH = "d:calculatedColumnFormula";
- 		/// <summary>
- 		/// Sets a calculated column Formula.
- 		/// Be carefull with this property since it is not validated. 
- 		/// <example>
- 		/// tbl.Columns[9].CalculatedColumnFormula = string.Format("SUM(MyDataTable[[#This Row],[{0}]])",tbl.Columns[9].Name);
- 		/// </example>
- 		/// </summary>
- 		public string CalculatedColumnFormula
- 		{
- 			get
- 			{
- 				return GetXmlNodeString(CALCULATEDCOLUMNFORMULA_PATH);
- 			}
- 			set
- 			{
- 				if (value.StartsWith("=")) value = value.Substring(1, value.Length - 1);
- 				SetXmlNodeString(CALCULATEDCOLUMNFORMULA_PATH, value);
- 			}
- 		}
 
+        /// <summary>
+        /// Sets a calculated column Formula.
+        /// Be carefull with this property since it is not validated. 
+        /// <example>
+        /// tbl.Columns[9].CalculatedColumnFormula = string.Format("SUM(MyDataTable[[#This Row],[{0}]])",tbl.Columns[9].Name);
+        /// </example>
+        /// </summary>
+        public string CalculatedColumnFormula
+        {
+            get => GetXmlNodeString(CALCULATEDCOLUMNFORMULA_PATH);
+            set
+            {
+                if (value.StartsWith("=")) value = value.Substring(1, value.Length - 1);
+                SetXmlNodeString(CALCULATEDCOLUMNFORMULA_PATH, value);
+            }
+        }
     }
 }

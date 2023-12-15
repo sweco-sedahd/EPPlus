@@ -7,25 +7,24 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Mats Alm   		                Added		                2015-04-19
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.Exceptions;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
@@ -38,6 +37,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
             {
                 throw new ExcelErrorValueException(eErrorType.Div0);
             }
+
             return left / right;
         }
 
@@ -48,9 +48,9 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
 
         public static double Var(IEnumerable<double> args)
         {
-            double avg = args.Select(x => (double)x).Average();
+            double avg = args.Select(x => x).Average();
             double d = args.Aggregate(0.0, (total, next) => total += System.Math.Pow(next - avg, 2));
-            return Divide(d, (args.Count() - 1));
+            return Divide(d, args.Count() - 1);
         }
 
         public static double VarP(IEnumerable<ExcelDoubleCellValue> args)
@@ -60,9 +60,9 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
 
         public static double VarP(IEnumerable<double> args)
         {
-            double avg = args.Select(x => (double)x).Average();
+            double avg = args.Select(x => x).Average();
             double d = args.Aggregate(0.0, (total, next) => total += System.Math.Pow(next - avg, 2));
-            return Divide(d, args.Count()); 
+            return Divide(d, args.Count());
         }
     }
 }

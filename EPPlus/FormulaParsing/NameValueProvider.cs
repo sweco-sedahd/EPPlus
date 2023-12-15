@@ -11,15 +11,11 @@
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author Change                      Date
  *******************************************************************************
  * Mats Alm Added		                2016-12-27
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace OfficeOpenXml.FormulaParsing
 {
@@ -27,13 +23,9 @@ namespace OfficeOpenXml.FormulaParsing
     {
         private NameValueProvider()
         {
-
         }
 
-        public static INameValueProvider Empty
-        {
-            get { return new NameValueProvider(); }
-        }
+        public static INameValueProvider Empty => new NameValueProvider();
 
         public bool IsNamedValue(string key, string worksheet)
         {
@@ -47,7 +39,6 @@ namespace OfficeOpenXml.FormulaParsing
 
         public void Reload()
         {
-            
         }
     }
 }

@@ -13,29 +13,31 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2014-01-27
  *******************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.Excel.Functions;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Logical;
 using OfficeOpenXml.FormulaParsing.Exceptions;
 using OfficeOpenXml.FormulaParsing.Utilities;
+using OfficeOpenXml.Utils;
+using Require = OfficeOpenXml.FormulaParsing.Utilities.Require;
 
 namespace OfficeOpenXml.FormulaParsing.ExpressionGraph.FunctionCompilers
 {
@@ -57,56 +59,58 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph.FunctionCompilers
         public override CompileResult Compile(IEnumerable<Expression> children)
         {
             // 2 is allowed, Excel returns FALSE if false is the outcome of the expression
-            if(children.Count() < 2) throw new ExcelErrorValueException(eErrorType.Value);
+            if (children.Count() < 2) throw new ExcelErrorValueException(eErrorType.Value);
             var args = new List<FunctionArgument>();
             Function.BeforeInvoke(Context);
-            var firstChild = children.ElementAt(0);
-            var v = firstChild.Compile().Result;
+            Expression firstChild = children.ElementAt(0);
+            object v = firstChild.Compile().Result;
 
             /****  Handle names and ranges ****/
             if (v is ExcelDataProvider.INameInfo)
             {
                 v = ((ExcelDataProvider.INameInfo)v).Value;
             }
-            
+
             if (v is ExcelDataProvider.IRangeInfo)
             {
-                var r=((ExcelDataProvider.IRangeInfo)v);
-                if(r.GetNCells()>1)
+                var r = (ExcelDataProvider.IRangeInfo)v;
+                if (r.GetNCells() > 1)
                 {
-                    throw(new ArgumentException("Logical can't be more than one cell"));
+                    throw new ArgumentException("Logical can't be more than one cell");
                 }
+
                 v = r.GetOffset(0, 0);
             }
+
             bool boolVal;
-            if(v is bool)
+            if (v is bool)
             {
                 boolVal = (bool)v;
             }
-            else if(!Utils.ConvertUtil.TryParseBooleanString(v, out boolVal))
+            else if (!ConvertUtil.TryParseBooleanString(v, out boolVal))
             {
-                if(OfficeOpenXml.Utils.ConvertUtil.IsNumeric(v))
+                if (ConvertUtil.IsNumeric(v))
                 {
-                    boolVal = OfficeOpenXml.Utils.ConvertUtil.GetValueDouble(v)!=0;
+                    boolVal = ConvertUtil.GetValueDouble(v) != 0;
                 }
                 else
                 {
-                    throw (new ArgumentException("Invalid logical test"));
+                    throw new ArgumentException("Invalid logical test");
                 }
             }
             /****  End Handle names and ranges ****/
-            
+
             args.Add(new FunctionArgument(boolVal));
             if (boolVal)
             {
-                var val = children.ElementAt(1).Compile().Result;
+                object val = children.ElementAt(1).Compile().Result;
                 args.Add(new FunctionArgument(val));
                 args.Add(new FunctionArgument(null));
             }
             else
             {
                 object val;
-                var child = children.ElementAtOrDefault(2);
+                Expression child = children.ElementAtOrDefault(2);
                 if (child == null)
                 {
                     // if no false expression given, Excel returns false
@@ -116,9 +120,11 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph.FunctionCompilers
                 {
                     val = child.Compile().Result;
                 }
+
                 args.Add(new FunctionArgument(null));
                 args.Add(new FunctionArgument(val));
             }
+
             return Function.Execute(args, Context);
         }
     }

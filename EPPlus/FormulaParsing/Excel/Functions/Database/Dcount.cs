@@ -7,26 +7,25 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Mats Alm   		                Added		                2015-04-06
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph;
 using OfficeOpenXml.Utils;
 
@@ -39,7 +38,6 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Database
         public Dcount()
             : this(new RowMatcher())
         {
-            
         }
 
         public Dcount(RowMatcher rowMatcher)
@@ -50,7 +48,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Database
         public override CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
         {
             ValidateArguments(arguments, 2);
-            var dbAddress = arguments.ElementAt(0).ValueAsRangeInfo.Address.Address;
+            string dbAddress = arguments.ElementAt(0).ValueAsRangeInfo.Address.Address;
             string field = null;
             string criteriaRange = null;
             if (arguments.Count() == 2)
@@ -61,21 +59,22 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Database
             {
                 field = ArgToString(arguments, 1).ToLower(CultureInfo.InvariantCulture);
                 criteriaRange = arguments.ElementAt(2).ValueAsRangeInfo.Address.Address;
-            } 
+            }
+
             var db = new ExcelDatabase(context.ExcelDataProvider, dbAddress);
             var criteria = new ExcelDatabaseCriteria(context.ExcelDataProvider, criteriaRange);
 
-            var nHits = 0;
+            int nHits = 0;
             while (db.HasMoreRows)
             {
-                var dataRow = db.Read();
+                ExcelDatabaseRow dataRow = db.Read();
                 if (_rowMatcher.IsMatch(dataRow, criteria))
                 {
                     // if a fieldname is supplied, count only this row if the value
                     // of the supplied field is numeric.
                     if (!string.IsNullOrEmpty(field))
                     {
-                        var candidate = dataRow[field];
+                        object candidate = dataRow[field];
                         if (ConvertUtil.IsNumeric(candidate))
                         {
                             nHits++;
@@ -84,10 +83,11 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Database
                     else
                     {
                         // no fieldname was supplied, always count matching row.
-                        nHits++;    
+                        nHits++;
                     }
                 }
             }
+
             return CreateResult(nHits, DataType.Integer);
         }
     }

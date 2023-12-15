@@ -7,27 +7,27 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Mats Alm   		                Added		                2013-12-03
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph;
+using OfficeOpenXml.Utils;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Text
 {
@@ -36,21 +36,23 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Text
         public override CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
         {
             ValidateArguments(arguments, 1);
-            var text = ArgToString(arguments, 0).ToLower(CultureInfo.InvariantCulture);
+            string text = ArgToString(arguments, 0).ToLower(CultureInfo.InvariantCulture);
             var sb = new StringBuilder();
-            var previousChar = '.';
-            foreach (var ch in text)
+            char previousChar = '.';
+            foreach (char ch in text)
             {
                 if (!char.IsLetter(previousChar))
                 {
-                    sb.Append(Utils.ConvertUtil._invariantTextInfo.ToUpper(ch.ToString()));
+                    sb.Append(ConvertUtil._invariantTextInfo.ToUpper(ch.ToString()));
                 }
                 else
                 {
                     sb.Append(ch);
                 }
+
                 previousChar = ch;
             }
+
             return CreateResult(sb.ToString(), DataType.String);
         }
     }

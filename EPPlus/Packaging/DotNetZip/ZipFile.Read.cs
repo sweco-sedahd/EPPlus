@@ -26,8 +26,9 @@
 
 
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace OfficeOpenXml.Packaging.Ionic.Zip
 {
@@ -49,7 +50,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
     ///     <c>ZipFile.Read()</c> method.
     ///   </para>
     ///
-    /// <seealso cref="ZipFile.Read(String, ReadOptions)"/>.
+    /// <seealso cref="ZipFile.Read(string, ReadOptions)"/>.
     /// <seealso cref="ZipFile.Read(Stream, ReadOptions)"/>.
     /// </remarks>
     internal class ReadOptions
@@ -82,7 +83,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         ///
         /// <seealso cref="ZipFile.ProvisionalAlternateEncoding"/>
         ///
-        public System.Text.Encoding @Encoding { get; set; }
+        public Encoding Encoding { get; set; }
     }
 
 
@@ -117,7 +118,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         ///
         public static ZipFile Read(string fileName)
         {
-            return ZipFile.Read(fileName, null, null, null);
+            return Read(fileName, null, null, null);
         }
 
 
@@ -275,14 +276,14 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <seealso cref="ZipFile.Read(Stream, ReadOptions)"/>
         ///
         internal static ZipFile Read(string fileName,
-                                   ReadOptions options)
+            ReadOptions options)
         {
             if (options == null)
                 throw new ArgumentNullException("options");
             return Read(fileName,
-                        options.StatusMessageWriter,
-                        options.Encoding,
-                        options.ReadProgress);
+                options.StatusMessageWriter,
+                options.Encoding,
+                options.ReadProgress);
         }
 
         /// <summary>
@@ -318,19 +319,19 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <returns>The instance read from the zip archive.</returns>
         ///
         private static ZipFile Read(string fileName,
-                                   TextWriter statusMessageWriter,
-                                   System.Text.Encoding encoding,
-                                   EventHandler<ReadProgressEventArgs> readProgress)
+            TextWriter statusMessageWriter,
+            Encoding encoding,
+            EventHandler<ReadProgressEventArgs> readProgress)
         {
-            ZipFile zf = new ZipFile();
+            var zf = new ZipFile();
             zf.AlternateEncoding = encoding ?? DefaultEncoding;
             zf.AlternateEncodingUsage = ZipOption.Always;
-            zf._StatusMessageTextWriter = statusMessageWriter;
-            zf._name = fileName;
+            zf.StatusMessageTextWriter = statusMessageWriter;
+            zf.Name = fileName;
             if (readProgress != null)
                 zf.ReadProgress = readProgress;
 
-            if (zf.Verbose) zf._StatusMessageTextWriter.WriteLine("reading from {0}...", fileName);
+            if (zf.Verbose) zf.StatusMessageTextWriter.WriteLine("reading from {0}...", fileName);
 
             ReadIntoInstance(zf);
             zf._fileAlreadyExists = true;
@@ -468,11 +469,10 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 throw new ArgumentNullException("options");
 
             return Read(zipStream,
-                        options.StatusMessageWriter,
-                        options.Encoding,
-                        options.ReadProgress);
+                options.StatusMessageWriter,
+                options.Encoding,
+                options.ReadProgress);
         }
-
 
 
         /// <summary>
@@ -521,29 +521,28 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         ///
         /// <returns>an instance of ZipFile</returns>
         private static ZipFile Read(Stream zipStream,
-                                   TextWriter statusMessageWriter,
-                                   System.Text.Encoding encoding,
-                                   EventHandler<ReadProgressEventArgs> readProgress)
+            TextWriter statusMessageWriter,
+            Encoding encoding,
+            EventHandler<ReadProgressEventArgs> readProgress)
         {
             if (zipStream == null)
                 throw new ArgumentNullException("zipStream");
 
-            ZipFile zf = new ZipFile();
-            zf._StatusMessageTextWriter = statusMessageWriter;
-            zf._alternateEncoding = encoding ?? ZipFile.DefaultEncoding;
-            zf._alternateEncodingUsage = ZipOption.Always;
+            var zf = new ZipFile();
+            zf.StatusMessageTextWriter = statusMessageWriter;
+            zf.AlternateEncoding = encoding ?? DefaultEncoding;
+            zf.AlternateEncodingUsage = ZipOption.Always;
             if (readProgress != null)
                 zf.ReadProgress += readProgress;
-            zf._readstream = (zipStream.Position == 0L)
+            zf._readstream = zipStream.Position == 0L
                 ? zipStream
                 : new OffsetStream(zipStream);
             zf._ReadStreamIsOurs = false;
-            if (zf.Verbose) zf._StatusMessageTextWriter.WriteLine("reading from stream...");
+            if (zf.Verbose) zf.StatusMessageTextWriter.WriteLine("reading from stream...");
 
             ReadIntoInstance(zf);
             return zf;
         }
-
 
 
         private static void ReadIntoInstance(ZipFile zf)
@@ -551,7 +550,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             Stream s = zf.ReadStream;
             try
             {
-                zf._readName = zf._name; // workitem 13915
+                zf._readName = zf.Name; // workitem 13915
                 if (!s.CanSeek)
                 {
                     ReadIntoInstance_Orig(zf);
@@ -584,22 +583,21 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 long maxSeekback = Math.Max(s.Length - 0x4000, 10);
                 do
                 {
-                    if (posn < 0) posn = 0;  // BOF
+                    if (posn < 0) posn = 0; // BOF
                     s.Seek(posn, SeekOrigin.Begin);
                     long bytesRead = SharedUtilities.FindSignature(s, (int)ZipConstants.EndOfCentralDirectorySignature);
                     if (bytesRead != -1)
                         success = true;
                     else
                     {
-                        if (posn==0) break; // started at the BOF and found nothing
+                        if (posn == 0) break; // started at the BOF and found nothing
                         nTries++;
                         // Weird: with NETCF, negative offsets from SeekOrigin.End DO
                         // NOT WORK. So rather than seek a negative offset, we seek
                         // from SeekOrigin.Begin using a smaller number.
-                        posn -= (32 * (nTries + 1) * nTries);
+                        posn -= 32 * (nTries + 1) * nTries;
                     }
-                }
-                while (!success && posn > maxSeekback);
+                } while (!success && posn > maxSeekback);
 
                 if (success)
                 {
@@ -618,7 +616,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
                     int i = 12;
 
-                    uint offset32 = (uint) BitConverter.ToUInt32(block, i);
+                    uint offset32 = BitConverter.ToUInt32(block, i);
                     if (offset32 == 0xFFFFFFFF)
                     {
                         Zip64SeekToCentralDirectory(zf);
@@ -646,16 +644,12 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             {
                 if (zf._ReadStreamIsOurs && zf._readstream != null)
                 {
-                    try
-                    {
 #if NETCF
                         zf._readstream.Close();
 #else
-                        zf._readstream.Dispose();
+                    zf._readstream.Dispose();
 #endif
-                        zf._readstream = null;
-                    }
-                    finally { }
+                    zf._readstream = null;
                 }
 
                 throw new ZipException("Cannot read that as a ZipFile", ex1);
@@ -664,7 +658,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             // the instance has been read in
             zf._contentsChanged = false;
         }
-
 
 
         private static void Zip64SeekToCentralDirectory(ZipFile zf)
@@ -677,19 +670,19 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             s.Seek(-40, SeekOrigin.Current);
             s.Read(block, 0, 16);
 
-            Int64 offset64 = BitConverter.ToInt64(block, 8);
+            long offset64 = BitConverter.ToInt64(block, 8);
             zf._OffsetOfCentralDirectory = 0xFFFFFFFF;
             zf._OffsetOfCentralDirectory64 = offset64;
             // change for workitem 8098
             s.Seek(offset64, SeekOrigin.Begin);
             //zf.SeekFromOrigin(Offset64);
 
-            uint datum = (uint)Ionic.Zip.SharedUtilities.ReadInt(s);
+            uint datum = (uint)SharedUtilities.ReadInt(s);
             if (datum != ZipConstants.Zip64EndOfCentralDirectoryRecordSignature)
-                throw new BadReadException(String.Format("  Bad signature (0x{0:X8}) looking for ZIP64 EoCD Record at position 0x{1:X8}", datum, s.Position));
+                throw new BadReadException(string.Format("  Bad signature (0x{0:X8}) looking for ZIP64 EoCD Record at position 0x{1:X8}", datum, s.Position));
 
             s.Read(block, 0, 8);
-            Int64 Size = BitConverter.ToInt64(block, 0);
+            long Size = BitConverter.ToInt64(block, 0);
 
             block = new byte[Size];
             s.Read(block, 0, block.Length);
@@ -703,10 +696,9 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
         private static uint ReadFirstFourBytes(Stream s)
         {
-            uint datum = (uint)Ionic.Zip.SharedUtilities.ReadInt(s);
+            uint datum = (uint)SharedUtilities.ReadInt(s);
             return datum;
         }
-
 
 
         private static void ReadCentralDirectory(ZipFile zf)
@@ -722,7 +714,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             bool inputUsesZip64 = false;
             ZipEntry de;
             // in lieu of hashset, use a dictionary
-            var previouslySeen = new Dictionary<String,object>();
+            var previouslySeen = new Dictionary<string, object>();
             while ((de = ZipEntry.ReadDirEntry(zf, previouslySeen)) != null)
             {
                 de.ResetDirEntry();
@@ -731,7 +723,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 if (zf.Verbose)
                     zf.StatusMessageTextWriter.WriteLine("entry {0}", de.FileName);
 
-                zf._entries.Add(de.FileName,de);
+                zf._entries.Add(de.FileName, de);
 
                 // workitem 9214
                 if (de._InputUsesZip64) inputUsesZip64 = true;
@@ -747,7 +739,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
             ReadCentralDirectoryFooter(zf);
 
-            if (zf.Verbose && !String.IsNullOrEmpty(zf.Comment))
+            if (zf.Verbose && !string.IsNullOrEmpty(zf.Comment))
                 zf.StatusMessageTextWriter.WriteLine("Zip file Comment: {0}", zf.Comment);
 
             // We keep the read stream open after reading.
@@ -759,14 +751,12 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         }
 
 
-
-
         // build the TOC by reading each entry in the file.
         private static void ReadIntoInstance_Orig(ZipFile zf)
         {
             zf.OnReadStarted();
             //zf._entries = new System.Collections.Generic.List<ZipEntry>();
-            zf._entries = new System.Collections.Generic.Dictionary<String,ZipEntry>();
+            zf._entries = new Dictionary<string, ZipEntry>();
 
             ZipEntry e;
             if (zf.Verbose)
@@ -777,13 +767,13 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
             // work item 6647:  PK00 (packed to removable disk)
             bool firstEntry = true;
-            ZipContainer zc = new ZipContainer(zf);
+            var zc = new ZipContainer(zf);
             while ((e = ZipEntry.ReadEntry(zc, firstEntry)) != null)
             {
                 if (zf.Verbose)
                     zf.StatusMessageTextWriter.WriteLine("  {0}", e.FileName);
 
-                zf._entries.Add(e.FileName,e);
+                zf._entries.Add(e.FileName, e);
                 firstEntry = false;
             }
 
@@ -794,7 +784,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             {
                 ZipEntry de;
                 // in lieu of hashset, use a dictionary
-                var previouslySeen = new Dictionary<String,Object>();
+                var previouslySeen = new Dictionary<string, object>();
                 while ((de = ZipEntry.ReadDirEntry(zf, previouslySeen)) != null)
                 {
                     // Housekeeping: Since ZipFile exposes ZipEntry elements in the enumerator,
@@ -808,7 +798,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                         e1._Comment = de.Comment;
                         if (de.IsDirectory) e1.MarkAsDirectory();
                     }
-                    previouslySeen.Add(de.FileName,null); // to prevent dupes
+
+                    previouslySeen.Add(de.FileName, null); // to prevent dupes
                 }
 
                 // workitem 8299
@@ -817,22 +808,24 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 
                 ReadCentralDirectoryFooter(zf);
 
-                if (zf.Verbose && !String.IsNullOrEmpty(zf.Comment))
+                if (zf.Verbose && !string.IsNullOrEmpty(zf.Comment))
                     zf.StatusMessageTextWriter.WriteLine("Zip file Comment: {0}", zf.Comment);
             }
-            catch (ZipException) { }
-            catch (IOException) { }
+            catch (ZipException)
+            {
+            }
+            catch (IOException)
+            {
+            }
 
             zf.OnReadCompleted();
         }
 
 
-
-
         private static void ReadCentralDirectoryFooter(ZipFile zf)
         {
             Stream s = zf.ReadStream;
-            int signature = Ionic.Zip.SharedUtilities.ReadSignature(s);
+            int signature = SharedUtilities.ReadSignature(s);
 
             byte[] block = null;
             int j = 0;
@@ -856,7 +849,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 block = new byte[8 + 44];
                 s.Read(block, 0, block.Length);
 
-                Int64 DataSize = BitConverter.ToInt64(block, 0);  // == 44 + the variable length
+                long DataSize = BitConverter.ToInt64(block, 0); // == 44 + the variable length
 
                 if (DataSize < 44)
                     throw new ZipException("Bad size in the ZIP64 Central Directory.");
@@ -875,7 +868,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 s.Read(block, 0, block.Length);
                 // discard the result
 
-                signature = Ionic.Zip.SharedUtilities.ReadSignature(s);
+                signature = SharedUtilities.ReadSignature(s);
                 if (signature != ZipConstants.Zip64EndOfCentralDirectoryLocatorSignature)
                     throw new ZipException("Inconsistent metadata in the ZIP64 Central Directory.");
 
@@ -883,7 +876,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 s.Read(block, 0, block.Length);
                 // discard the result
 
-                signature = Ionic.Zip.SharedUtilities.ReadSignature(s);
+                signature = SharedUtilities.ReadSignature(s);
             }
 
             // Throw if this is not a signature for "end of central directory record"
@@ -891,8 +884,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             if (signature != ZipConstants.EndOfCentralDirectorySignature)
             {
                 s.Seek(-4, SeekOrigin.Current);
-                throw new BadReadException(String.Format("Bad signature ({0:X8}) at position 0x{1:X8}",
-                                                         signature, s.Position));
+                throw new BadReadException(string.Format("Bad signature ({0:X8}) at position 0x{1:X8}",
+                    signature, s.Position));
             }
 
             // read the End-of-Central-Directory-Record
@@ -922,14 +915,13 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         }
 
 
-
         private static void ReadZipFileComment(ZipFile zf)
         {
             // read the comment here
             byte[] block = new byte[2];
             zf.ReadStream.Read(block, 0, block.Length);
 
-            Int16 commentLength = (short)(block[0] + block[1] * 256);
+            short commentLength = (short)(block[0] + block[1] * 256);
             if (commentLength > 0)
             {
                 block = new byte[commentLength];
@@ -957,7 +949,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         //     }
         //     return true;
         // }
-
 
 
         /// <summary>
@@ -1022,13 +1013,16 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             {
                 if (!File.Exists(fileName)) return false;
 
-                using (var s = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                {
-                    result = IsZipFile(s, testExtract);
-                }
+                using FileStream s = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                result = IsZipFile(s, testExtract);
             }
-            catch (IOException) { }
-            catch (ZipException) { }
+            catch (IOException)
+            {
+            }
+            catch (ZipException)
+            {
+            }
+
             return result;
         }
 
@@ -1080,13 +1074,13 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             {
                 if (!stream.CanRead) return false;
 
-                var bitBucket = Stream.Null;
+                Stream bitBucket = Stream.Null;
 
-                using (ZipFile zip1 = ZipFile.Read(stream, null, null, null))
+                using (ZipFile zip1 = Read(stream, null, null, null))
                 {
                     if (testExtract)
                     {
-                        foreach (var e in zip1)
+                        foreach (ZipEntry e in zip1)
                         {
                             if (!e.IsDirectory)
                             {
@@ -1095,16 +1089,17 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                         }
                     }
                 }
+
                 result = true;
             }
-            catch (IOException) { }
-            catch (ZipException) { }
+            catch (IOException)
+            {
+            }
+            catch (ZipException)
+            {
+            }
+
             return result;
         }
-
-
-
-
     }
-
 }

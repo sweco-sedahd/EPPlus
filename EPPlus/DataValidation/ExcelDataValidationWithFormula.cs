@@ -13,28 +13,26 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2011-01-01
  * Jan Källman		                License changed GPL-->LGPL  2011-12-27
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using OfficeOpenXml.DataValidation.Formulas.Contracts;
 using System.Xml;
+using OfficeOpenXml.DataValidation.Formulas.Contracts;
 
 namespace OfficeOpenXml.DataValidation
 {
@@ -54,10 +52,9 @@ namespace OfficeOpenXml.DataValidation
         internal ExcelDataValidationWithFormula(ExcelWorksheet worksheet, string address, ExcelDataValidationType validationType)
             : this(worksheet, address, validationType, null)
         {
-
         }
 
-         /// <summary>
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="worksheet">Worksheet that owns the validation</param>
@@ -67,7 +64,6 @@ namespace OfficeOpenXml.DataValidation
         internal ExcelDataValidationWithFormula(ExcelWorksheet worksheet, string address, ExcelDataValidationType validationType, XmlNode itemElementNode)
             : base(worksheet, address, validationType, itemElementNode)
         {
-            
         }
 
         /// <summary>
@@ -81,23 +77,18 @@ namespace OfficeOpenXml.DataValidation
         internal ExcelDataValidationWithFormula(ExcelWorksheet worksheet, string address, ExcelDataValidationType validationType, XmlNode itemElementNode, XmlNamespaceManager namespaceManager)
             : base(worksheet, address, validationType, itemElementNode, namespaceManager)
         {
-
         }
 
 
         /// <summary>
         /// Formula - Either a {T} value (except for custom validation) or a spreadsheet formula
         /// </summary>
-        public T Formula
-        {
-            get;
-            protected set;
-        }
+        public T Formula { get; protected set; }
 
         public override void Validate()
         {
             base.Validate();
-            if (ValidationType != ExcelDataValidationType.List && (Operator == ExcelDataValidationOperator.between || Operator == ExcelDataValidationOperator.notBetween))
+            if (ValidationType != ExcelDataValidationType.List && Operator is ExcelDataValidationOperator.between or ExcelDataValidationOperator.notBetween)
             {
                 if (string.IsNullOrEmpty(Formula2Internal))
                 {

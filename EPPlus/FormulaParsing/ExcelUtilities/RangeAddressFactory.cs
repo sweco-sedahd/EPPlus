@@ -13,41 +13,35 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using OfficeOpenXml.FormulaParsing;
+
 using OfficeOpenXml.FormulaParsing.Utilities;
 
 namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
 {
     public class RangeAddressFactory
     {
-        private readonly ExcelDataProvider _excelDataProvider;
         private readonly AddressTranslator _addressTranslator;
+        private readonly ExcelDataProvider _excelDataProvider;
         private readonly IndexToAddressTranslator _indexToAddressTranslator;
 
         public RangeAddressFactory(ExcelDataProvider excelDataProvider)
             : this(excelDataProvider, new AddressTranslator(excelDataProvider), new IndexToAddressTranslator(excelDataProvider, ExcelReferenceType.RelativeRowAndColumn))
         {
-           
-            
         }
 
         public RangeAddressFactory(ExcelDataProvider excelDataProvider, AddressTranslator addressTranslator, IndexToAddressTranslator indexToAddressTranslator)
@@ -67,7 +61,7 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
 
         public RangeAddress Create(string worksheetName, int col, int row)
         {
-            return new RangeAddress()
+            return new RangeAddress
             {
                 Address = _indexToAddressTranslator.ToAddress(col, row),
                 Worksheet = worksheetName,
@@ -88,16 +82,16 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
         {
             Require.That(address).Named("range").IsNotNullOrEmpty();
             //var addressInfo = ExcelAddressInfo.Parse(address);
-            var adr = new ExcelAddressBase(address);  
-            var sheet = string.IsNullOrEmpty(adr.WorkSheet) ? worksheetName : adr.WorkSheet;
-            var dim = _excelDataProvider.GetDimensionEnd(sheet);
-            var rangeAddress = new RangeAddress()
+            var adr = new ExcelAddressBase(address);
+            string sheet = string.IsNullOrEmpty(adr.WorkSheet) ? worksheetName : adr.WorkSheet;
+            ExcelCellAddress dim = _excelDataProvider.GetDimensionEnd(sheet);
+            var rangeAddress = new RangeAddress
             {
                 Address = adr.Address,
                 Worksheet = sheet,
                 FromRow = adr._fromRow,
                 FromCol = adr._fromCol,
-                ToRow = (dim != null && adr._toRow > dim.Row) ? dim.Row : adr._toRow,
+                ToRow = dim != null && adr._toRow > dim.Row ? dim.Row : adr._toRow,
                 ToCol = adr._toCol
             };
 
@@ -119,12 +113,13 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
             var adr = new ExcelAddressBase(range);
             if (adr.Table != null)
             {
-                var a = _excelDataProvider.GetRange(adr.WorkSheet, range).Address;
+                ExcelAddressBase a = _excelDataProvider.GetRange(adr.WorkSheet, range).Address;
                 //Convert the Table-style Address to an A1C1 address
                 adr = new ExcelAddressBase(a._fromRow, a._fromCol, a._toRow, a._toCol);
-                adr._ws = a._ws;                
+                adr._ws = a._ws;
             }
-            var rangeAddress = new RangeAddress()
+
+            var rangeAddress = new RangeAddress
             {
                 Address = adr.Address,
                 Worksheet = adr.WorkSheet ?? "",
@@ -133,7 +128,7 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
                 ToRow = adr._toRow,
                 ToCol = adr._toCol
             };
-           
+
             //if (addressInfo.IsMultipleCells)
             //{
             //    HandleMultipleCellAddress(rangeAddress, addressInfo);
@@ -147,8 +142,7 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
 
         private void HandleSingleCellAddress(RangeAddress rangeAddress, ExcelAddressInfo addressInfo)
         {
-            int col, row;
-            _addressTranslator.ToColAndRow(addressInfo.StartCell, out col, out row);
+            _addressTranslator.ToColAndRow(addressInfo.StartCell, out int col, out int row);
             rangeAddress.FromCol = col;
             rangeAddress.ToCol = col;
             rangeAddress.FromRow = row;
@@ -157,10 +151,8 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
 
         private void HandleMultipleCellAddress(RangeAddress rangeAddress, ExcelAddressInfo addressInfo)
         {
-            int fromCol, fromRow;
-            _addressTranslator.ToColAndRow(addressInfo.StartCell, out fromCol, out fromRow);
-            int toCol, toRow;
-            _addressTranslator.ToColAndRow(addressInfo.EndCell, out toCol, out toRow, AddressTranslator.RangeCalculationBehaviour.LastPart);
+            _addressTranslator.ToColAndRow(addressInfo.StartCell, out int fromCol, out int fromRow);
+            _addressTranslator.ToColAndRow(addressInfo.EndCell, out int toCol, out int toRow, AddressTranslator.RangeCalculationBehaviour.LastPart);
             rangeAddress.FromCol = fromCol;
             rangeAddress.ToCol = toCol;
             rangeAddress.FromRow = fromRow;

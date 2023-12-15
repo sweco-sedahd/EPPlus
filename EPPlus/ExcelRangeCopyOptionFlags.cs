@@ -5,8 +5,8 @@ namespace OfficeOpenXml
     /// <summary>
     /// Flag enum, specify all flags that you want to exclude from the copy.
     /// </summary>
-    [Flags]    
-    public enum ExcelRangeCopyOptionFlags : int
+    [Flags]
+    public enum ExcelRangeCopyOptionFlags
     {
         /// <summary>
         /// Exclude formulas from being copied

@@ -13,17 +13,17 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		    Initial Release		        2009-10-01
@@ -33,139 +33,79 @@
 using System;
 using System.Xml;
 using OfficeOpenXml.Style;
+
 namespace OfficeOpenXml
 {
-	internal class RowInternal
+    internal class RowInternal
     {
-        internal double Height=-1;
+        internal bool Collapsed;
+        internal bool CustomHeight;
+        internal double Height = -1;
         internal bool Hidden;
-        internal bool Collapsed;        
+        internal int MergeID;
         internal short OutlineLevel;
         internal bool PageBreak;
         internal bool Phonetic;
-        internal bool CustomHeight;
-        internal int MergeID;
+
         internal RowInternal Clone()
         {
-            return new RowInternal()
+            return new RowInternal
             {
-                Height=Height,
-                Hidden=Hidden,
-                Collapsed=Collapsed,
-                OutlineLevel=OutlineLevel,
-                PageBreak=PageBreak,
-                Phonetic=Phonetic,
-                CustomHeight=CustomHeight,
-                MergeID=MergeID
+                Height = Height,
+                Hidden = Hidden,
+                Collapsed = Collapsed,
+                OutlineLevel = OutlineLevel,
+                PageBreak = PageBreak,
+                Phonetic = Phonetic,
+                CustomHeight = CustomHeight,
+                MergeID = MergeID
             };
         }
     }
+
     /// <summary>
-	/// Represents an individual row in the spreadsheet.
-	/// </summary>
-	public class ExcelRow : IRangeID
-	{
-		private ExcelWorksheet _worksheet;
-		private XmlElement _rowElement = null;
+    /// Represents an individual row in the spreadsheet.
+    /// </summary>
+    public class ExcelRow : IRangeID
+    {
+        private readonly XmlElement _rowElement = null;
+
+        internal string _styleName = "";
+        private readonly ExcelWorksheet _worksheet;
+
+        #region ExcelRow Constructor
+
+        /// <summary>
+        /// Creates a new instance of the ExcelRow class. 
+        /// For internal use only!
+        /// </summary>
+        /// <param name="Worksheet">The parent worksheet</param>
+        /// <param name="row">The row number</param>
+        internal ExcelRow(ExcelWorksheet Worksheet, int row)
+        {
+            _worksheet = Worksheet;
+            Row = row;
+        }
+
+        #endregion
+
         /// <summary>
         /// Internal RowID.
         /// </summary>
         [Obsolete]
-        public ulong RowID 
-        {
-            get
-            {
-                return GetRowID(_worksheet.SheetID, Row);
-            }
-        }
-		#region ExcelRow Constructor
-		/// <summary>
-		/// Creates a new instance of the ExcelRow class. 
-		/// For internal use only!
-		/// </summary>
-		/// <param name="Worksheet">The parent worksheet</param>
-		/// <param name="row">The row number</param>
-		internal ExcelRow(ExcelWorksheet Worksheet, int row)
-		{
-			_worksheet = Worksheet;
-            Row = row;
-		}
-		#endregion
+        public ulong RowID => GetRowID(_worksheet.SheetID, Row);
 
-		/// <summary>
-		/// Provides access to the node representing the row.
-		/// </summary>
-		internal XmlNode Node { get { return (_rowElement); } }
-
-		#region ExcelRow Hidden
         /// <summary>
-		/// Allows the row to be hidden in the worksheet
-		/// </summary>
-		public bool Hidden
-        {
-            get
-            {
-                var r=(RowInternal)_worksheet.GetValueInner(Row, 0);
-                if (r == null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return r.Hidden;
-                }
-            }
-            set
-            {
-                var r = GetRowInternal();
-                r.Hidden=value;
-            }
-        }        
-		#endregion
-
-		#region ExcelRow Height
-        /// <summary>
-		/// Sets the height of the row
-		/// </summary>
-		public double Height
-        {
-			get
-			{
-                var r = (RowInternal)_worksheet.GetValueInner(Row, 0);
-                if (r == null || r.Height<0)
-                {
-                    return _worksheet.DefaultRowHeight;
-                }
-                else
-                {
-                    return r.Height;
-                }
-            }
-            set
-            {
-                var r = GetRowInternal();
-                if (_worksheet._package.DoAdjustDrawings)
-                {
-                    var pos = _worksheet.Drawings.GetDrawingHeight();   //Fixes issue 14846
-                    r.Height = value;
-                    _worksheet.Drawings.AdjustHeight(pos);
-                }
-                else
-                {
-                    r.Height = value;
-                }
-                
-                if (r.Hidden && value != 0)
-                {
-                    Hidden = false;
-                }
-                r.CustomHeight = true;
-            }
-        }
-        /// <summary>
-        /// Set to true if You don't want the row to Autosize
+        /// Provides access to the node representing the row.
         /// </summary>
-        public bool CustomHeight 
+        internal XmlNode Node => _rowElement;
+
+        #region ExcelRow Hidden
+
+        /// <summary>
+        /// Allows the row to be hidden in the worksheet
+        /// </summary>
+        public bool Hidden
         {
             get
             {
@@ -174,58 +114,45 @@ namespace OfficeOpenXml
                 {
                     return false;
                 }
-                else
-                {
-                    return r.CustomHeight;
-                }
+
+                return r.Hidden;
             }
             set
             {
-                var r = GetRowInternal();
-                r.CustomHeight = value;
+                RowInternal r = GetRowInternal();
+                r.Hidden = value;
             }
         }
-		#endregion
 
-        internal string _styleName = "";
+        #endregion
+
         /// <summary>
         /// Sets the style for the entire column using a style name.
         /// </summary>
         public string StyleName
         {
-            get
-            {
-                return _styleName;
-            }
+            get => _styleName;
             set
             {
                 StyleID = _worksheet.Workbook.Styles.GetStyleIdFromName(value);
                 _styleName = value;
             }
         }
+
         /// <summary>
         /// Sets the style for the entire row using the style ID.  
         /// </summary>
         public int StyleID
         {
-            get
-            {
-                return _worksheet.GetStyleInner(Row, 0);
-            }
-            set
-            {
-                _worksheet.SetStyleInner(Row, 0, value);
-            }
+            get => _worksheet.GetStyleInner(Row, 0);
+            set => _worksheet.SetStyleInner(Row, 0, value);
         }
 
         /// <summary>
         /// Rownumber
         /// </summary>
-        public int Row
-        {
-            get;
-            set;
-        }
+        public int Row { get; set; }
+
         /// <summary>
         /// If outline level is set this tells that the row is collapsed
         /// </summary>
@@ -233,22 +160,21 @@ namespace OfficeOpenXml
         {
             get
             {
-                var r=(RowInternal)_worksheet.GetValueInner(Row, 0);
+                var r = (RowInternal)_worksheet.GetValueInner(Row, 0);
                 if (r == null)
                 {
                     return false;
                 }
-                else
-                {
-                    return r.Collapsed;
-                }
+
+                return r.Collapsed;
             }
             set
             {
-                var r = GetRowInternal();
+                RowInternal r = GetRowInternal();
                 r.Collapsed = value;
             }
         }
+
         /// <summary>
         /// Outline level.
         /// </summary>
@@ -256,37 +182,25 @@ namespace OfficeOpenXml
         {
             get
             {
-                var r=(RowInternal)_worksheet.GetValueInner(Row, 0);
+                var r = (RowInternal)_worksheet.GetValueInner(Row, 0);
                 if (r == null)
                 {
                     return 0;
                 }
-                else
-                {
-                    return r.OutlineLevel;
-                }
+
+                return r.OutlineLevel;
             }
             set
             {
-                var r = GetRowInternal();
-                r.OutlineLevel=(short)value;
+                RowInternal r = GetRowInternal();
+                r.OutlineLevel = (short)value;
             }
         }
 
-        private  RowInternal GetRowInternal()
-        {
-            var r = (RowInternal)_worksheet.GetValueInner(Row, 0);
-            if (r == null)
-            {
-                r = new RowInternal();
-                _worksheet.SetValueInner(Row, 0, r);
-            }
-            return r;
-        }        
         /// <summary>
         /// Show phonetic Information
         /// </summary>
-        public bool Phonetic 
+        public bool Phonetic
         {
             get
             {
@@ -295,28 +209,22 @@ namespace OfficeOpenXml
                 {
                     return false;
                 }
-                else
-                {
-                    return r.Phonetic;
-                }
+
+                return r.Phonetic;
             }
             set
             {
-                var r = GetRowInternal();
+                RowInternal r = GetRowInternal();
                 r.Phonetic = value;
             }
         }
+
         /// <summary>
         /// The Style applied to the whole row. Only effekt cells with no individual style set. 
         /// Use ExcelRange object if you want to set specific styles.
         /// </summary>
-        public ExcelStyle Style
-        {
-            get
-            {
-                return _worksheet.Workbook.Styles.GetStyleObject(StyleID,_worksheet.PositionID ,Row.ToString() + ":" + Row.ToString());                
-            }
-        }
+        public ExcelStyle Style => _worksheet.Workbook.Styles.GetStyleObject(StyleID, _worksheet.PositionID, Row + ":" + Row);
+
         /// <summary>
         /// Adds a manual page break after the row.
         /// </summary>
@@ -329,50 +237,50 @@ namespace OfficeOpenXml
                 {
                     return false;
                 }
-                else
-                {
-                    return r.PageBreak;
-                }
+
+                return r.PageBreak;
             }
             set
             {
-                var r = GetRowInternal();
+                RowInternal r = GetRowInternal();
                 r.PageBreak = value;
             }
         }
+
         public bool Merged
         {
-            get
-            {
-                return _worksheet.MergedCells[Row, 0] != null;
-            }
-            set
-            {
-                _worksheet.MergedCells.Add(new ExcelAddressBase(Row, 1, Row, ExcelPackage.MaxColumns), true);
-            }
+            get => _worksheet.MergedCells[Row, 0] != null;
+            set => _worksheet.MergedCells.Add(new ExcelAddressBase(Row, 1, Row, ExcelPackage.MaxColumns), true);
         }
-        internal static ulong GetRowID(int sheetID, int row)
-        {
-            return ((ulong)sheetID) + (((ulong)row) << 29);
 
-        }
-        
         #region IRangeID Members
 
         [Obsolete]
         ulong IRangeID.RangeID
         {
-            get
-            {
-                return RowID; 
-            }
-            set
-            {
-                Row = ((int)(value >> 29));
-            }
+            get => RowID;
+            set => Row = (int)(value >> 29);
         }
 
         #endregion
+
+        private RowInternal GetRowInternal()
+        {
+            var r = (RowInternal)_worksheet.GetValueInner(Row, 0);
+            if (r == null)
+            {
+                r = new RowInternal();
+                _worksheet.SetValueInner(Row, 0, r);
+            }
+
+            return r;
+        }
+
+        internal static ulong GetRowID(int sheetID, int row)
+        {
+            return (ulong)sheetID + ((ulong)row << 29);
+        }
+
         /// <summary>
         /// Copies the current row to a new worksheet
         /// </summary>
@@ -390,5 +298,69 @@ namespace OfficeOpenXml
             newRow._styleName = _styleName;
             newRow.StyleID = StyleID;
         }
+
+        #region ExcelRow Height
+
+        /// <summary>
+        /// Sets the height of the row
+        /// </summary>
+        public double Height
+        {
+            get
+            {
+                var r = (RowInternal)_worksheet.GetValueInner(Row, 0);
+                if (r == null || r.Height < 0)
+                {
+                    return _worksheet.DefaultRowHeight;
+                }
+
+                return r.Height;
+            }
+            set
+            {
+                RowInternal r = GetRowInternal();
+                if (_worksheet._package.DoAdjustDrawings)
+                {
+                    int[,] pos = _worksheet.Drawings.GetDrawingHeight(); //Fixes issue 14846
+                    r.Height = value;
+                    _worksheet.Drawings.AdjustHeight(pos);
+                }
+                else
+                {
+                    r.Height = value;
+                }
+
+                if (r.Hidden && value != 0)
+                {
+                    Hidden = false;
+                }
+
+                r.CustomHeight = true;
+            }
+        }
+
+        /// <summary>
+        /// Set to true if You don't want the row to Autosize
+        /// </summary>
+        public bool CustomHeight
+        {
+            get
+            {
+                var r = (RowInternal)_worksheet.GetValueInner(Row, 0);
+                if (r == null)
+                {
+                    return false;
+                }
+
+                return r.CustomHeight;
+            }
+            set
+            {
+                RowInternal r = GetRowInternal();
+                r.CustomHeight = value;
+            }
+        }
+
+        #endregion
     }
 }

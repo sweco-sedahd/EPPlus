@@ -23,10 +23,8 @@
 //
 
 
-
 using System;
-using System.Collections.Generic;
-using System.Text;
+
 #if !NETCF
 //using System.Runtime.Serialization;
 #endif
@@ -38,7 +36,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
     ///// </summary>
     //[AttributeUsage(AttributeTargets.Class)]
     //public class ZipExceptionAttribute : Attribute { }
-
 
 
     /// <summary>
@@ -54,22 +51,25 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <summary>
         /// Default ctor.
         /// </summary>
-        public BadPasswordException() { }
+        public BadPasswordException()
+        {
+        }
 
         /// <summary>
         /// Come on, you know how exceptions work. Why are you looking at this documentation?
         /// </summary>
         /// <param name="message">The message in the exception.</param>
-        public BadPasswordException(String message)
+        public BadPasswordException(string message)
             : base(message)
-        { }
+        {
+        }
 
         /// <summary>
         /// Come on, you know how exceptions work. Why are you looking at this documentation?
         /// </summary>
         /// <param name="message">The message in the exception.</param>
         /// <param name="innerException">The innerException for this exception.</param>
-        public BadPasswordException(String message, Exception innerException)
+        public BadPasswordException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
@@ -85,7 +85,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         //    : base(info, context)
         //  {  }
 #endif
-
     }
 
     /// <summary>
@@ -101,22 +100,25 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <summary>
         /// Default ctor.
         /// </summary>
-        public BadReadException() { }
+        public BadReadException()
+        {
+        }
 
         /// <summary>
         /// Come on, you know how exceptions work. Why are you looking at this documentation?
         /// </summary>
         /// <param name="message">The message in the exception.</param>
-        public BadReadException(String message)
+        public BadReadException(string message)
             : base(message)
-        { }
+        {
+        }
 
         /// <summary>
         /// Come on, you know how exceptions work. Why are you looking at this documentation?
         /// </summary>
         /// <param name="message">The message in the exception.</param>
         /// <param name="innerException">The innerException for this exception.</param>
-        public BadReadException(String message, Exception innerException)
+        public BadReadException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
@@ -131,9 +133,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 //            : base(info, context)
 //          {  }
 //#endif
-
     }
-
 
 
     /// <summary>
@@ -148,15 +148,18 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <summary>
         /// Default ctor.
         /// </summary>
-        public BadCrcException() { }
+        public BadCrcException()
+        {
+        }
 
         /// <summary>
         /// Come on, you know how exceptions work. Why are you looking at this documentation?
         /// </summary>
         /// <param name="message">The message in the exception.</param>
-        public BadCrcException(String message)
+        public BadCrcException(string message)
             : base(message)
-        { }
+        {
+        }
 
 
 //#if ! (NETCF || SILVERLIGHT)
@@ -169,7 +172,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 //            : base(info, context)
 //          {  }
 //#endif
-
     }
 
 
@@ -185,15 +187,18 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <summary>
         /// Default ctor.
         /// </summary>
-        public SfxGenerationException() { }
+        public SfxGenerationException()
+        {
+        }
 
         /// <summary>
         /// Come on, you know how exceptions work. Why are you looking at this documentation?
         /// </summary>
         /// <param name="message">The message in the exception.</param>
-        public SfxGenerationException(String message)
+        public SfxGenerationException(string message)
             : base(message)
-        { }
+        {
+        }
 
 //#if ! (NETCF || SILVERLIGHT)
 //        /// <summary>
@@ -205,7 +210,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 //            : base(info, context)
 //          {  }
 //#endif
-
     }
 
 
@@ -223,24 +227,28 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <summary>
         /// Default ctor.
         /// </summary>
-        public BadStateException() { }
+        public BadStateException()
+        {
+        }
 
         /// <summary>
         /// Come on, you know how exceptions work. Why are you looking at this documentation?
         /// </summary>
         /// <param name="message">The message in the exception.</param>
-        public BadStateException(String message)
+        public BadStateException(string message)
             : base(message)
-        { }
+        {
+        }
 
         /// <summary>
         /// Come on, you know how exceptions work. Why are you looking at this documentation?
         /// </summary>
         /// <param name="message">The message in the exception.</param>
         /// <param name="innerException">The innerException for this exception.</param>
-        public BadStateException(String message, Exception innerException)
+        public BadStateException(string message, Exception innerException)
             : base(message, innerException)
-        {}
+        {
+        }
 
 //#if ! (NETCF || SILVERLIGHT)
 //        /// <summary>
@@ -252,7 +260,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 //            : base(info, context)
 //          {  }
 //#endif
-
     }
 
     /// <summary>
@@ -267,22 +274,27 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <summary>
         /// Default ctor.
         /// </summary>
-        public ZipException() { }
+        public ZipException()
+        {
+        }
 
         /// <summary>
         /// Come on, you know how exceptions work. Why are you looking at this documentation?
         /// </summary>
         /// <param name="message">The message in the exception.</param>
-        public ZipException(String message) : base(message) { }
+        public ZipException(string message) : base(message)
+        {
+        }
 
         /// <summary>
         /// Come on, you know how exceptions work. Why are you looking at this documentation?
         /// </summary>
         /// <param name="message">The message in the exception.</param>
         /// <param name="innerException">The innerException for this exception.</param>
-        public ZipException(String message, Exception innerException)
+        public ZipException(string message, Exception innerException)
             : base(message, innerException)
-        { }
+        {
+        }
 
 //#if ! (NETCF || SILVERLIGHT)
 //        /// <summary>
@@ -294,7 +306,5 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
 //        //    : base(info, context)
 //        //{ }
 //#endif
-
     }
-
 }

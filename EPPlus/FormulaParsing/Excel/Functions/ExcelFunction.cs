@@ -7,34 +7,31 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  *******************************************************************************
  * Mats Alm   		                Added		                2013-12-03
  *******************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using OfficeOpenXml.FormulaParsing.ExpressionGraph;
-using System.Globalization;
-using OfficeOpenXml.FormulaParsing.Utilities;
-using OfficeOpenXml.FormulaParsing.Exceptions;
-using System.Collections;
-using static OfficeOpenXml.FormulaParsing.EpplusExcelDataProvider;
-using static OfficeOpenXml.FormulaParsing.ExcelDataProvider;
 using OfficeOpenXml.Compatibility;
+using OfficeOpenXml.FormulaParsing.Exceptions;
+using OfficeOpenXml.FormulaParsing.ExpressionGraph;
+using OfficeOpenXml.FormulaParsing.Utilities;
+using static OfficeOpenXml.FormulaParsing.ExcelDataProvider;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions
 {
@@ -43,14 +40,17 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
     /// </summary>
     public abstract class ExcelFunction
     {
+        private readonly ArgumentCollectionUtil _argumentCollectionUtil;
+        private readonly ArgumentParsers _argumentParsers;
+        private readonly CompileResultValidators _compileResultValidators;
+
         public ExcelFunction()
             : this(new ArgumentCollectionUtil(), new ArgumentParsers(), new CompileResultValidators())
         {
-
         }
 
         public ExcelFunction(
-            ArgumentCollectionUtil argumentCollectionUtil, 
+            ArgumentCollectionUtil argumentCollectionUtil,
             ArgumentParsers argumentParsers,
             CompileResultValidators compileResultValidators)
         {
@@ -59,9 +59,9 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
             _compileResultValidators = compileResultValidators;
         }
 
-        private readonly ArgumentCollectionUtil _argumentCollectionUtil;
-        private readonly ArgumentParsers _argumentParsers;
-        private readonly CompileResultValidators _compileResultValidators;
+        public virtual bool IsLookupFuction => false;
+
+        public virtual bool IsErrorHandlingFunction => false;
 
         /// <summary>
         /// 
@@ -75,24 +75,10 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         /// If overridden, this method is called before Execute is called.
         /// </summary>
         /// <param name="context"></param>
-        public virtual void BeforeInvoke(ParsingContext context) { }
-
-        public virtual bool IsLookupFuction 
-        { 
-            get 
-            { 
-                return false; 
-            } 
-        }
-
-        public virtual bool IsErrorHandlingFunction
+        public virtual void BeforeInvoke(ParsingContext context)
         {
-            get
-            {
-                return false;
-            }
         }
-        
+
         /// <summary>
         /// Used for some Lookupfunctions to indicate that function arguments should
         /// not be compiled before the function is called.
@@ -100,18 +86,17 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         //public bool SkipArgumentEvaluation { get; set; }
         protected object GetFirstValue(IEnumerable<FunctionArgument> val)
         {
-            var arg = ((IEnumerable<FunctionArgument>)val).FirstOrDefault();
-            if(arg.Value is ExcelDataProvider.IRangeInfo)
+            FunctionArgument arg = val.FirstOrDefault();
+            if (arg.Value is IRangeInfo)
             {
                 //var r=((ExcelDataProvider.IRangeInfo)arg);
-                var r = arg.ValueAsRangeInfo;
+                IRangeInfo r = arg.ValueAsRangeInfo;
                 return r.GetValue(r.Address._fromRow, r.Address._fromCol);
             }
-            else
-            {
-                return arg==null?null:arg.Value;
-            }
+
+            return arg == null ? null : arg.Value;
         }
+
         /// <summary>
         /// This functions validates that the supplied <paramref name="arguments"/> contains at least
         /// (the value of) <paramref name="minLength"/> elements. If one of the arguments is an
@@ -122,27 +107,28 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         /// <param name="minLength"></param>
         /// <param name="errorTypeToThrow">The <see cref="eErrorType"/> of the <see cref="ExcelErrorValueException"/> that will be thrown if <paramref name="minLength"/> is not met.</param>
         protected void ValidateArguments(IEnumerable<FunctionArgument> arguments, int minLength,
-                                         eErrorType errorTypeToThrow)
+            eErrorType errorTypeToThrow)
         {
             Require.That(arguments).Named("arguments").IsNotNull();
             ThrowExcelErrorValueExceptionIf(() =>
+            {
+                int nArgs = 0;
+                if (arguments.Any())
                 {
-                    var nArgs = 0;
-                    if (arguments.Any())
+                    foreach (FunctionArgument arg in arguments)
                     {
-                        foreach (var arg in arguments)
+                        nArgs++;
+                        if (nArgs >= minLength) return false;
+                        if (arg.IsExcelRange)
                         {
-                            nArgs++;
+                            nArgs += arg.ValueAsRangeInfo.GetNCells();
                             if (nArgs >= minLength) return false;
-                            if (arg.IsExcelRange)
-                            {
-                                nArgs += arg.ValueAsRangeInfo.GetNCells();
-                                if (nArgs >= minLength) return false;
-                            }
                         }
                     }
-                    return true;
-                }, errorTypeToThrow);
+                }
+
+                return true;
+            }, errorTypeToThrow);
         }
 
         /// <summary>
@@ -158,36 +144,39 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         {
             Require.That(arguments).Named("arguments").IsNotNull();
             ThrowArgumentExceptionIf(() =>
+            {
+                int nArgs = 0;
+                if (arguments.Any())
                 {
-                    var nArgs = 0;
-                    if (arguments.Any())
+                    foreach (FunctionArgument arg in arguments)
                     {
-                        foreach (var arg in arguments)
+                        nArgs++;
+                        if (nArgs >= minLength) return false;
+                        if (arg.IsExcelRange)
                         {
-                            nArgs++;
+                            nArgs += arg.ValueAsRangeInfo.GetNCells();
                             if (nArgs >= minLength) return false;
-                            if (arg.IsExcelRange)
-                            {
-                                nArgs += arg.ValueAsRangeInfo.GetNCells();
-                                if (nArgs >= minLength) return false;
-                            }
                         }
                     }
-                    return true;
-                }, "Expecting at least {0} arguments", minLength.ToString());
+                }
+
+                return true;
+            }, "Expecting at least {0} arguments", minLength.ToString());
         }
+
         protected string ArgToAddress(IEnumerable<FunctionArgument> arguments, int index)
-        {            
+        {
             return arguments.ElementAt(index).IsExcelRange ? arguments.ElementAt(index).ValueAsRangeInfo.Address.FullAddress : ArgToString(arguments, index);
         }
 
         protected string ArgToAddress(IEnumerable<FunctionArgument> arguments, int index, ParsingContext context)
         {
-            var arg = arguments.ElementAt(index);
-            if(arg.ExcelAddressReferenceId > 0)
+            FunctionArgument arg = arguments.ElementAt(index);
+            if (arg.ExcelAddressReferenceId > 0)
             {
                 return context.AddressCache.Get(arg.ExcelAddressReferenceId);
             }
+
             return ArgToAddress(arguments, index);
         }
 
@@ -201,7 +190,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         /// <exception cref="ExcelErrorValueException"></exception>
         protected int ArgToInt(IEnumerable<FunctionArgument> arguments, int index)
         {
-            var val = arguments.ElementAt(index).ValueFirst;
+            object val = arguments.ElementAt(index).ValueFirst;
             return (int)_argumentParsers.GetParser(DataType.Integer).Parse(val);
         }
 
@@ -214,7 +203,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         /// <returns>Value of the argument as a string.</returns>
         protected string ArgToString(IEnumerable<FunctionArgument> arguments, int index)
         {
-            var obj = arguments.ElementAt(index).ValueFirst;
+            object obj = arguments.ElementAt(index).ValueFirst;
             return obj != null ? obj.ToString() : string.Empty;
         }
 
@@ -248,7 +237,8 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
             {
                 throw new ExcelErrorValueException(eErrorType.Div0);
             }
-            return left/right;
+
+            return left / right;
         }
 
         protected bool IsNumericString(object value)
@@ -267,7 +257,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         /// <returns></returns>
         protected bool ArgToBool(IEnumerable<FunctionArgument> arguments, int index)
         {
-            var obj = arguments.ElementAt(index).Value ?? string.Empty;
+            object obj = arguments.ElementAt(index).Value ?? string.Empty;
             return (bool)_argumentParsers.GetParser(DataType.Boolean).Parse(obj);
         }
 
@@ -323,7 +313,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         protected bool IsNumeric(object val)
         {
             if (val == null) return false;
-            return (TypeCompat.IsPrimitive(val) || val is double || val is decimal  || val is System.DateTime || val is TimeSpan);
+            return TypeCompat.IsPrimitive(val) || val is double || val is decimal || val is System.DateTime || val is TimeSpan;
         }
 
         //protected virtual bool IsNumber(object obj)
@@ -350,7 +340,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         /// <param name="context"></param>
         /// <returns></returns>
         protected virtual IEnumerable<ExcelDoubleCellValue> ArgsToDoubleEnumerable(IEnumerable<FunctionArgument> arguments,
-                                                                     ParsingContext context)
+            ParsingContext context)
         {
             return ArgsToDoubleEnumerable(false, arguments, context);
         }
@@ -380,18 +370,18 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
             return ArgsToDoubleEnumerable(ignoreHiddenCells, true, arguments, context);
         }
 
-        protected virtual IEnumerable<double> ArgsToDoubleEnumerableZeroPadded(bool ignoreHiddenCells, ExcelDataProvider.IRangeInfo rangeInfo, ParsingContext context)
+        protected virtual IEnumerable<double> ArgsToDoubleEnumerableZeroPadded(bool ignoreHiddenCells, IRangeInfo rangeInfo, ParsingContext context)
         {
-            var startRow = rangeInfo.Address.Start.Row;
-            var endRow = rangeInfo.Address.End.Row;
+            int startRow = rangeInfo.Address.Start.Row;
+            int endRow = rangeInfo.Address.End.Row;
             var funcArg = new FunctionArgument(rangeInfo);
-            var result = ArgsToDoubleEnumerable(ignoreHiddenCells, new List<FunctionArgument> { funcArg }, context);
+            IEnumerable<ExcelDoubleCellValue> result = ArgsToDoubleEnumerable(ignoreHiddenCells, new List<FunctionArgument> { funcArg }, context);
             var dict = new Dictionary<int, double>();
             result.ToList().ForEach(x => dict.Add(x.CellRow.Value, x.Value));
             var resultList = new List<double>();
-            for (var row = startRow; row <= endRow; row++)
+            for (int row = startRow; row <= endRow; row++)
             {
-                if(dict.ContainsKey(row))
+                if (dict.ContainsKey(row))
                 {
                     resultList.Add(dict[row]);
                 }
@@ -400,6 +390,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
                     resultList.Add(0d);
                 }
             }
+
             return resultList;
         }
 
@@ -423,7 +414,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         /// <returns></returns>
         protected CompileResult CreateResult(object result, DataType dataType)
         {
-            var validator = _compileResultValidators.GetValidator(dataType);
+            CompileResultValidator validator = _compileResultValidators.GetValidator(dataType);
             validator.Validate(result);
             return new CompileResult(result, dataType);
         }
@@ -437,7 +428,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         /// <param name="result"></param>
         /// <param name="action"></param>
         /// <returns></returns>
-        protected virtual double CalculateCollection(IEnumerable<FunctionArgument> collection, double result, Func<FunctionArgument,double,double> action)
+        protected virtual double CalculateCollection(IEnumerable<FunctionArgument> collection, double result, Func<FunctionArgument, double, double> action)
         {
             return _argumentCollectionUtil.CalculateCollection(collection, result, action);
         }
@@ -452,7 +443,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         {
             if (arg.ValueIsExcelError)
             {
-                throw (new ExcelErrorValueException(arg.ValueAsExcelErrorValue));
+                throw new ExcelErrorValueException(arg.ValueAsExcelErrorValue);
             }
         }
 
@@ -461,11 +452,11 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         /// an <see cref="ExcelErrorValueException"/> with that errorcode will be thrown
         /// </summary>
         /// <param name="cell"></param>
-        protected void CheckForAndHandleExcelError(ExcelDataProvider.ICellInfo cell)
+        protected void CheckForAndHandleExcelError(ICellInfo cell)
         {
             if (cell.IsExcelError)
             {
-                throw (new ExcelErrorValueException(ExcelErrorValue.Parse(cell.Value.ToString())));
+                throw new ExcelErrorValueException(ExcelErrorValue.Parse(cell.Value.ToString()));
             }
         }
 
@@ -475,18 +466,22 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
             {
                 return CreateResult(result, DataType.Decimal);
             }
+
             if (result is string)
             {
                 return CreateResult(result, DataType.String);
             }
+
             if (ExcelErrorValue.Values.IsErrorValue(result))
             {
                 return CreateResult(result, DataType.ExcelAddress);
             }
+
             if (result == null)
             {
                 return CompileResult.Empty;
             }
+
             return CreateResult(result, DataType.Enumerable);
         }
     }

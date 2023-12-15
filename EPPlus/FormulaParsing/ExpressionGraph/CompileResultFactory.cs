@@ -13,25 +13,23 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
 {
@@ -39,39 +37,47 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
     {
         public virtual CompileResult Create(object obj)
         {
-            if ((obj is ExcelDataProvider.INameInfo))
+            if (obj is ExcelDataProvider.INameInfo)
             {
                 obj = ((ExcelDataProvider.INameInfo)obj).Value;
             }
+
             if (obj is ExcelDataProvider.IRangeInfo)
             {
                 obj = ((ExcelDataProvider.IRangeInfo)obj).GetOffset(0, 0);
             }
+
             if (obj == null) return new CompileResult(null, DataType.Empty);
-            if (obj.GetType().Equals(typeof(string)))
+            if (obj is string)
             {
                 return new CompileResult(obj, DataType.String);
             }
-            if (obj.GetType().Equals(typeof(double)) || obj is decimal)
+
+            if (obj is double or decimal)
             {
                 return new CompileResult(obj, DataType.Decimal);
             }
-            if (obj.GetType().Equals(typeof(int)) || obj is long || obj is short)
+
+            if (obj is int or long or short)
             {
                 return new CompileResult(obj, DataType.Integer);
             }
-            if (obj.GetType().Equals(typeof(bool)))
+
+            if (obj is bool)
             {
                 return new CompileResult(obj, DataType.Boolean);
             }
-            if (obj.GetType().Equals(typeof (ExcelErrorValue)))
+
+            if (obj is ExcelErrorValue)
             {
                 return new CompileResult(obj, DataType.ExcelError);
             }
-            if (obj.GetType().Equals(typeof(System.DateTime)))
+
+            if (obj is DateTime)
             {
-                return new CompileResult(((System.DateTime)obj).ToOADate(), DataType.Date);
+                return new CompileResult(((DateTime)obj).ToOADate(), DataType.Date);
             }
+
             throw new ArgumentException("Non supported type " + obj.GetType().FullName);
         }
     }

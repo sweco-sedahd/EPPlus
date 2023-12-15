@@ -29,12 +29,66 @@
 
 using System;
 using System.IO;
-using System.Collections.Generic;
+using System.Text;
 
 namespace OfficeOpenXml.Packaging.Ionic.Zip
 {
     internal partial class ZipFile
     {
+        /// <summary>
+        ///   Provides a human-readable string with information about the ZipFile.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///   <para>
+        ///     The information string contains 10 lines or so, about each ZipEntry,
+        ///     describing whether encryption is in use, the compressed and uncompressed
+        ///     length of the entry, the offset of the entry, and so on. As a result the
+        ///     information string can be very long for zip files that contain many
+        ///     entries.
+        ///   </para>
+        ///   <para>
+        ///     This information is mostly useful for diagnostic purposes.
+        ///   </para>
+        /// </remarks>
+        public string Info
+        {
+            get
+            {
+                var builder = new StringBuilder();
+                builder.Append(string.Format("          ZipFile: {0}\n", Name));
+                if (!string.IsNullOrEmpty(_Comment))
+                {
+                    builder.Append(string.Format("          Comment: {0}\n", _Comment));
+                }
+
+                if (_versionMadeBy != 0)
+                {
+                    builder.Append(string.Format("  version made by: 0x{0:X4}\n", _versionMadeBy));
+                }
+
+                if (_versionNeededToExtract != 0)
+                {
+                    builder.Append(string.Format("needed to extract: 0x{0:X4}\n", _versionNeededToExtract));
+                }
+
+                builder.Append(string.Format("       uses ZIP64: {0}\n", InputUsesZip64));
+
+                builder.Append(string.Format("     disk with CD: {0}\n", _diskNumberWithCd));
+                if (_OffsetOfCentralDirectory == 0xFFFFFFFF)
+                    builder.Append(string.Format("      CD64 offset: 0x{0:X16}\n", _OffsetOfCentralDirectory64));
+                else
+                    builder.Append(string.Format("        CD offset: 0x{0:X8}\n", _OffsetOfCentralDirectory));
+                builder.Append("\n");
+                foreach (ZipEntry entry in _entries.Values)
+                {
+                    builder.Append(entry.Info);
+                }
+
+                return builder.ToString();
+            }
+        }
+
         /// <summary>
         ///   Checks a zip file to see if its directory is consistent.
         /// </summary>
@@ -56,7 +110,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         ///
         /// <para>
         ///   Developers using COM can use the <see
-        ///   cref="ComHelper.CheckZip(String)">ComHelper.CheckZip(String)</see>
+        ///   cref="ComHelper.CheckZip(string)">ComHelper.CheckZip(String)</see>
         ///   method.
         /// </para>
         ///
@@ -115,7 +169,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <seealso cref="CheckZip(string)"/>
         /// <seealso cref="FixZipDirectory(string)"/>
         public static bool CheckZip(string zipFileName, bool fixIfNecessary,
-                                    TextWriter writer)
+            TextWriter writer)
 
         {
             ZipFile zip1 = null, zip2 = null;
@@ -126,11 +180,11 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 zip1.FullScan = true;
                 zip1.Initialize(zipFileName);
 
-                zip2 = ZipFile.Read(zipFileName);
+                zip2 = Read(zipFileName);
 
-                foreach (var e1 in zip1)
+                foreach (ZipEntry e1 in zip1)
                 {
-                    foreach (var e2 in zip2)
+                    foreach (ZipEntry e2 in zip2)
                     {
                         if (e1.FileName == e2.FileName)
                         {
@@ -138,41 +192,45 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                             {
                                 isOk = false;
                                 if (writer != null)
-                                writer.WriteLine("{0}: mismatch in RelativeOffsetOfLocalHeader  (0x{1:X16} != 0x{2:X16})",
-                                                        e1.FileName, e1._RelativeOffsetOfLocalHeader,
-                                                        e2._RelativeOffsetOfLocalHeader);
+                                    writer.WriteLine("{0}: mismatch in RelativeOffsetOfLocalHeader  (0x{1:X16} != 0x{2:X16})",
+                                        e1.FileName, e1._RelativeOffsetOfLocalHeader,
+                                        e2._RelativeOffsetOfLocalHeader);
                             }
+
                             if (e1._CompressedSize != e2._CompressedSize)
                             {
                                 isOk = false;
                                 if (writer != null)
-                                writer.WriteLine("{0}: mismatch in CompressedSize  (0x{1:X16} != 0x{2:X16})",
-                                                        e1.FileName, e1._CompressedSize,
-                                                        e2._CompressedSize);
+                                    writer.WriteLine("{0}: mismatch in CompressedSize  (0x{1:X16} != 0x{2:X16})",
+                                        e1.FileName, e1._CompressedSize,
+                                        e2._CompressedSize);
                             }
+
                             if (e1._UncompressedSize != e2._UncompressedSize)
                             {
                                 isOk = false;
                                 if (writer != null)
-                                writer.WriteLine("{0}: mismatch in UncompressedSize  (0x{1:X16} != 0x{2:X16})",
-                                                        e1.FileName, e1._UncompressedSize,
-                                                        e2._UncompressedSize);
+                                    writer.WriteLine("{0}: mismatch in UncompressedSize  (0x{1:X16} != 0x{2:X16})",
+                                        e1.FileName, e1._UncompressedSize,
+                                        e2._UncompressedSize);
                             }
+
                             if (e1.CompressionMethod != e2.CompressionMethod)
                             {
                                 isOk = false;
                                 if (writer != null)
-                                writer.WriteLine("{0}: mismatch in CompressionMethod  (0x{1:X4} != 0x{2:X4})",
-                                                        e1.FileName, e1.CompressionMethod,
-                                                        e2.CompressionMethod);
+                                    writer.WriteLine("{0}: mismatch in CompressionMethod  (0x{1:X4} != 0x{2:X4})",
+                                        e1.FileName, e1.CompressionMethod,
+                                        e2.CompressionMethod);
                             }
+
                             if (e1.Crc != e2.Crc)
                             {
                                 isOk = false;
                                 if (writer != null)
-                                writer.WriteLine("{0}: mismatch in Crc32  (0x{1:X4} != 0x{2:X4})",
-                                                        e1.FileName, e1.Crc,
-                                                        e2.Crc);
+                                    writer.WriteLine("{0}: mismatch in Crc32  (0x{1:X4} != 0x{2:X4})",
+                                        e1.FileName, e1.Crc,
+                                        e2.Crc);
                             }
 
                             // found a match, so stop the inside loop
@@ -187,7 +245,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 if (!isOk && fixIfNecessary)
                 {
                     string newFileName = Path.GetFileNameWithoutExtension(zipFileName);
-                    newFileName = System.String.Format("{0}_fixed.zip", newFileName);
+                    newFileName = String.Format("{0}_fixed.zip", newFileName);
                     zip1.Save(newFileName);
                 }
             }
@@ -196,9 +254,9 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                 if (zip1 != null) zip1.Dispose();
                 if (zip2 != null) zip2.Dispose();
             }
+
             return isOk;
         }
-
 
 
         /// <summary>
@@ -225,7 +283,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         ///
         /// <para>
         ///   Developers using COM can use the <see
-        ///   cref="ComHelper.FixZipDirectory(String)">ComHelper.FixZipDirectory(String)</see>
+        ///   cref="ComHelper.FixZipDirectory(string)">ComHelper.FixZipDirectory(String)</see>
         ///   method.
         /// </para>
         ///
@@ -237,14 +295,11 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <seealso cref="CheckZip(string,bool,System.IO.TextWriter)"/>
         public static void FixZipDirectory(string zipFileName)
         {
-            using (var zip = new ZipFile())
-            {
-                zip.FullScan = true;
-                zip.Initialize(zipFileName);
-                zip.Save(zipFileName);
-            }
+            using var zip = new ZipFile();
+            zip.FullScan = true;
+            zip.Initialize(zipFileName);
+            zip.Save(zipFileName);
         }
-
 
 
         /// <summary>
@@ -278,75 +333,24 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
             bool success = false;
             try
             {
-                using (ZipFile zip1 = ZipFile.Read(zipFileName))
+                using (ZipFile zip1 = Read(zipFileName))
                 {
-                    foreach (var e in zip1)
+                    foreach (ZipEntry e in zip1)
                     {
                         if (!e.IsDirectory && e.UsesEncryption)
                         {
-                            e.ExtractWithPassword(System.IO.Stream.Null, password);
+                            e.ExtractWithPassword(Stream.Null, password);
                         }
                     }
                 }
+
                 success = true;
             }
-            catch(Ionic.Zip.BadPasswordException) { }
+            catch (BadPasswordException)
+            {
+            }
+
             return success;
         }
-
-
-        /// <summary>
-        ///   Provides a human-readable string with information about the ZipFile.
-        /// </summary>
-        ///
-        /// <remarks>
-        ///   <para>
-        ///     The information string contains 10 lines or so, about each ZipEntry,
-        ///     describing whether encryption is in use, the compressed and uncompressed
-        ///     length of the entry, the offset of the entry, and so on. As a result the
-        ///     information string can be very long for zip files that contain many
-        ///     entries.
-        ///   </para>
-        ///   <para>
-        ///     This information is mostly useful for diagnostic purposes.
-        ///   </para>
-        /// </remarks>
-        public string Info
-        {
-            get
-            {
-                var builder = new System.Text.StringBuilder();
-                builder.Append(string.Format("          ZipFile: {0}\n", this.Name));
-                if (!string.IsNullOrEmpty(this._Comment))
-                {
-                    builder.Append(string.Format("          Comment: {0}\n", this._Comment));
-                }
-                if (this._versionMadeBy != 0)
-                {
-                    builder.Append(string.Format("  version made by: 0x{0:X4}\n", this._versionMadeBy));
-                }
-                if (this._versionNeededToExtract != 0)
-                {
-                    builder.Append(string.Format("needed to extract: 0x{0:X4}\n", this._versionNeededToExtract));
-                }
-
-                builder.Append(string.Format("       uses ZIP64: {0}\n", this.InputUsesZip64));
-
-                builder.Append(string.Format("     disk with CD: {0}\n", this._diskNumberWithCd));
-                if (this._OffsetOfCentralDirectory == 0xFFFFFFFF)
-                    builder.Append(string.Format("      CD64 offset: 0x{0:X16}\n", this._OffsetOfCentralDirectory64));
-                else
-                    builder.Append(string.Format("        CD offset: 0x{0:X8}\n", this._OffsetOfCentralDirectory));
-                builder.Append("\n");
-                foreach (ZipEntry entry in this._entries.Values)
-                {
-                    builder.Append(entry.Info);
-                }
-                return builder.ToString();
-            }
-        }
-
-
     }
-
 }

@@ -54,16 +54,16 @@ namespace EPPlusTest
             ws.Column(1).Style.Font.Bold = true;
 
             //package.Encryption.Algorithm = EncryptionAlgorithm.AES256;
-            //package.SaveAs(new FileInfo(@"c:\temp\encrTest.xlsx"), "ABxsw23edc");
+            //package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\encrTest.xlsx"), "ABxsw23edc");
             package.Encryption.Password = "test";
             package.Encryption.IsEncrypted = true;
-            package.SaveAs(new FileInfo(@"c:\temp\encrTest.xlsx"));
+            package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\encrTest.xlsx"));
         }
         [TestMethod]
         [Ignore]
         public void WriteProtect()
         {
-            ExcelPackage package = new ExcelPackage(new FileInfo(@"c:\temp\workbookprot2.xlsx"), "");
+            ExcelPackage package = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\workbookprot2.xlsx"), "");
             //Load the sheet with one string column, one date column and a few random numbers.
             //package.Workbook.Protection.LockWindows = true;
             //package.Encryption.IsEncrypted = true;
@@ -81,35 +81,35 @@ namespace EPPlusTest
             ws.Cells[1, 2].Value = "1; 2";
             ws.Cells[2, 2].Value = "2; 2";
 
-            package.SaveAs(new FileInfo(@"c:\temp\workbookprot2.xlsx"));
+            package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\workbookprot2.xlsx"));
 
         }
         [TestMethod]
         [Ignore]
         public void DecrypTest()
         {
-            var p = new ExcelPackage(new FileInfo(@"c:\temp\encr.xlsx"), "test");
+            var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\encr.xlsx"), "test");
 
             var n = p.Workbook.Worksheets[1].Name;
             p.Encryption.Password = null;
-            p.SaveAs(new FileInfo(@"c:\temp\encrNew.xlsx"));
+            p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\encrNew.xlsx"));
         
         }
         [TestMethod, Ignore]
         public void DecrypTestBug()
         {
-            var p = new ExcelPackage(new FileInfo(@"c:\temp\bug\TestExcel_2040.xlsx"), "");
+            var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\TestExcel_2040.xlsx"), "");
 
             var n = p.Workbook.Worksheets[1].Name;
             p.Encryption.Password = null;
-            p.SaveAs(new FileInfo(@"c:\temp\encrNew.xlsx"));
+            p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\encrNew.xlsx"));
 
         }
         [TestMethod]
         [Ignore]
         public void EncrypTest()
         {
-            var f = new FileInfo(@"c:\temp\encrwrite.xlsx");
+            var f = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\encrwrite.xlsx");
             if (f.Exists)
             {
                 f.Delete();

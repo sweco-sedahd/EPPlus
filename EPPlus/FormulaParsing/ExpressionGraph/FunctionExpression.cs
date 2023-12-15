@@ -13,31 +13,26 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Globalization;
+
 using System.Linq;
-using System.Text;
-using OfficeOpenXml.FormulaParsing.Excel;
 using OfficeOpenXml.FormulaParsing.Excel.Functions;
 using OfficeOpenXml.FormulaParsing.Exceptions;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph.FunctionCompilers;
-using OfficeOpenXml.Utils;
 
 namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
 {
@@ -46,6 +41,11 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
     /// </summary>
     public class FunctionExpression : AtomicExpression
     {
+        private readonly FunctionCompilerFactory _functionCompilerFactory;
+        private readonly bool _isNegated;
+
+        private readonly ParsingContext _parsingContext;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -61,44 +61,48 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
             base.AddChild(new FunctionArgumentExpression(this));
         }
 
-        private readonly ParsingContext _parsingContext;
-        private readonly FunctionCompilerFactory _functionCompilerFactory;
-        private readonly bool _isNegated;
+        public override bool HasChildren => Children.Any() && Children.First().Children.Any();
 
 
         public override CompileResult Compile()
         {
             try
             {
-                var function = _parsingContext.Configuration.FunctionRepository.GetFunction(ExpressionString);
+                ExcelFunction function = _parsingContext.Configuration.FunctionRepository.GetFunction(ExpressionString);
                 if (function == null)
                 {
                     if (_parsingContext.Debug)
                     {
                         _parsingContext.Configuration.Logger.Log(_parsingContext, string.Format("'{0}' is not a supported function", ExpressionString));
                     }
+
                     return new CompileResult(ExcelErrorValue.Create(eErrorType.Name), DataType.ExcelError);
                 }
+
                 if (_parsingContext.Debug)
                 {
                     _parsingContext.Configuration.Logger.LogFunction(ExpressionString);
                 }
-                var compiler = _functionCompilerFactory.Create(function);
-                var result = compiler.Compile(HasChildren ? Children : Enumerable.Empty<Expression>());
+
+                FunctionCompiler compiler = _functionCompilerFactory.Create(function);
+                CompileResult result = compiler.Compile(HasChildren ? Children : Enumerable.Empty<Expression>());
                 if (_isNegated)
                 {
                     if (!result.IsNumeric)
                     {
                         if (_parsingContext.Debug)
                         {
-                            var msg = string.Format("Trying to negate a non-numeric value ({0}) in function '{1}'",
+                            string msg = string.Format("Trying to negate a non-numeric value ({0}) in function '{1}'",
                                 result.Result, ExpressionString);
                             _parsingContext.Configuration.Logger.Log(_parsingContext, msg);
                         }
+
                         return new CompileResult(ExcelErrorValue.Create(eErrorType.Value), DataType.ExcelError);
                     }
+
                     return new CompileResult(result.ResultNumeric * -1, result.DataType);
                 }
+
                 return result;
             }
             catch (ExcelErrorValueException e)
@@ -107,22 +111,14 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
                 {
                     _parsingContext.Configuration.Logger.Log(_parsingContext, e);
                 }
+
                 return new CompileResult(e.ErrorValue, DataType.ExcelError);
             }
-            
         }
 
         public override Expression PrepareForNextChild()
         {
             return base.AddChild(new FunctionArgumentExpression(this));
-        }
-
-        public override bool HasChildren
-        {
-            get
-            {
-                return (Children.Any() && Children.First().Children.Any());
-            }
         }
 
         public override Expression AddChild(Expression child)

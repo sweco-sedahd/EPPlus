@@ -2,22 +2,21 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime
 {
     public class Weeknum : ExcelFunction
     {
-        public override ExpressionGraph.CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
+        public override CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
         {
             ValidateArguments(arguments, 1, eErrorType.Value);
-            var dateSerial = ArgToDecimal(arguments, 0);
-            var date = System.DateTime.FromOADate(dateSerial);
+            double dateSerial = ArgToDecimal(arguments, 0);
+            System.DateTime date = System.DateTime.FromOADate(dateSerial);
             var startDay = DayOfWeek.Sunday;
             if (arguments.Count() > 1)
             {
-                var argStartDay = ArgToInt(arguments, 1);
+                int argStartDay = ArgToInt(arguments, 1);
                 switch (argStartDay)
                 {
                     case 1:
@@ -48,16 +47,16 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime
                         break;
                 }
             }
+
             if (DateTimeFormatInfo.CurrentInfo == null)
             {
                 throw new InvalidOperationException(
                     "Could not execute Weeknum function because DateTimeFormatInfo.CurrentInfo was null");
             }
-            var week = DateTimeFormatInfo.CurrentInfo.Calendar.GetWeekOfYear(date, CalendarWeekRule.FirstDay,
-                                                                             startDay);
+
+            int week = DateTimeFormatInfo.CurrentInfo.Calendar.GetWeekOfYear(date, CalendarWeekRule.FirstDay,
+                startDay);
             return CreateResult(week, DataType.Integer);
         }
-        
-        
     }
 }

@@ -13,56 +13,60 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace OfficeOpenXml.FormulaParsing.Exceptions
 {
     public class ExcelErrorCodes
     {
+        private static readonly IEnumerable<string> Codes = new List<string> { Value.Code, Name.Code, NoValueAvaliable.Code };
+
         private ExcelErrorCodes(string code)
         {
             Code = code;
         }
 
-        public string Code
-        {
-            get;
-            private set;
-        }
+        public string Code { get; }
+
+        public static ExcelErrorCodes Value => new("#VALUE!");
+
+        public static ExcelErrorCodes Name => new("#NAME?");
+
+        public static ExcelErrorCodes NoValueAvaliable => new("#N/A");
 
         public override int GetHashCode()
         {
             return Code.GetHashCode();
         }
 
-        public override bool  Equals(object obj)
+        public override bool Equals(object obj)
         {
             if (obj is ExcelErrorCodes)
             {
                 return ((ExcelErrorCodes)obj).Code.Equals(Code);
             }
- 	        return false;
+
+            return false;
         }
 
-        public static bool operator == (ExcelErrorCodes c1, ExcelErrorCodes c2)
+        public static bool operator ==(ExcelErrorCodes c1, ExcelErrorCodes c2)
         {
             return c1.Code.Equals(c2.Code);
         }
@@ -72,35 +76,20 @@ namespace OfficeOpenXml.FormulaParsing.Exceptions
             return !c1.Code.Equals(c2.Code);
         }
 
-        private static readonly IEnumerable<string> Codes = new List<string> { Value.Code, Name.Code, NoValueAvaliable.Code };
-
         public static bool IsErrorCode(object valueToTest)
         {
             if (valueToTest == null)
             {
                 return false;
             }
-            var candidate = valueToTest.ToString();
+
+            string candidate = valueToTest.ToString();
             if (Codes.FirstOrDefault(x => x == candidate) != null)
             {
                 return true;
             }
+
             return false;
-        }
-
-        public static ExcelErrorCodes Value
-        {
-            get { return new ExcelErrorCodes("#VALUE!"); }
-        }
-
-        public static ExcelErrorCodes Name
-        {
-            get { return new ExcelErrorCodes("#NAME?"); }
-        }
-
-        public static ExcelErrorCodes NoValueAvaliable
-        {
-            get { return new ExcelErrorCodes("#N/A"); }
         }
     }
 }

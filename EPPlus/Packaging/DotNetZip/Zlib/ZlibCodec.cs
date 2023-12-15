@@ -65,7 +65,6 @@
 
 
 using System;
-using Interop=System.Runtime.InteropServices;
 
 namespace OfficeOpenXml.Packaging.Ionic.Zlib
 {
@@ -84,17 +83,9 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
 //#if !NETCF    
 //    [Interop.ClassInterface(Interop.ClassInterfaceType.AutoDispatch)]
 //#endif
-    sealed public class ZlibCodec
+    public sealed class ZlibCodec
     {
-        /// <summary>
-        /// The buffer from which data is taken.
-        /// </summary>
-        public byte[] InputBuffer;
-
-        /// <summary>
-        /// An index into the InputBuffer array, indicating where to start reading. 
-        /// </summary>
-        public int NextIn;
+        internal uint _Adler32;
 
         /// <summary>
         /// The number of bytes available in the InputBuffer, starting at NextIn. 
@@ -106,21 +97,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         public int AvailableBytesIn;
 
         /// <summary>
-        /// Total number of bytes read so far, through all calls to Inflate()/Deflate().
-        /// </summary>
-        public long TotalBytesIn;
-
-        /// <summary>
-        /// Buffer to store output data.
-        /// </summary>
-        public byte[] OutputBuffer;
-
-        /// <summary>
-        /// An index into the OutputBuffer array, indicating where to start writing. 
-        /// </summary>
-        public int NextOut;
-
-        /// <summary>
         /// The number of bytes available in the OutputBuffer, starting at NextOut. 
         /// </summary>
         /// <remarks>
@@ -130,35 +106,38 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         public int AvailableBytesOut;
 
         /// <summary>
-        /// Total number of bytes written to the output so far, through all calls to Inflate()/Deflate().
-        /// </summary>
-        public long TotalBytesOut;
-
-        /// <summary>
-        /// used for diagnostics, when something goes wrong!
-        /// </summary>
-        public System.String Message;
-
-        internal DeflateManager dstate;
-        internal InflateManager istate;
-
-        internal uint _Adler32;
-
-        /// <summary>
         /// The compression level to use in this codec.  Useful only in compression mode.
         /// </summary>
         public CompressionLevel CompressLevel = CompressionLevel.Default;
 
+        internal DeflateManager dstate;
+
         /// <summary>
-        /// The number of Window Bits to use.  
+        /// The buffer from which data is taken.
         /// </summary>
-        /// <remarks>
-        /// This gauges the size of the sliding window, and hence the 
-        /// compression effectiveness as well as memory consumption. It's best to just leave this 
-        /// setting alone if you don't know what it is.  The maximum value is 15 bits, which implies
-        /// a 32k window.  
-        /// </remarks>
-        public int WindowBits = ZlibConstants.WindowBitsDefault;
+        public byte[] InputBuffer;
+
+        internal InflateManager istate;
+
+        /// <summary>
+        /// used for diagnostics, when something goes wrong!
+        /// </summary>
+        public string Message;
+
+        /// <summary>
+        /// An index into the InputBuffer array, indicating where to start reading. 
+        /// </summary>
+        public int NextIn;
+
+        /// <summary>
+        /// An index into the OutputBuffer array, indicating where to start writing. 
+        /// </summary>
+        public int NextOut;
+
+        /// <summary>
+        /// Buffer to store output data.
+        /// </summary>
+        public byte[] OutputBuffer;
 
         /// <summary>
         /// The compression strategy to use.
@@ -175,11 +154,26 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         /// </remarks>
         public CompressionStrategy Strategy = CompressionStrategy.Default;
 
+        /// <summary>
+        /// Total number of bytes read so far, through all calls to Inflate()/Deflate().
+        /// </summary>
+        public long TotalBytesIn;
 
         /// <summary>
-        /// The Adler32 checksum on the data transferred through the codec so far. You probably don't need to look at this.
+        /// Total number of bytes written to the output so far, through all calls to Inflate()/Deflate().
         /// </summary>
-        public int Adler32 { get { return (int)_Adler32; } }
+        public long TotalBytesOut;
+
+        /// <summary>
+        /// The number of Window Bits to use.  
+        /// </summary>
+        /// <remarks>
+        /// This gauges the size of the sliding window, and hence the 
+        /// compression effectiveness as well as memory consumption. It's best to just leave this 
+        /// setting alone if you don't know what it is.  The maximum value is 15 bits, which implies
+        /// a 32k window.  
+        /// </remarks>
+        public int WindowBits = ZlibConstants.WindowBitsDefault;
 
 
         /// <summary>
@@ -190,7 +184,9 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         /// InitializeInflate() or InitializeDeflate() before using the ZlibCodec to compress 
         /// or decompress. 
         /// </remarks>
-        public ZlibCodec() { }
+        public ZlibCodec()
+        {
+        }
 
         /// <summary>
         /// Create a ZlibCodec that either compresses or decompresses.
@@ -213,6 +209,12 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
             else throw new ZlibException("Invalid ZlibStreamFlavor.");
         }
 
+
+        /// <summary>
+        /// The Adler32 checksum on the data transferred through the codec so far. You probably don't need to look at this.
+        /// </summary>
+        public int Adler32 => (int)_Adler32;
+
         /// <summary>
         /// Initialize the inflation state. 
         /// </summary>
@@ -223,7 +225,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         /// <returns>Z_OK if everything goes well.</returns>
         public int InitializeInflate()
         {
-            return InitializeInflate(this.WindowBits);
+            return InitializeInflate(WindowBits);
         }
 
         /// <summary>
@@ -246,7 +248,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         /// <returns>Z_OK if everything goes well.</returns>
         public int InitializeInflate(bool expectRfc1950Header)
         {
-            return InitializeInflate(this.WindowBits, expectRfc1950Header);
+            return InitializeInflate(WindowBits, expectRfc1950Header);
         }
 
         /// <summary>
@@ -257,7 +259,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         /// <returns>Z_OK if all goes well.</returns>
         public int InitializeInflate(int windowBits)
         {
-            this.WindowBits = windowBits;            
+            WindowBits = windowBits;
             return InitializeInflate(windowBits, true);
         }
 
@@ -282,7 +284,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         /// <returns>Z_OK if everything goes well.</returns>
         public int InitializeInflate(int windowBits, bool expectRfc1950Header)
         {
-            this.WindowBits = windowBits;
+            WindowBits = windowBits;
             if (dstate != null) throw new ZlibException("You may not call InitializeInflate() after calling InitializeDeflate().");
             istate = new InflateManager(expectRfc1950Header);
             return istate.Initialize(this, windowBits);
@@ -444,7 +446,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         /// <returns>Z_OK if all goes well.</returns>
         public int InitializeDeflate(CompressionLevel level)
         {
-            this.CompressLevel = level;
+            CompressLevel = level;
             return _InternalInitializeDeflate(true);
         }
 
@@ -465,7 +467,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         /// <returns>Z_OK if all goes well.</returns>
         public int InitializeDeflate(CompressionLevel level, bool wantRfc1950Header)
         {
-            this.CompressLevel = level;
+            CompressLevel = level;
             return _InternalInitializeDeflate(wantRfc1950Header);
         }
 
@@ -482,8 +484,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         /// <returns>Z_OK if all goes well.</returns>
         public int InitializeDeflate(CompressionLevel level, int bits)
         {
-            this.CompressLevel = level;
-            this.WindowBits = bits;
+            CompressLevel = level;
+            WindowBits = bits;
             return _InternalInitializeDeflate(true);
         }
 
@@ -499,8 +501,8 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
         /// <returns>Z_OK if all goes well.</returns>
         public int InitializeDeflate(CompressionLevel level, int bits, bool wantRfc1950Header)
         {
-            this.CompressLevel = level;
-            this.WindowBits = bits;
+            CompressLevel = level;
+            WindowBits = bits;
             return _InternalInitializeDeflate(wantRfc1950Header);
         }
 
@@ -510,7 +512,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
             dstate = new DeflateManager();
             dstate.WantRfc1950HeaderBytes = wantRfc1950Header;
 
-            return dstate.Initialize(this, this.CompressLevel, this.WindowBits, this.Strategy);
+            return dstate.Initialize(this, CompressLevel, WindowBits, Strategy);
         }
 
         /// <summary>
@@ -667,19 +669,19 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
 
             if (dstate.pending.Length <= dstate.nextPending ||
                 OutputBuffer.Length <= NextOut ||
-                dstate.pending.Length < (dstate.nextPending + len) ||
-                OutputBuffer.Length < (NextOut + len))
+                dstate.pending.Length < dstate.nextPending + len ||
+                OutputBuffer.Length < NextOut + len)
             {
-                throw new ZlibException(String.Format("Invalid State. (pending.Length={0}, pendingCount={1})",
+                throw new ZlibException(string.Format("Invalid State. (pending.Length={0}, pendingCount={1})",
                     dstate.pending.Length, dstate.pendingCount));
             }
 
             Array.Copy(dstate.pending, dstate.nextPending, OutputBuffer, NextOut, len);
 
-            NextOut             += len;
-            dstate.nextPending  += len;
-            TotalBytesOut       += len;
-            AvailableBytesOut   -= len;
+            NextOut += len;
+            dstate.nextPending += len;
+            TotalBytesOut += len;
+            AvailableBytesOut -= len;
             dstate.pendingCount -= len;
             if (dstate.pendingCount == 0)
             {
@@ -707,11 +709,11 @@ namespace OfficeOpenXml.Packaging.Ionic.Zlib
             {
                 _Adler32 = Adler.Adler32(_Adler32, InputBuffer, NextIn, len);
             }
+
             Array.Copy(InputBuffer, NextIn, buf, start, len);
             NextIn += len;
             TotalBytesIn += len;
             return len;
         }
-
     }
 }

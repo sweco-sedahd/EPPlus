@@ -35,15 +35,15 @@ namespace EPPlusTest
         [TestMethod]
         public void ReadVBA()
         {
-            var package = new ExcelPackage(new FileInfo(@"c:\temp\report.xlsm"));
-            File.WriteAllText(@"c:\temp\vba\modules\dir.txt", package.Workbook.VbaProject.CodePage + "," + package.Workbook.VbaProject.Constants + "," + package.Workbook.VbaProject.Description + "," + package.Workbook.VbaProject.HelpContextID.ToString() + "," + package.Workbook.VbaProject.HelpFile1 + "," + package.Workbook.VbaProject.HelpFile2 + "," + package.Workbook.VbaProject.Lcid.ToString() + "," + package.Workbook.VbaProject.LcidInvoke.ToString() + "," + package.Workbook.VbaProject.LibFlags.ToString() + "," + package.Workbook.VbaProject.MajorVersion.ToString() + "," + package.Workbook.VbaProject.MinorVersion.ToString() + "," + package.Workbook.VbaProject.Name + "," + package.Workbook.VbaProject.ProjectID + "," + package.Workbook.VbaProject.SystemKind.ToString() + "," + package.Workbook.VbaProject.Protection.HostProtected.ToString() + "," + package.Workbook.VbaProject.Protection.UserProtected.ToString() + "," + package.Workbook.VbaProject.Protection.VbeProtected.ToString() + "," + package.Workbook.VbaProject.Protection.VisibilityState.ToString());
+            var package = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\report.xlsm"));
+            File.WriteAllText(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vba\modules\dir.txt", package.Workbook.VbaProject.CodePage + "," + package.Workbook.VbaProject.Constants + "," + package.Workbook.VbaProject.Description + "," + package.Workbook.VbaProject.HelpContextID.ToString() + "," + package.Workbook.VbaProject.HelpFile1 + "," + package.Workbook.VbaProject.HelpFile2 + "," + package.Workbook.VbaProject.Lcid.ToString() + "," + package.Workbook.VbaProject.LcidInvoke.ToString() + "," + package.Workbook.VbaProject.LibFlags.ToString() + "," + package.Workbook.VbaProject.MajorVersion.ToString() + "," + package.Workbook.VbaProject.MinorVersion.ToString() + "," + package.Workbook.VbaProject.Name + "," + package.Workbook.VbaProject.ProjectID + "," + package.Workbook.VbaProject.SystemKind.ToString() + "," + package.Workbook.VbaProject.Protection.HostProtected.ToString() + "," + package.Workbook.VbaProject.Protection.UserProtected.ToString() + "," + package.Workbook.VbaProject.Protection.VbeProtected.ToString() + "," + package.Workbook.VbaProject.Protection.VisibilityState.ToString());
             foreach (var module in package.Workbook.VbaProject.Modules)
             {
-                File.WriteAllText(string.Format(@"c:\temp\vba\modules\{0}.txt", module.Name), module.Code);
+                File.WriteAllText(string.Format(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vba\modules\{0}.txt", module.Name), module.Code);
             }
             foreach (var r in package.Workbook.VbaProject.References)
             {
-                File.WriteAllText(string.Format(@"c:\temp\vba\modules\{0}.txt", r.Name), r.Libid + " " + r.ReferenceRecordID.ToString());
+                File.WriteAllText(string.Format(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vba\modules\{0}.txt", r.Name), r.Libid + " " + r.ReferenceRecordID.ToString());
             }
 
             List<X509Certificate2> ret = new List<X509Certificate2>();
@@ -51,7 +51,7 @@ namespace EPPlusTest
             store.Open(OpenFlags.ReadOnly);
             package.Workbook.VbaProject.Signature.Certificate = store.Certificates[19];
             //package.Workbook.VbaProject.Protection.SetPassword("");
-            package.SaveAs(new FileInfo(@"c:\temp\vbaSaved.xlsm"));
+            package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vbaSaved.xlsm"));
         }
         [Ignore]
         [TestMethod]
@@ -77,16 +77,16 @@ namespace EPPlusTest
             c2.Code += "Private Sub Class_Initialize()\r\n\r\nEnd Sub\r\nPrivate Sub Class_Terminate()\r\n\r\nEnd Sub";
 
             package.Workbook.VbaProject.Protection.SetPassword("EPPlus");
-            package.SaveAs(new FileInfo(@"c:\temp\vbaWrite.xlsm"));
+            package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vbaWrite.xlsm"));
 
         }
         [Ignore]
         [TestMethod]
         public void Resign()
         {
-            var package = new ExcelPackage(new FileInfo(@"c:\temp\vbaWrite.xlsm"));
+            var package = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vbaWrite.xlsm"));
             //package.Workbook.VbaProject.Signature.Certificate = store.Certificates[11];
-            package.SaveAs(new FileInfo(@"c:\temp\vbaWrite2.xlsm"));
+            package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vbaWrite2.xlsm"));
         }
         [Ignore]
         [TestMethod]
@@ -113,7 +113,7 @@ namespace EPPlusTest
             //store.Open(OpenFlags.ReadOnly);
             //package.Workbook.VbaProject.Signature.Certificate = store.Certificates[19];
 
-            package.SaveAs(new FileInfo(@"c:\temp\vbaLong.xlsm"));
+            package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vbaLong.xlsm"));
         }
         [Ignore]
         [TestMethod]
@@ -142,15 +142,15 @@ namespace EPPlusTest
         [TestMethod]
         public void ReadVBAUnicodeWsName()
         {
-            var package = new ExcelPackage(new FileInfo(@"c:\temp\bug\VbaUnicodeWS.xlsm"));
-            File.WriteAllText(@"c:\temp\vba\modules\dir.txt", package.Workbook.VbaProject.CodePage + "," + package.Workbook.VbaProject.Constants + "," + package.Workbook.VbaProject.Description + "," + package.Workbook.VbaProject.HelpContextID.ToString() + "," + package.Workbook.VbaProject.HelpFile1 + "," + package.Workbook.VbaProject.HelpFile2 + "," + package.Workbook.VbaProject.Lcid.ToString() + "," + package.Workbook.VbaProject.LcidInvoke.ToString() + "," + package.Workbook.VbaProject.LibFlags.ToString() + "," + package.Workbook.VbaProject.MajorVersion.ToString() + "," + package.Workbook.VbaProject.MinorVersion.ToString() + "," + package.Workbook.VbaProject.Name + "," + package.Workbook.VbaProject.ProjectID + "," + package.Workbook.VbaProject.SystemKind.ToString() + "," + package.Workbook.VbaProject.Protection.HostProtected.ToString() + "," + package.Workbook.VbaProject.Protection.UserProtected.ToString() + "," + package.Workbook.VbaProject.Protection.VbeProtected.ToString() + "," + package.Workbook.VbaProject.Protection.VisibilityState.ToString());
+            var package = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\VbaUnicodeWS.xlsm"));
+            File.WriteAllText(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vba\modules\dir.txt", package.Workbook.VbaProject.CodePage + "," + package.Workbook.VbaProject.Constants + "," + package.Workbook.VbaProject.Description + "," + package.Workbook.VbaProject.HelpContextID.ToString() + "," + package.Workbook.VbaProject.HelpFile1 + "," + package.Workbook.VbaProject.HelpFile2 + "," + package.Workbook.VbaProject.Lcid.ToString() + "," + package.Workbook.VbaProject.LcidInvoke.ToString() + "," + package.Workbook.VbaProject.LibFlags.ToString() + "," + package.Workbook.VbaProject.MajorVersion.ToString() + "," + package.Workbook.VbaProject.MinorVersion.ToString() + "," + package.Workbook.VbaProject.Name + "," + package.Workbook.VbaProject.ProjectID + "," + package.Workbook.VbaProject.SystemKind.ToString() + "," + package.Workbook.VbaProject.Protection.HostProtected.ToString() + "," + package.Workbook.VbaProject.Protection.UserProtected.ToString() + "," + package.Workbook.VbaProject.Protection.VbeProtected.ToString() + "," + package.Workbook.VbaProject.Protection.VisibilityState.ToString());
             foreach (var module in package.Workbook.VbaProject.Modules)
             {
-                File.WriteAllText(string.Format(@"c:\temp\vba\modules\{0}.txt", module.Name), module.Code);
+                File.WriteAllText(string.Format(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vba\modules\{0}.txt", module.Name), module.Code);
             }
             foreach (var r in package.Workbook.VbaProject.References)
             {
-                File.WriteAllText(string.Format(@"c:\temp\vba\modules\{0}.txt", r.Name), r.Libid + " " + r.ReferenceRecordID.ToString());
+                File.WriteAllText(string.Format(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vba\modules\{0}.txt", r.Name), r.Libid + " " + r.ReferenceRecordID.ToString());
             }
 
             List<X509Certificate2> ret = new List<X509Certificate2>();
@@ -158,7 +158,7 @@ namespace EPPlusTest
             store.Open(OpenFlags.ReadOnly);
             package.Workbook.VbaProject.Signature.Certificate = store.Certificates[19];
             //package.Workbook.VbaProject.Protection.SetPassword("");
-            package.SaveAs(new FileInfo(@"c:\temp\vbaSaved.xlsm"));
+            package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vbaSaved.xlsm"));
         }
         [TestMethod]
         public void CreateUnicodeWsName()
@@ -181,7 +181,7 @@ namespace EPPlusTest
                 stringBuilder.AppendLine("End Sub");
                 worksheet.CodeModule.Code = stringBuilder.ToString();
 
-                package.SaveAs(new FileInfo(@"c:\temp\invvba.xlsm"));
+                package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\invvba.xlsm"));
             }
         }
         //Issue with chunk overwriting 4096 bytes
@@ -189,12 +189,12 @@ namespace EPPlusTest
         [TestMethod]
         public void VbaBug()
         {
-            using (var package = new ExcelPackage(new FileInfo(@"c:\temp\bug\outfile.xlsm")))
+            using (var package = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\outfile.xlsm")))
             {
                 Console.WriteLine(package.Workbook.CodeModule.Code.Length);
                 package.Workbook.Worksheets[1].CodeModule.Code = "Private Sub Worksheet_SelectionChange(ByVal Target As Range)\r\n\r\nEnd Sub";
                 package.Workbook.Worksheets.Add("TestCopy", package.Workbook.Worksheets[1]);
-                package.SaveAs(new FileInfo(@"c:\temp\bug\outfile2.xlsm"));
+                package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\outfile2.xlsm"));
             }
         }
         [TestMethod]
@@ -223,11 +223,11 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void ReadNewVBA()
         {
-            using (var package = new ExcelPackage(new FileInfo(@"c:\temp\bug\makro.xlsm")))
+            using (var package = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\makro.xlsm")))
             {
                 Console.WriteLine(package.Workbook.VbaProject.Modules[0].Name);
                 
-                package.SaveAs(new FileInfo(@"c:\temp\bug\makroepp.xlsm"));
+                package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\makroepp.xlsm"));
             }
         }
     }

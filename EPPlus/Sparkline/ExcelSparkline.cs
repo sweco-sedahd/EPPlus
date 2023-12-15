@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
+﻿using System.Xml;
 
 namespace OfficeOpenXml.Sparkline
 {
@@ -11,43 +7,35 @@ namespace OfficeOpenXml.Sparkline
     /// </summary>
     public class ExcelSparkline : XmlHelper
     {
+        const string _fPath = "xm:f";
+        const string _sqrefPath = "xm:sqref";
+
         internal ExcelSparkline(XmlNamespaceManager nsm, XmlNode topNode) : base(nsm, topNode)
         {
-            SchemaNodeOrder = new string[] { "f", "sqref" };
-        }   
-        const string _fPath = "xm:f";
+            SchemaNodeOrder = new[] { "f", "sqref" };
+        }
+
         /// <summary>
         /// The datarange
         /// </summary>
         public ExcelAddressBase RangeAddress
         {
-            get
-            {
-                return new ExcelAddressBase(GetXmlNodeString(_fPath));
-            }
-            internal set
-            {
-                SetXmlNodeString(_fPath, value.FullAddress);
-            }
+            get => new(GetXmlNodeString(_fPath));
+            internal set => SetXmlNodeString(_fPath, value.FullAddress);
         }
-        const string _sqrefPath = "xm:sqref";
+
         /// <summary>
         /// Location of the sparkline
         /// </summary>
         public ExcelCellAddress Cell
         {
-            get
-            {
-                return new ExcelCellAddress(GetXmlNodeString(_sqrefPath));
-            }
-            internal set
-            {
-                SetXmlNodeString("xm:sqref", value.Address);
-            }
+            get => new(GetXmlNodeString(_sqrefPath));
+            internal set => SetXmlNodeString("xm:sqref", value.Address);
         }
+
         public override string ToString()
         {
-            return Cell.Address + ", " +RangeAddress.Address;
+            return Cell.Address + ", " + RangeAddress.Address;
         }
     }
 }

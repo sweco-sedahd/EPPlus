@@ -133,9 +133,9 @@ namespace EPPlusTest.FormulaParsing.IntegrationTests.BuiltInFunctions
         {
             var sw = new Stopwatch();
             sw.Start();
-            using (var pck = new ExcelPackage(new FileInfo(@"c:\temp\denis.xlsx")))
+            using (var pck = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\denis.xlsx")))
             {
-                var logger = LoggerFactory.CreateTextFileLogger(new FileInfo(@"c:\temp\log1.txt"));
+                var logger = LoggerFactory.CreateTextFileLogger(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\log1.txt"));
                 pck.Workbook.FormulaParser.Configure(x => x.AttachLogger(logger));
                 pck.Workbook.Calculate();
                 //

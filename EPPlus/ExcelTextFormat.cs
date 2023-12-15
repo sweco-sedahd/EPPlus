@@ -13,26 +13,25 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		    Initial Release		        2011-01-01
  * Jan Källman		    License changed GPL-->LGPL 2011-12-27
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 using System.Globalization;
+using System.Text;
 
 namespace OfficeOpenXml
 {
@@ -45,24 +44,29 @@ namespace OfficeOpenXml
         /// Let the the import decide.
         /// </summary>
         Unknown,
+
         /// <summary>
         /// Always a string.
         /// </summary>
         String,
+
         /// <summary>
         /// Try to convert it to a number. If it fails then add it as a string.
         /// </summary>
         Number,
+
         /// <summary>
         /// Try to convert it to a date. If it fails then add it as a string.
         /// </summary>
         DateTime,
+
         /// <summary>
         /// Try to convert it to a number and divide with 100. 
         /// Removes any tailing percent sign (%). If it fails then add it as a string.
         /// </summary>
         Percent
     }
+
     /// <summary>
     /// Describes how to split a CSV text. Used by the ExcelRange.LoadFromText method
     /// </summary>
@@ -90,39 +94,47 @@ namespace OfficeOpenXml
             TextQualifier = '\0';
             EOL = "\r\n";
             Culture = CultureInfo.InvariantCulture;
-            DataTypes=null;
+            DataTypes = null;
             SkipLinesBeginning = 0;
             SkipLinesEnd = 0;
-            Encoding=Encoding.ASCII;
+            Encoding = Encoding.ASCII;
         }
+
         /// <summary>
         /// Delimiter character
         /// </summary>
         public char Delimiter { get; set; }
+
         /// <summary>
         /// Text qualifier character 
         /// </summary>
-        public char TextQualifier {get; set; }
+        public char TextQualifier { get; set; }
+
         /// <summary>
         /// End of line characters. Default CRLF
         /// </summary>
         public string EOL { get; set; }
+
         /// <summary>
         /// Datatypes list for each column (if column is not present Unknown is assumed)
         /// </summary>
         public eDataTypes[] DataTypes { get; set; }
+
         /// <summary>
         /// Culture used when parsing. Default CultureInfo.InvariantCulture
         /// </summary>
-        public CultureInfo Culture {get; set; }
+        public CultureInfo Culture { get; set; }
+
         /// <summary>
         /// Number of lines skiped in the begining of the file. Default 0.
         /// </summary>
         public int SkipLinesBeginning { get; set; }
+
         /// <summary>
         /// Number of lines skiped at the end of the file. Default 0.
         /// </summary>
         public int SkipLinesEnd { get; set; }
+
         /// <summary>
         /// Only used when reading files from disk using a FileInfo object. Default AscII
         /// </summary>

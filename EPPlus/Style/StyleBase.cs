@@ -13,25 +13,22 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		                Initial Release		        2009-10-01
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OfficeOpenXml.Style
 {
@@ -53,7 +50,8 @@ namespace OfficeOpenXml.Style
         Thick,
         Medium,
         Double
-    };
+    }
+
     /// <summary>
     /// Horizontal text alignment
     /// </summary>
@@ -68,6 +66,7 @@ namespace OfficeOpenXml.Style
         Distributed,
         Justify
     }
+
     /// <summary>
     /// Vertical text alignment
     /// </summary>
@@ -79,6 +78,7 @@ namespace OfficeOpenXml.Style
         Distributed,
         Justify
     }
+
     /// <summary>
     /// Font-Vertical Align
     /// </summary>
@@ -89,6 +89,7 @@ namespace OfficeOpenXml.Style
         Subscript,
         Superscript
     }
+
     /// <summary>
     /// Font-Underlinestyle for 
     /// </summary>
@@ -100,6 +101,7 @@ namespace OfficeOpenXml.Style
         SingleAccounting,
         DoubleAccounting
     }
+
     /// <summary>
     /// Fill pattern
     /// </summary>
@@ -125,6 +127,7 @@ namespace OfficeOpenXml.Style
         LightGrid,
         LightTrellis
     }
+
     /// <summary>
     /// Type of gradient fill
     /// </summary>
@@ -134,15 +137,18 @@ namespace OfficeOpenXml.Style
         /// No gradient fill. 
         /// </summary>
         None,
+
         /// <summary>
         /// This gradient fill is of linear gradient type. Linear gradient type means that the transition from one color to the next is along a line (e.g., horizontal, vertical,diagonal, etc.)
         /// </summary>
         Linear,
+
         /// <summary>
         /// This gradient fill is of path gradient type. Path gradient type means the that the boundary of transition from one color to the next is a rectangle, defined by top,bottom, left, and right attributes on the gradientFill element.
         /// </summary>
         Path
     }
+
     /// <summary>
     /// The reading order
     /// </summary>
@@ -151,31 +157,36 @@ namespace OfficeOpenXml.Style
         /// <summary>
         /// Reading order is determined by scanning the text for the first non-whitespace character: if it is a strong right-to-left character, the reading order is right-to-left; otherwise, the reading order left-to-right.
         /// </summary>
-        ContextDependent=0,
+        ContextDependent = 0,
+
         /// <summary>
         /// Left to Right
         /// </summary>
-        LeftToRight=1,
+        LeftToRight = 1,
+
         /// <summary>
         /// Right to Left
         /// </summary>
-        RightToLeft=2
+        RightToLeft = 2
     }
+
     public abstract class StyleBase
     {
-        protected ExcelStyles _styles;
-        internal OfficeOpenXml.XmlHelper.ChangedEventHandler _ChangedEvent;
-        protected int _positionID;
         protected string _address;
-        internal StyleBase(ExcelStyles styles, OfficeOpenXml.XmlHelper.ChangedEventHandler ChangedEvent, int PositionID, string Address)
+        internal XmlHelper.ChangedEventHandler _ChangedEvent;
+        protected int _positionID;
+        protected ExcelStyles _styles;
+
+        internal StyleBase(ExcelStyles styles, XmlHelper.ChangedEventHandler ChangedEvent, int PositionID, string Address)
         {
             _styles = styles;
             _ChangedEvent = ChangedEvent;
             _address = Address;
             _positionID = PositionID;
         }
-        internal int Index { get; set;}
-        internal abstract string Id {get;}
+
+        internal int Index { get; set; }
+        internal abstract string Id { get; }
 
         internal virtual void SetIndex(int index)
         {

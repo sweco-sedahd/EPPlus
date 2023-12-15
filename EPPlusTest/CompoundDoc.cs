@@ -68,18 +68,18 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Read()
         {
-           //var doc = File.ReadAllBytes(@"c:\temp\vbaProject.bin");
-           var doc = File.ReadAllBytes(@"c:\temp\vba.bin");
+           //var doc = File.ReadAllBytes(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vbaProject.bin");
+           var doc = File.ReadAllBytes(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vba.bin");
            var cd = new CompoundDocumentFile(doc);
            var ms = new MemoryStream();
            cd.Write(ms);
            printitems(cd.RootItem);
-           File.WriteAllBytes(@"c:\temp\vba.bin", ms.ToArray());
+           File.WriteAllBytes(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vba.bin", ms.ToArray());
         }
 
         private void printitems(CompoundDocumentItem item)
         {
-            File.AppendAllText(@"c:\temp\items.txt", item.Name+ "\t");            
+            File.AppendAllText(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\items.txt", item.Name+ "\t");            
             foreach(var c in item.Children)
             {
                 printitems(c);
@@ -132,23 +132,23 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void ReadEncLong()
         {
-            var doc=File.ReadAllBytes(@"c:\temp\EncrDocRead.xlsx");
+            var doc=File.ReadAllBytes(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\EncrDocRead.xlsx");
             var cd = new CompoundDocumentFile(doc);
             var ms = new MemoryStream();
             cd.Write(ms);
 
-            File.WriteAllBytes(@"c:\temp\vba.xlsx", ms.ToArray());
+            File.WriteAllBytes(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\vba.xlsx", ms.ToArray());
         }
         [TestMethod, Ignore]
         public void ReadVba()
         {
-            var p = new ExcelPackage(new FileInfo(@"c:\temp\pricecheck.xlsm"));
+            var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\pricecheck.xlsm"));
             var vba = p.Workbook.VbaProject;
-            p.SaveAs(new FileInfo(@"c:\temp\pricecheckSaved.xlsm"));
+            p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\pricecheckSaved.xlsm"));
         }
         FileInfo TempFile(string name)
         {
-            var baseFolder = Path.Combine(@"c:\temp\bug\");
+            var baseFolder = Path.Combine(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\");
             return new FileInfo(Path.Combine(baseFolder, name));
         }
         [TestMethod, Ignore]
@@ -267,16 +267,16 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void ReadPerfTest()
         {
-            var p = new ExcelPackage(new FileInfo(@"c:\temp\bug\sample7compdoctest.xlsx"), "");
-            //var p = new ExcelPackage(new FileInfo(@"c:\temp\bug\sample7compdoctest_4.5.xlsx"), "");
-            //var p = new ExcelPackage(new FileInfo(@"c:\temp\bug\sample7compdoctest.310k.xlsx"), "");
+            var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\sample7compdoctest.xlsx"), "");
+            //var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\sample7compdoctest_4.5.xlsx"), "");
+            //var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\sample7compdoctest.310k.xlsx"), "");
         }
         [TestMethod, Ignore]
         public void ReadVbaIssue107()
         {
-            //var p = new ExcelPackage(new FileInfo(@"c:\temp\bug\report.xlsm"));
-            //var p = new ExcelPackage(new FileInfo(@"c:\temp\bug\report411.xlsm"));
-            var p = new ExcelPackage(new FileInfo(@"c:\temp\bug\sample7.xlsx"),"");
+            //var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\report.xlsm"));
+            //var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\report411.xlsm"));
+            var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\sample7.xlsx"),"");
             var vba = p.Workbook.VbaProject;
         }
         

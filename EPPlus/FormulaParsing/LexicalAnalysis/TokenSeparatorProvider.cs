@@ -13,32 +13,29 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 
 namespace OfficeOpenXml.FormulaParsing.LexicalAnalysis
 {
     public class TokenSeparatorProvider : ITokenSeparatorProvider
     {
-       private static readonly Dictionary<string, Token> _tokens;
+        private static readonly Dictionary<string, Token> _tokens;
 
         static TokenSeparatorProvider()
         {
@@ -68,27 +65,24 @@ namespace OfficeOpenXml.FormulaParsing.LexicalAnalysis
             _tokens.Add("%", new Token("%", TokenType.Percent));
         }
 
-        IDictionary<string, Token> ITokenSeparatorProvider.Tokens
-        {
-            get { return _tokens; }
-        }
+        IDictionary<string, Token> ITokenSeparatorProvider.Tokens => _tokens;
 
         public bool IsOperator(string item)
         {
-            Token token;
-            if (_tokens.TryGetValue(item, out token))
+            if (_tokens.TryGetValue(item, out Token token))
             {
                 if (token.TokenType == TokenType.Operator)
                 {
                     return true;
                 }
             }
+
             return false;
         }
 
         public bool IsPossibleLastPartOfMultipleCharOperator(string part)
         {
-            return part == "=" || part == ">";
+            return part is "=" or ">";
         }
     }
 }

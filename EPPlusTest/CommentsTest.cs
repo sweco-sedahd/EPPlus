@@ -13,7 +13,7 @@ namespace EPPlusTest
         [TestMethod]
         public void ReadExcelComments()
         {
-            var fi = new FileInfo(@"c:\temp\googleComments\Comments.excel.xlsx");
+            var fi = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\googleComments\Comments.excel.xlsx");
             using (var excelPackage = new ExcelPackage(fi))
             {
                 var sheet1 = excelPackage.Workbook.Worksheets.First();
@@ -24,7 +24,7 @@ namespace EPPlusTest
         [TestMethod]
         public void ReadGoogleComments()
         {
-            var fi = new FileInfo(@"c:\temp\googleComments\Comments.google.xlsx");
+            var fi = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\googleComments\Comments.google.xlsx");
             using (var excelPackage = new ExcelPackage(fi))
             {
                 var sheet1 = excelPackage.Workbook.Worksheets.First();

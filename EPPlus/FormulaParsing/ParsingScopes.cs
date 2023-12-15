@@ -11,15 +11,14 @@
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author Change                      Date
  *******************************************************************************
  * Mats Alm Added		                2016-12-27
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.ExcelUtilities;
 
 namespace OfficeOpenXml.FormulaParsing
@@ -31,12 +30,18 @@ namespace OfficeOpenXml.FormulaParsing
     public class ParsingScopes
     {
         private readonly IParsingLifetimeEventHandler _lifetimeEventHandler;
+        private readonly Stack<ParsingScope> _scopes = new();
 
         public ParsingScopes(IParsingLifetimeEventHandler lifetimeEventHandler)
         {
             _lifetimeEventHandler = lifetimeEventHandler;
         }
-        private Stack<ParsingScope> _scopes = new Stack<ParsingScope>();
+
+
+        /// <summary>
+        /// The current parsing scope.
+        /// </summary>
+        public virtual ParsingScope Current => _scopes.Count > 0 ? _scopes.Peek() : null;
 
         /// <summary>
         /// Creates a new <see cref="ParsingScope"/> and puts it on top of the stack.
@@ -46,7 +51,7 @@ namespace OfficeOpenXml.FormulaParsing
         public virtual ParsingScope NewScope(RangeAddress address)
         {
             ParsingScope scope;
-            if (_scopes.Count() > 0)
+            if (_scopes.Count > 0)
             {
                 scope = new ParsingScope(this, _scopes.Peek(), address);
             }
@@ -54,17 +59,9 @@ namespace OfficeOpenXml.FormulaParsing
             {
                 scope = new ParsingScope(this, address);
             }
+
             _scopes.Push(scope);
             return scope;
-        }
-
-
-        /// <summary>
-        /// The current parsing scope.
-        /// </summary>
-        public virtual ParsingScope Current
-        {
-            get { return _scopes.Count() > 0 ? _scopes.Peek() : null; }
         }
 
         /// <summary>
@@ -74,7 +71,7 @@ namespace OfficeOpenXml.FormulaParsing
         public virtual void KillScope(ParsingScope parsingScope)
         {
             _scopes.Pop();
-            if (_scopes.Count() == 0)
+            if (_scopes.Count == 0)
             {
                 _lifetimeEventHandler.ParsingCompleted();
             }

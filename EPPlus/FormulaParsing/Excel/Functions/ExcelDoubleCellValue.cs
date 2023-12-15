@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions
 {
@@ -10,7 +7,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         public ExcelDoubleCellValue(double val)
         {
             Value = val;
-            CellRow = default(int?);
+            CellRow = default;
         }
 
         public ExcelDoubleCellValue(double val, int cellRow)
@@ -27,6 +24,7 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         {
             return d.Value;
         }
+
         //  User-defined conversion from double to Digit
         public static implicit operator ExcelDoubleCellValue(double d)
         {
@@ -40,10 +38,11 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
 
         public int CompareTo(object obj)
         {
-            if(obj is double)
+            if (obj is double)
             {
                 return Value.CompareTo((double)obj);
             }
+
             return Value.CompareTo(((ExcelDoubleCellValue)obj).Value);
         }
 
@@ -51,10 +50,12 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions
         {
             return CompareTo(obj) == 0;
         }
+
         public override int GetHashCode()
         {
             return base.GetHashCode();
-        }        
+        }
+
         public static bool operator ==(ExcelDoubleCellValue a, ExcelDoubleCellValue b)
         {
             return a.Value.CompareTo(b.Value) == 0;

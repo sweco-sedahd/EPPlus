@@ -13,52 +13,53 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
-using System;
-using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
+using OfficeOpenXml.FormulaParsing.Exceptions;
 
 namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
 {
     public class NamedValueExpression : AtomicExpression
     {
+        private readonly ParsingContext _parsingContext;
+
         public NamedValueExpression(string expression, ParsingContext parsingContext)
             : base(expression)
         {
             _parsingContext = parsingContext;
         }
 
-        private readonly ParsingContext _parsingContext;
-
         public override CompileResult Compile()
         {
-            var c = this._parsingContext.Scopes.Current;
-            var name = _parsingContext.ExcelDataProvider.GetName(c.Address.Worksheet, ExpressionString);
+            ParsingScope c = _parsingContext.Scopes.Current;
+            ExcelDataProvider.INameInfo name = _parsingContext.ExcelDataProvider.GetName(c.Address.Worksheet, ExpressionString);
             //var result = _parsingContext.Parser.Parse(value.ToString());
 
             if (name == null)
             {
-                throw (new Exceptions.ExcelErrorValueException(ExcelErrorValue.Create(eErrorType.Name)));
+                throw new ExcelErrorValueException(ExcelErrorValue.Create(eErrorType.Name));
             }
-            if (name.Value==null)
+
+            if (name.Value == null)
             {
                 return null;
             }
+
             if (name.Value is ExcelDataProvider.IRangeInfo)
             {
                 var range = (ExcelDataProvider.IRangeInfo)name.Value;
@@ -66,24 +67,22 @@ namespace OfficeOpenXml.FormulaParsing.ExpressionGraph
                 {
                     return new CompileResult(name.Value, DataType.Enumerable);
                 }
-                else
+
+                if (range.IsEmpty)
                 {
-                    if (range.IsEmpty)
-                    {
-                        return null;
-                    }
-                    var factory = new CompileResultFactory();
-                    return factory.Create(range.First().Value);
+                    return null;
                 }
+
+                var factory = new CompileResultFactory();
+                return factory.Create(range.First().Value);
             }
-            else
-            {                
+
+            {
                 var factory = new CompileResultFactory();
                 return factory.Create(name.Value);
             }
 
-            
-            
+
             //return new CompileResultFactory().Create(result);
         }
     }

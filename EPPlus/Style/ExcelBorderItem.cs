@@ -13,25 +13,24 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		                Initial Release		        2009-10-01
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
-using System.Text;
 using OfficeOpenXml.Style.XmlAccess;
 
 namespace OfficeOpenXml.Style
@@ -41,29 +40,26 @@ namespace OfficeOpenXml.Style
     /// </summary>
     public sealed class ExcelBorderItem : StyleBase
     {
-        eStyleClass _cls;
-        StyleBase _parent;
-        internal ExcelBorderItem (ExcelStyles styles, OfficeOpenXml.XmlHelper.ChangedEventHandler ChangedEvent, int worksheetID, string address, eStyleClass cls, StyleBase parent) : 
+        readonly eStyleClass _cls;
+        ExcelColor _color;
+        readonly StyleBase _parent;
+
+        internal ExcelBorderItem(ExcelStyles styles, XmlHelper.ChangedEventHandler ChangedEvent, int worksheetID, string address, eStyleClass cls, StyleBase parent) :
             base(styles, ChangedEvent, worksheetID, address)
-	    {
-            _cls=cls;
+        {
+            _cls = cls;
             _parent = parent;
-	    }
+        }
+
         /// <summary>
         /// The line style of the border
         /// </summary>
         public ExcelBorderStyle Style
         {
-            get
-            {
-                return GetSource().Style;
-            }
-            set
-            {
-                _ChangedEvent(this, new StyleChangeEventArgs(_cls, eStyleProperty.Style, value, _positionID, _address));
-            }
+            get => GetSource().Style;
+            set => _ChangedEvent(this, new StyleChangeEventArgs(_cls, eStyleProperty.Style, value, _positionID, _address));
         }
-        ExcelColor _color=null;
+
         /// <summary>
         /// The color of the border
         /// </summary>
@@ -75,23 +71,23 @@ namespace OfficeOpenXml.Style
                 {
                     _color = new ExcelColor(_styles, _ChangedEvent, _positionID, _address, _cls, _parent);
                 }
+
                 return _color;
             }
         }
 
-        internal override string Id
-        {
-            get { return Style + Color.Id; }
-        }
+        internal override string Id => Style + Color.Id;
+
         internal override void SetIndex(int index)
         {
             _parent.Index = index;
         }
+
         private ExcelBorderItemXml GetSource()
         {
             int ix = _parent.Index < 0 ? 0 : _parent.Index;
 
-            switch(_cls)
+            switch (_cls)
             {
                 case eStyleClass.BorderTop:
                     return _styles.Borders[ix].Top;
@@ -106,7 +102,6 @@ namespace OfficeOpenXml.Style
                 default:
                     throw new Exception("Invalid class for Borderitem");
             }
-
         }
     }
 }

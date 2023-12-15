@@ -13,25 +13,24 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
 
 namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
@@ -41,17 +40,17 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
         public virtual IEnumerable<string> GetReferencedAddresses(string cellFormula, ParsingContext context)
         {
             var resultCells = new List<string>();
-            var r = context.Configuration.Lexer.Tokenize(cellFormula, context.Scopes.Current.Address.Worksheet);
-            var toAddresses = r.Where(x => x.TokenType == TokenType.ExcelAddress);
-            foreach (var toAddress in toAddresses)
+            IEnumerable<Token> r = context.Configuration.Lexer.Tokenize(cellFormula, context.Scopes.Current.Address.Worksheet);
+            IEnumerable<Token> toAddresses = r.Where(x => x.TokenType == TokenType.ExcelAddress);
+            foreach (Token toAddress in toAddresses)
             {
-                var rangeAddress = context.RangeAddressFactory.Create(toAddress.Value);
+                RangeAddress rangeAddress = context.RangeAddressFactory.Create(toAddress.Value);
                 var rangeCells = new List<string>();
                 if (rangeAddress.FromRow < rangeAddress.ToRow || rangeAddress.FromCol < rangeAddress.ToCol)
                 {
-                    for (var col = rangeAddress.FromCol; col <= rangeAddress.ToCol; col++)
+                    for (int col = rangeAddress.FromCol; col <= rangeAddress.ToCol; col++)
                     {
-                        for (var row = rangeAddress.FromRow; row <= rangeAddress.ToRow; row++)
+                        for (int row = rangeAddress.FromRow; row <= rangeAddress.ToRow; row++)
                         {
                             resultCells.Add(context.RangeAddressFactory.Create(col, row).Address);
                         }
@@ -61,8 +60,10 @@ namespace OfficeOpenXml.FormulaParsing.ExcelUtilities
                 {
                     rangeCells.Add(toAddress.Value);
                 }
+
                 resultCells.AddRange(rangeCells);
             }
+
             return resultCells;
         }
     }

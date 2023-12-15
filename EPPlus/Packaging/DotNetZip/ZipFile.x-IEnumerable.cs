@@ -25,9 +25,12 @@
 // ------------------------------------------------------------------
 
 
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
 namespace OfficeOpenXml.Packaging.Ionic.Zip
 {
-
     // For some weird reason, the method with the DispId(-4) attribute, which is used as
     // the _NewEnum() method, and which is required to get enumeration to work from COM
     // environments like VBScript and Javascript (etc) must be the LAST MEMBER in the
@@ -38,11 +41,12 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
     //
 
 
-
     internal partial class ZipFile
     {
-
-
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
 
         /// <summary>
@@ -118,15 +122,10 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// </example>
         ///
         /// <returns>A generic enumerator suitable for use  within a foreach loop.</returns>
-        public System.Collections.Generic.IEnumerator<ZipEntry> GetEnumerator()
+        public IEnumerator<ZipEntry> GetEnumerator()
         {
             foreach (ZipEntry e in _entries.Values)
                 yield return e;
-        }
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
 
 
@@ -144,11 +143,10 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <returns>
         /// The IEnumerator over the entries in the ZipFile.
         /// </returns>
-        [System.Runtime.InteropServices.DispId(-4)]
-        public System.Collections.IEnumerator GetNewEnum()          // the name of this method is not significant
+        [DispId(-4)]
+        public IEnumerator GetNewEnum() // the name of this method is not significant
         {
             return GetEnumerator();
         }
-
     }
 }

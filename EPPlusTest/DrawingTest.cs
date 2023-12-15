@@ -859,26 +859,26 @@ namespace EPPlusTest
             wsChart.Chart.Style = eChartStyle.Style23;
             wsChart.Chart.Title.Text = "Chart worksheet";
             wsChart.Chart.Series[0].Header = "Serie";
-            _pck.SaveAs(new FileInfo(@"c:\temp\chart.xlsx"));
+            _pck.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\chart.xlsx"));
         }
         [Ignore]
         [TestMethod]
         public void ReadChartWorksheet()
         {
-            _pck = new ExcelPackage(new FileInfo(@"c:\temp\chart.xlsx"));
+            _pck = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\chart.xlsx"));
             var chart = ((ExcelChartsheet)_pck.Workbook.Worksheets[1]).Chart;
 
-            _pck.SaveAs(new FileInfo(@"c:\temp\chart.xlsx"));
+            _pck.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\chart.xlsx"));
 
         }
         [Ignore]
         [TestMethod]
         public void ReadWriteSmoothChart()
         {
-            _pck = new ExcelPackage(new FileInfo(@"c:\temp\bug\Xds_2014_TEST.xlsx"));
+            _pck = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\Xds_2014_TEST.xlsx"));
             var chart = _pck.Workbook.Worksheets[1].Drawings[0] as ExcelChart;
             _pck.Workbook.Worksheets[1].Cells["B2"].Value = 33;
-            _pck.SaveAs(new FileInfo(@"c:\temp\chart.xlsx"));
+            _pck.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\chart.xlsx"));
 
         }
         [TestMethod]
@@ -974,7 +974,7 @@ namespace EPPlusTest
             //{
             //    var ws = p.Workbook.Worksheets[2];
             //    ws.Column(4).Width = 40;
-            //    p.SaveAs(new FileInfo(@"c:\temp\colwidthAdjust.xlsx"));
+            //    p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\colwidthAdjust.xlsx"));
             //}
         }
     }

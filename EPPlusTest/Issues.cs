@@ -50,7 +50,7 @@ namespace EPPlusTest
             ws.Cells[1, 1, 4, 1].Style.Numberformat.Format = "#,##0.00;[Red]-#,##0.00";
             ws.Cells[1, 2, 5, 2].Style.Numberformat.Format = "#,##0;[Red]-#,##0";
 
-            p.SaveAs(new FileInfo(@"c:\temp\style.xlsx"));
+            p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\style.xlsx"));
         }
         [TestMethod]
         public void Issue15041()
@@ -122,24 +122,24 @@ namespace EPPlusTest
         [TestMethod]
         public void Issue15112()
         {
-            System.IO.FileInfo case1 = new System.IO.FileInfo(@"c:\temp\bug\src\src\DeleteRowIssue\Template.xlsx");
+            System.IO.FileInfo case1 = new System.IO.FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\src\src\DeleteRowIssue\Template.xlsx");
             var p = new ExcelPackage(case1);
             var first = p.Workbook.Worksheets[1];
             first.DeleteRow(5);
-            p.SaveAs(new System.IO.FileInfo(@"c:\temp\bug\DeleteCol_case1.xlsx"));
+            p.SaveAs(new System.IO.FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\DeleteCol_case1.xlsx"));
 
-            var case2 = new System.IO.FileInfo(@"c:\temp\bug\src2\DeleteRowIssue\Template.xlsx");
+            var case2 = new System.IO.FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\src2\DeleteRowIssue\Template.xlsx");
             p = new ExcelPackage(case2);
             first = p.Workbook.Worksheets[1];
             first.DeleteRow(5);
-            p.SaveAs(new System.IO.FileInfo(@"c:\temp\bug\DeleteCol_case2.xlsx"));
+            p.SaveAs(new System.IO.FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\DeleteCol_case2.xlsx"));
         }
 
         [Ignore]
         [TestMethod]
         public void Issue15118()
         {
-            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"c:\temp\bugOutput.xlsx"), new FileInfo(@"c:\temp\bug\DeleteRowIssue\Template.xlsx")))
+            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bugOutput.xlsx"), new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\DeleteRowIssue\Template.xlsx")))
             {
                 ExcelWorkbook workBook = package.Workbook;
                 var worksheet = workBook.Worksheets[1];
@@ -199,7 +199,7 @@ namespace EPPlusTest
             ws.Cells["A1:H1"].Style.Font.Size = 14;
             ws.Cells["A1:H1"].Style.Font.Color.SetColor(Color.Red);
             ws.Cells["A1:H1"].Style.Font.Bold = true;
-            p.SaveAs(new FileInfo(@"c:\temp\merge.xlsx"));
+            p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\merge.xlsx"));
         }
         [TestMethod]
         public void Issue15141()
@@ -230,8 +230,8 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15150()
         {
-            var template = new FileInfo(@"c:\temp\bug\ClearIssue.xlsx");
-            const string output = @"c:\temp\bug\ClearIssueSave.xlsx";
+            var template = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\ClearIssue.xlsx");
+            const string output = @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\ClearIssueSave.xlsx";
 
             using (var pck = new ExcelPackage(template, false))
             {
@@ -247,8 +247,8 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15146()
         {
-            var template = new FileInfo(@"c:\temp\bug\CopyFail.xlsx");
-            const string output = @"c:\temp\bug\CopyFail-Save.xlsx";
+            var template = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\CopyFail.xlsx");
+            const string output = @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\CopyFail-Save.xlsx";
 
             using (var pck = new ExcelPackage(template, false))
             {
@@ -317,7 +317,7 @@ namespace EPPlusTest
             ws.Cells["C1"].Value = "Test";
             ws.Cells["A1:B2"].Copy(ws.Cells["C1"]);
             ws.Cells["B2"].Copy(ws.Cells["D1"]);
-            p.SaveAs(new FileInfo(@"c:\temp\bug\copy.xlsx"));
+            p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\copy.xlsx"));
         }
 
         [TestMethod]
@@ -334,7 +334,7 @@ namespace EPPlusTest
         [TestMethod]
         public void Issue15158()
         {
-            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"c:\temp\Output.xlsx"), new FileInfo(@"C:\temp\bug\DeleteColFormula\FormulasIssue\demo.xlsx")))
+            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\Output.xlsx"), new FileInfo(@"C:\temp\bug\DeleteColFormula\FormulasIssue\demo.xlsx")))
             {
                 ExcelWorkbook workBook = package.Workbook;
                 ExcelWorksheet worksheet = workBook.Worksheets[1];
@@ -464,8 +464,8 @@ namespace EPPlusTest
         {
             var p = new ExcelPackage();
             var ws = p.Workbook.Worksheets.Add("t");
-            ws.Drawings.AddPicture("Test", new FileInfo(@"c:\temp\bug\2152228.jpg"));
-            p.SaveAs(new FileInfo(@"c:\temp\bug\pic.xlsx"));
+            ws.Drawings.AddPicture("Test", new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\2152228.jpg"));
+            p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\pic.xlsx"));
         }
 
         [Ignore]
@@ -483,7 +483,7 @@ namespace EPPlusTest
                         ws.Cells["A1"].Value = "Test";
                         package.Encryption.Password = "Test2";
                         package.Save();
-                        //package.SaveAs(new FileInfo(@"c:\temp\test2.xlsx"));
+                        //package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\test2.xlsx"));
                     }
                 }
             }
@@ -492,7 +492,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15173_1()
         {
-            using (var pck = new ExcelPackage(new FileInfo(@"c:\temp\EPPlusIssues\Excel01.xlsx")))
+            using (var pck = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\EPPlusIssues\Excel01.xlsx")))
             {
                 var sw = new Stopwatch();
                 //pck.Workbook.FormulaParser.Configure(x => x.AttachLogger(LoggerFactory.CreateTextFileLogger(new FileInfo(@"c:\Temp\log1.txt"))));
@@ -512,7 +512,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15173_2()
         {
-            using (var pck = new ExcelPackage(new FileInfo(@"c:\temp\EPPlusIssues\Excel02.xlsx")))
+            using (var pck = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\EPPlusIssues\Excel02.xlsx")))
             {
                 var sw = new Stopwatch();
                 pck.Workbook.FormulaParser.Configure(x => x.AttachLogger(LoggerFactory.CreateTextFileLogger(new FileInfo(@"c:\Temp\log1.txt"))));
@@ -531,14 +531,14 @@ namespace EPPlusTest
         [TestMethod]
         public void Issue15154()
         {
-            Directory.EnumerateFiles(@"c:\temp\bug\ConstructorInvokationNotThreadSafe\").AsParallel().ForAll(file =>
+            Directory.EnumerateFiles(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\ConstructorInvokationNotThreadSafe\").AsParallel().ForAll(file =>
             {
                 //lock (_lock)
                 //{
                 using (var package = new ExcelPackage(new FileStream(file, FileMode.Open)))
                 {
                     package.Workbook.Worksheets[1].Cells[1, 1].Value = file;
-                    package.SaveAs(new FileInfo(@"c:\temp\bug\ConstructorInvokationNotThreadSafe\new\" + new FileInfo(file).Name));
+                    package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\ConstructorInvokationNotThreadSafe\new\" + new FileInfo(file).Name));
                 }
                 //}
             });
@@ -564,7 +564,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15194()
         {
-            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"c:\temp\bug\i15194-Save.xlsx"), new FileInfo(@"c:\temp\bug\I15194.xlsx")))
+            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\i15194-Save.xlsx"), new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\I15194.xlsx")))
             {
                 ExcelWorkbook workBook = package.Workbook;
                 var worksheet = workBook.Worksheets[1];
@@ -579,7 +579,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15195()
         {
-            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"c:\temp\bug\i15195_Save.xlsx"), new FileInfo(@"c:\temp\bug\i15195.xlsx")))
+            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\i15195_Save.xlsx"), new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\i15195.xlsx")))
             {
                 ExcelWorkbook workBook = package.Workbook;
                 var worksheet = workBook.Worksheets[1];
@@ -592,7 +592,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue14788()
         {
-            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"c:\temp\bug\i15195_Save.xlsx"), new FileInfo(@"c:\temp\bug\GetWorkSheetXmlBad.xlsx")))
+            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\i15195_Save.xlsx"), new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\GetWorkSheetXmlBad.xlsx")))
             {
                 ExcelWorkbook workBook = package.Workbook;
                 var worksheet = workBook.Worksheets[1];
@@ -605,7 +605,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15167()
         {
-            FileInfo fileInfo = new FileInfo(@"c:\temp\bug\Draw\input.xlsx");
+            FileInfo fileInfo = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\Draw\input.xlsx");
 
             ExcelPackage excelPackage = new ExcelPackage(fileInfo);
             {
@@ -616,13 +616,13 @@ namespace EPPlusTest
 
                 ws = excelPackage.Workbook.Worksheets.Add(sheetName);
 
-                excelPackage.SaveAs(new FileInfo(@"c:\temp\bug\output.xlsx"));
+                excelPackage.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\output.xlsx"));
             }
         }
         [TestMethod, Ignore]
         public void Issue15198()
         {
-            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"c:\temp\bug\Output.xlsx"), new FileInfo(@"c:\temp\bug\demo.xlsx")))
+            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\Output.xlsx"), new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\demo.xlsx")))
             {
                 ExcelWorkbook workBook = package.Workbook;
                 var worksheet = workBook.Worksheets[1];
@@ -635,7 +635,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue13492()
         {
-            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"c:\temp\bug\Bug13492.xlsx")))
+            using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\Bug13492.xlsx")))
             {
                 ExcelWorkbook workBook = package.Workbook;
                 var worksheet = workBook.Worksheets[1];
@@ -648,8 +648,8 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue14966()
         {
-            using (var package = new ExcelPackage(new FileInfo(@"c:\temp\bug\ssis\FileFromReportingServer2012.xlsx")))
-                package.SaveAs(new FileInfo(@"c:\temp\bug\ssis\Corrupted.xlsx"));
+            using (var package = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\ssis\FileFromReportingServer2012.xlsx")))
+                package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\ssis\Corrupted.xlsx"));
         }
         [TestMethod, Ignore]
         public void Issue15200()
@@ -690,7 +690,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15213()
         {
-            using (var p = new ExcelPackage(new FileInfo(@"c:\temp\bug\ExcelClearDemo\exceltestfile.xlsx")))
+            using (var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\ExcelClearDemo\exceltestfile.xlsx")))
             {
                 foreach (var ws in p.Workbook.Worksheets)
                 {
@@ -701,7 +701,7 @@ namespace EPPlusTest
                 {
                     Console.WriteLine(cell);
                 }
-                p.SaveAs(new FileInfo(@"c:\temp\bug\ExcelClearDemo\exceltestfile-save.xlsx"));
+                p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\ExcelClearDemo\exceltestfile-save.xlsx"));
             }
         }
 
@@ -709,7 +709,7 @@ namespace EPPlusTest
         public void Issuer15217()
         {
 
-            using (var p = new ExcelPackage(new FileInfo(@"c:\temp\bug\FormatRowCol.xlsx")))
+            using (var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\FormatRowCol.xlsx")))
             {
                 var ws = p.Workbook.Worksheets.Add("fmt");
                 ws.Row(1).Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -739,7 +739,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15234()
         {
-            using (var p = new ExcelPackage(new FileInfo(@"c:\temp\bug\merge2\input.xlsx")))
+            using (var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\merge2\input.xlsx")))
             {
                 var sheet = p.Workbook.Worksheets.First();
 
@@ -758,7 +758,7 @@ namespace EPPlusTest
         public void Issue()
         {
             DirectoryInfo outputDir = new DirectoryInfo(@"c:\ExcelPivotTest");
-            FileInfo MyFile = new FileInfo(@"c:\temp\bug\pivottable.xlsx");
+            FileInfo MyFile = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\pivottable.xlsx");
             LoadData(MyFile);
             BuildPivotTable1(MyFile);
             BuildPivotTable2(MyFile);
@@ -916,19 +916,19 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void issue15249()
         {
-            using (var exfile = new ExcelPackage(new FileInfo(@"c:\temp\bug\Boldtextcopy.xlsx")))
+            using (var exfile = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\Boldtextcopy.xlsx")))
             {
                 exfile.Workbook.Worksheets.Copy("sheet1", "copiedSheet");
-                exfile.SaveAs(new FileInfo(@"c:\temp\bug\Boldtextcopy2.xlsx"));
+                exfile.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\Boldtextcopy2.xlsx"));
             }
         }
         [TestMethod, Ignore]
         public void issue15300()
         {
-            using (var exfile = new ExcelPackage(new FileInfo(@"c:\temp\bug\headfootpic.xlsx")))
+            using (var exfile = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\headfootpic.xlsx")))
             {
                 exfile.Workbook.Worksheets.Copy("sheet1", "copiedSheet");
-                exfile.SaveAs(new FileInfo(@"c:\temp\bug\headfootpic_save.xlsx"));
+                exfile.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\headfootpic_save.xlsx"));
             }
 
         }
@@ -972,7 +972,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15382()
         {
-            using (var exfile = new ExcelPackage(new FileInfo(@"c:\temp\bug\Text Run Issue.xlsx")))
+            using (var exfile = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\Text Run Issue.xlsx")))
             {
                 exfile.SaveAs(new FileInfo(@"C:\temp\bug\inlinText.xlsx"));
             }
@@ -980,7 +980,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15380()
         {
-            using (var exfile = new ExcelPackage(new FileInfo(@"c:\temp\bug\dotinname.xlsx")))
+            using (var exfile = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\dotinname.xlsx")))
             {
                 var v = exfile.Workbook.Worksheets["sheet1.3"].Names["Test.Name"].Value;
                 Assert.AreEqual(v, 1);
@@ -989,7 +989,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15378()
         {
-            using (var p = new ExcelPackage(new FileInfo(@"c:\temp\bubble.xlsx")))
+            using (var p = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bubble.xlsx")))
             {
                 var c = p.Workbook.Worksheets[1].Drawings[0] as ExcelBubbleChart;
                 var cs = c.Series[0] as ExcelBubbleChartSerie;
@@ -1014,7 +1014,7 @@ namespace EPPlusTest
                 var r = ws.Cells["A1"];
                 r.RichText.Text = "Cell 1";
                 r["A2"].RichText.Add("Cell 2");
-                p.SaveAs(new FileInfo(@"c:\temp\rt.xlsx"));
+                p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\rt.xlsx"));
             }
         }
         [TestMethod]
@@ -1054,7 +1054,7 @@ namespace EPPlusTest
                 workSheet.InsertColumn(2, 2, 9);
                 workSheet.Column(45).Width = 0;
 
-                p.SaveAs(new FileInfo(@"c:\temp\styleerror.xlsx"));
+                p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\styleerror.xlsx"));
             }
         }
         [TestMethod]
@@ -1070,7 +1070,7 @@ namespace EPPlusTest
                 cell.RichText.Add("tata");
                 cell.RichText[1].Bold = false;
                 cell.RichText[1].Color = Color.Green;
-                p.SaveAs(new FileInfo(@"c:\temp\rtpreserve.xlsx"));
+                p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\rtpreserve.xlsx"));
             }
         }
         [TestMethod]
@@ -1082,13 +1082,13 @@ namespace EPPlusTest
                 var ws2 = p.Workbook.Worksheets.Add("ws2");
                 ws2.View.SelectedRange = "A1:B3 D12:D15";
                 ws2.View.ActiveCell = "D15";
-                p.SaveAs(new FileInfo(@"c:\temp\activeCell.xlsx"));
+                p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\activeCell.xlsx"));
             }
         }
         [TestMethod, Ignore]
         public void Issue15429()
         {
-            FileInfo file = new FileInfo(@"c:\temp\original.xlsx");
+            FileInfo file = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\original.xlsx");
             using (ExcelPackage excelPackage = new ExcelPackage(file))
             {
                 var worksheet = excelPackage.Workbook.Worksheets.Add("Sheet 1");
@@ -1106,13 +1106,13 @@ namespace EPPlusTest
                 {
                     conditionalFormat.Address = new ExcelAddress(5 + i++, 5, 6, 6);
                 }
-                excelPackage.SaveAs(new FileInfo(@"c:\temp\error.xlsx"));
+                excelPackage.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\error.xlsx"));
             }
         }
         [TestMethod, Ignore]
         public void Issue15436()
         {
-            FileInfo file = new FileInfo(@"c:\temp\incorrect value.xlsx");
+            FileInfo file = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\incorrect value.xlsx");
             using (ExcelPackage excelPackage = new ExcelPackage(file))
             {
                 Assert.AreEqual(excelPackage.Workbook.Worksheets[1].Cells["A1"].Value, 19120072);
@@ -1121,7 +1121,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue13128()
         {
-            FileInfo file = new FileInfo(@"c:\temp\students.xlsx");
+            FileInfo file = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\students.xlsx");
             using (ExcelPackage excelPackage = new ExcelPackage(file))
             {
                 Assert.AreNotEqual(((ExcelChart)excelPackage.Workbook.Worksheets[1].Drawings[0]).Series[0].XSeries, null);
@@ -1132,8 +1132,8 @@ namespace EPPlusTest
         {
             using (var p = new ExcelPackage())
             {
-                var path1 = @"c:\temp\saveerror1.xlsx";
-                var path2 = @"c:\temp\saveerror2.xlsx";
+                var path1 = @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\saveerror1.xlsx";
+                var path2 = @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\saveerror2.xlsx";
                 var workSheet = p.Workbook.Worksheets.Add("saveerror");
                 workSheet.Cells["A1"].Value = "test";
 
@@ -1159,8 +1159,8 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15469()
         {
-            ExcelPackage excelPackage = new ExcelPackage(new FileInfo(@"c:\temp\bug\EPPlus-Bug.xlsx"), true);
-            using (FileStream fs = new FileStream(@"c:\temp\bug\EPPlus-Bug-new.xlsx", FileMode.Create))
+            ExcelPackage excelPackage = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\EPPlus-Bug.xlsx"), true);
+            using (FileStream fs = new FileStream(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\EPPlus-Bug-new.xlsx", FileMode.Create))
             {
                 excelPackage.SaveAs(fs);
             }
@@ -1181,7 +1181,7 @@ namespace EPPlusTest
         {
             using (var pkg = new ExcelPackage())
             {
-                var templateFile = ReadTemplateFile(@"c:\temp\bug\test_vorlage3.xlsx");
+                var templateFile = ReadTemplateFile(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\test_vorlage3.xlsx");
                 using (var ms = new System.IO.MemoryStream(templateFile))
                 {
                     using (var tempPkg = new ExcelPackage(ms))
@@ -1194,7 +1194,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15485()
         {
-            using (var pkg = new ExcelPackage(new FileInfo(@"c:\temp\bug\PivotChartSeriesIssue.xlsx")))
+            using (var pkg = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\PivotChartSeriesIssue.xlsx")))
             {
                 var ws = pkg.Workbook.Worksheets[1];
                 ws.InsertRow(1, 1);
@@ -1350,25 +1350,25 @@ namespace EPPlusTest
                 {
                     w.Column(8 + 2 * i).Style.Border.Right.Style = ExcelBorderStyle.Dotted;
                 }
-                package.SaveAs(new FileInfo(@"c:\temp\bug\stylebug.xlsx"));
+                package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\stylebug.xlsx"));
             }
         }
         [TestMethod, Ignore]
         public void Issuer15560()
         {
             //Type not set to error when converting shared formula.
-            using (var package = new ExcelPackage(new FileInfo(@"c:\temp\bug\sharedFormulas.xlsm")))
+            using (var package = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\sharedFormulas.xlsm")))
             {
-                package.SaveAs(new FileInfo(@"c:\temp\bug\sharedformulabug.xlsm"));
+                package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\sharedformulabug.xlsm"));
             }
         }
         [TestMethod, Ignore]
         public void Issuer15558()
         {
             //TODO: ??? works
-            using (var package = new ExcelPackage(new FileInfo(@"c:\temp\bug\test_file_20161118.xlsx")))
+            using (var package = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\test_file_20161118.xlsx")))
             {
-                package.SaveAs(new FileInfo(@"c:\temp\bug\saveproblem.xlsm"));
+                package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\saveproblem.xlsm"));
             }
         }
         /// <summary>
@@ -1377,7 +1377,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Chart_From_Cell_Union_Selector_Bug_Test()
         {
-            var existingFile = new FileInfo(@"c:\temp\Chart_From_Cell_Union_Selector_Bug_Test.xlsx");
+            var existingFile = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\Chart_From_Cell_Union_Selector_Bug_Test.xlsx");
             if (existingFile.Exists)
                 existingFile.Delete();
 
@@ -1411,8 +1411,8 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue15566()
         {
-            string TemplateFileName = @"c:\temp\bug\TestWithPivotTablePointingToExcelTableForData.xlsx";
-            string ExportFileName = @"c:\temp\bug\TestWithPivotTablePointingToExcelTableForData_Export.xlsx";
+            string TemplateFileName = @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\TestWithPivotTablePointingToExcelTableForData.xlsx";
+            string ExportFileName = @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\TestWithPivotTablePointingToExcelTableForData_Export.xlsx";
             using (ExcelPackage excelpackage = new ExcelPackage(new FileInfo(TemplateFileName), true))
             {
                 excelpackage.SaveAs(new FileInfo(ExportFileName));
@@ -1431,7 +1431,7 @@ namespace EPPlusTest
                 }
                 ws.InsertRow(4, 1025, 3);
                 ws.InsertRow(1050, 1025, 3);
-                p.SaveAs(new FileInfo(@"c:\temp\bug\fb.xlsx"));
+                p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\fb.xlsx"));
             }
         }
         [TestMethod, Ignore]
@@ -1445,14 +1445,14 @@ namespace EPPlusTest
                 ws.Cells.Style.Border.Left.Style = ExcelBorderStyle.Thin;
                 ws.Cells.Style.Border.Right.Style = ExcelBorderStyle.Thin;
                 ws.Cells.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                p.SaveAs(new FileInfo(@"c:\temp\bug\StyleBug.xlsx"));
+                p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\StyleBug.xlsx"));
             }
         }
         [TestMethod, Ignore]
         public void BugCommentNullAfterRemove()
         {
 
-            string xls = @"c:\temp\bug\in.xlsx";
+            string xls = @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\in.xlsx";
 
             ExcelPackage theExcel = new ExcelPackage(new FileInfo(xls), true);
 
@@ -1475,7 +1475,7 @@ namespace EPPlusTest
         public void BugCommentExceptionOnRemove()
         {
 
-            string xls = @"c:\temp\bug\in.xlsx";
+            string xls = @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\in.xlsx";
 
             ExcelPackage theExcel = new ExcelPackage(new FileInfo(xls), true);
 
@@ -1553,7 +1553,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue_15585()
         {
-            var excelFile = new FileInfo(@"c:\temp\bug\formula_value.xlsx");
+            var excelFile = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\formula_value.xlsx");
             using (var package = new ExcelPackage(excelFile))
             {
                 // Output from the logger will be written to the following file
@@ -1588,12 +1588,12 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue_5()
         {
-            var excelFile = new FileInfo(@"c:\temp\bug\test.xlsm");
+            var excelFile = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\test.xlsm");
             using (var package = new ExcelPackage(excelFile))
             {
                 var ws = package.Workbook.Worksheets.Add("NewWorksheet");
                 ws.CodeModule.Code = "Private Sub Worksheet_SelectionChange(ByVal Target As Range)\r\n\r\nEnd Sub";
-                package.SaveAs(new FileInfo(@"c:\temp\bug\vbafailSaved.xlsm"));
+                package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\vbafailSaved.xlsm"));
             }
         }
         [TestMethod, Ignore]
@@ -1608,7 +1608,7 @@ namespace EPPlusTest
             {
                 var ws = package.Workbook.Worksheets.Add("Dynamic Test");
                 ws.Cells["a1"].LoadFromCollection(l);
-                package.SaveAs(new FileInfo(@"c:\temp\dynamic.xlsx"));
+                package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\dynamic.xlsx"));
             }
 
 
@@ -1647,7 +1647,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue32()
         {
-            var outputDir = new DirectoryInfo(@"c:\temp\sampleapp");
+            var outputDir = new DirectoryInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\sampleapp");
             var existFile = new FileInfo(outputDir.FullName + @"\sample1.xlsx");
             string newFileName = outputDir.FullName + @"\sample1_copied.xlsx";
 
@@ -1715,7 +1715,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue60()
         {
-            var ms = new MemoryStream(File.ReadAllBytes(@"c:\temp\sampleapp\sample10\Template.xlsx"));
+            var ms = new MemoryStream(File.ReadAllBytes(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\sampleapp\sample10\Template.xlsx"));
             using (var p = new ExcelPackage())
             {
                 p.Load(ms, "");
@@ -1731,7 +1731,7 @@ namespace EPPlusTest
             {
                 var ws = p.Workbook.Worksheets.Add("i61");
                 ws.Cells["A1"].LoadFromDataTable(table1, true);
-                //p.SaveAs(new FileInfo(@"c:\temp\issue61.xlsx"));
+                //p.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\issue61.xlsx"));
             }
 
         }
@@ -1777,7 +1777,7 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue51()
         {
-            var filename = new FileInfo(@"c:\temp\bug\bug51.xlsx");
+            var filename = new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\bug51.xlsx");
             using (ExcelPackage pck = new ExcelPackage(filename))
             {
                 var data = pck.Workbook.Worksheets.Add("data");
@@ -1812,7 +1812,7 @@ namespace EPPlusTest
                 PrepareDoc(xlp);
                 GenPivot(xlp);
 
-                FileStream fs = File.Create(@"c:\temp\bug\pivot44.xlsx");
+                FileStream fs = File.Create(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\pivot44.xlsx");
                 xlp.SaveAs(fs);
                 fs.Close();
             }
@@ -1873,19 +1873,19 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue68()
         {
-            using (var pck = new ExcelPackage(new FileInfo(@"c:\temp\bug68.xlsx")))
+            using (var pck = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug68.xlsx")))
             {
                 var ws = pck.Workbook.Worksheets["Sheet1"];
                 pck.Workbook.Worksheets.Delete(ws);
                 ws = pck.Workbook.Worksheets.Add("Sheet1");
-                pck.SaveAs(new FileInfo(@"c:\temp\bug68-2.xlsx"));
+                pck.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug68-2.xlsx"));
             }
         }
         [TestMethod, Ignore]
         public void Issue70()
         {
-            var documentPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"c:\temp\workbook with comment.xlsx");
-            var outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"c:\temp\WorkbookWithCommentOutput.xlsx");
+            var documentPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\workbook with comment.xlsx");
+            var outputPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\WorkbookWithCommentOutput.xlsx");
             var fileInfo = new FileInfo(documentPath);
             Assert.IsTrue(fileInfo.Exists);
             using (var workbook = new ExcelPackage(fileInfo))
@@ -1899,8 +1899,8 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue100()
         {
-            Stream templateFile = new FileStream(@"c:\temp\bug\epplus_drawing_id_issue.xlsx", FileMode.Open, FileAccess.Read, FileShare.Read);
-            FileStream outputFile = new FileStream(@"c:\temp\bug\epplus_drawing_id_issue_new.xlsx", FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            Stream templateFile = new FileStream(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\epplus_drawing_id_issue.xlsx", FileMode.Open, FileAccess.Read, FileShare.Read);
+            FileStream outputFile = new FileStream(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\epplus_drawing_id_issue_new.xlsx", FileMode.Create, FileAccess.ReadWrite, FileShare.None);
             using (ExcelPackage package = new ExcelPackage(templateFile))
             {
                 ExcelWorkbook wb = package.Workbook;
@@ -1915,8 +1915,8 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue99()
         {
-            var template = @"c:\temp\bug\iss99\Template.xlsx";
-            var result = @"c:\temp\bug\iss99\Result.xlsx";
+            var template = @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\iss99\Template.xlsx";
+            var result = @"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\iss99\Result.xlsx";
             using (var inStream = File.Open(template, FileMode.Open))
             {
                 using (var outStream = File.Open(result, FileMode.OpenOrCreate, FileAccess.ReadWrite))
@@ -1931,12 +1931,12 @@ namespace EPPlusTest
         [TestMethod, Ignore]
         public void Issue94()
         {
-            using (var package = new ExcelPackage(new FileInfo(@"c:\temp\bug\iss94\MergedCellsTemplate.xlsx")))
+            using (var package = new ExcelPackage(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\iss94\MergedCellsTemplate.xlsx")))
             {
                 var ws = package.Workbook.Worksheets.First();
                 var copy = package.Workbook.Worksheets.Add("copy", ws);
                 package.Workbook.Worksheets.Delete(ws);
-                package.SaveAs(new FileInfo(@"c:\temp\bug\iss94\MergedCellsTemplateSaved.xlsx"));
+                package.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\bug\iss94\MergedCellsTemplateSaved.xlsx"));
             }
         }
         [TestMethod, Ignore]
@@ -2044,7 +2044,7 @@ namespace EPPlusTest
             {
                 var ws = pck.Workbook.Worksheets.Add("Pictures");
                 int row = 1;
-                foreach (var f in Directory.EnumerateFiles(@"c:\temp\addin_temp\Addin\img\open_icon_library-full\icons\ico\16x16\actions\"))
+                foreach (var f in Directory.EnumerateFiles(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\addin_temp\Addin\img\open_icon_library-full\icons\ico\16x16\actions\"))
                 {
                     var b = new Bitmap(f);
                     var pic = ws.Drawings.AddPicture($"Image{(row + 1) / 2}", b);
@@ -2268,7 +2268,7 @@ namespace EPPlusTest
             Assert.AreEqual(18, boldStyle.Style.Font.Size);
             Assert.AreEqual(boldStyle.Style.Font.Color.Rgb, "FFFF0000");
 
-            pkg.SaveAs(new FileInfo(@"c:\temp\n.xlsx"));
+            pkg.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\n.xlsx"));
         }
         [TestMethod]
         public void Issue332()
@@ -2340,7 +2340,7 @@ namespace EPPlusTest
                 v.Error = "error!";
                 v.ErrorStyle = OfficeOpenXml.DataValidation.ExcelDataValidationWarningStyle.stop;
                 v.AllowBlank = false;
-                pck.SaveAs(new FileInfo(@"c:\temp\book.xlsx"));
+                pck.SaveAs(new FileInfo(@"C:\OldLaptop\source\repos1\EPPlus\TestingFiles\book.xlsx"));
             }
         }
 

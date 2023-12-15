@@ -13,26 +13,25 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Jan Källman		Initial Release		        2009-10-01
  * Jan Källman		License changed GPL-->LGPL 2011-12-16
  *******************************************************************************/
+
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using System.Xml;
 
 namespace OfficeOpenXml.Drawing.Chart
@@ -42,6 +41,10 @@ namespace OfficeOpenXml.Drawing.Chart
     /// </summary>
     public sealed class ExcelRadarChartSerie : ExcelChartSerie
     {
+        const string markerPath = "c:marker/c:symbol/@val";
+        const string MARKERSIZE_PATH = "c:marker/c:size/@val";
+        ExcelChartSerieDataLabel _DataLabel;
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -57,7 +60,7 @@ namespace OfficeOpenXml.Drawing.Chart
                 Marker = eMarkerStyle.None;
             }
         }
-        ExcelChartSerieDataLabel _DataLabel = null;
+
         /// <summary>
         /// Datalabel
         /// </summary>
@@ -69,10 +72,11 @@ namespace OfficeOpenXml.Drawing.Chart
                 {
                     _DataLabel = new ExcelChartSerieDataLabel(_ns, _node);
                 }
+
                 return _DataLabel;
             }
         }
-        const string markerPath = "c:marker/c:symbol/@val";
+
         /// <summary>
         /// Marker symbol 
         /// </summary>
@@ -81,36 +85,28 @@ namespace OfficeOpenXml.Drawing.Chart
             get
             {
                 string marker = GetXmlNodeString(markerPath);
-                if (marker == "" || marker=="none")
+                if (marker is "" or "none")
                 {
                     return eMarkerStyle.None;
                 }
-                else
-                {
-                    return (eMarkerStyle)Enum.Parse(typeof(eMarkerStyle), marker, true);
-                }                
+
+                return (eMarkerStyle)Enum.Parse(typeof(eMarkerStyle), marker, true);
             }
-            internal set
-            {
-                SetXmlNodeString(markerPath, value.ToString().ToLower(CultureInfo.InvariantCulture));
-            }
+            internal set => SetXmlNodeString(markerPath, value.ToString().ToLower(CultureInfo.InvariantCulture));
         }
-        const string MARKERSIZE_PATH = "c:marker/c:size/@val";
+
         public int MarkerSize
         {
-            get
-            {
-                return GetXmlNodeInt(MARKERSIZE_PATH);
-            }
+            get => GetXmlNodeInt(MARKERSIZE_PATH);
             set
             {
                 if (value < 2 && value > 72)
                 {
-                    throw (new ArgumentOutOfRangeException("MarkerSize out of range. Range from 2-72 allowed."));
+                    throw new ArgumentOutOfRangeException("MarkerSize out of range. Range from 2-72 allowed.");
                 }
+
                 SetXmlNodeString(MARKERSIZE_PATH, value.ToString(CultureInfo.InvariantCulture));
             }
         }
-
     }
 }

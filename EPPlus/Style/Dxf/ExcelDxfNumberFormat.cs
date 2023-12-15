@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-
-namespace OfficeOpenXml.Style.Dxf
+﻿namespace OfficeOpenXml.Style.Dxf
 {
     public class ExcelDxfNumberFormat : DxfStyleBase<ExcelDxfNumberFormat>
     {
+        string _format = "";
+
         public ExcelDxfNumberFormat(ExcelStyles styles) : base(styles)
         {
-
         }
-        int _numFmtID=int.MinValue;
+
         /// <summary>
         /// Id for number format
         /// 
@@ -47,24 +42,11 @@ namespace OfficeOpenXml.Style.Dxf
         /// 48  ##0.0E+0 
         /// 49  @
         /// </summary>            
-        public int NumFmtID 
-        { 
-            get
-            {
-                return _numFmtID;
-            }
-            internal set
-            {
-                _numFmtID = value;
-            }
-        }
-        string _format="";
+        public int NumFmtID { get; internal set; } = int.MinValue;
+
         public string Format
-        { 
-            get
-            {
-                return _format;
-            }
+        {
+            get => _format;
             set
             {
                 _format = value;
@@ -72,13 +54,9 @@ namespace OfficeOpenXml.Style.Dxf
             }
         }
 
-        protected internal override string Id
-        {
-            get
-            {
-                return Format;
-            }
-        }
+        protected internal override string Id => Format;
+
+        protected internal override bool HasValue => !string.IsNullOrEmpty(Format);
 
         protected internal override void CreateNodes(XmlHelper helper, string path)
         {
@@ -86,17 +64,12 @@ namespace OfficeOpenXml.Style.Dxf
             {
                 NumFmtID = _styles._nextDfxNumFmtID++;
             }
+
             helper.CreateNode(path);
             SetValue(helper, path + "/@numFmtId", NumFmtID);
             SetValue(helper, path + "/@formatCode", Format);
         }
-        protected internal override bool HasValue
-        {
-            get 
-            { 
-                return !string.IsNullOrEmpty(Format); 
-            }
-        }
+
         protected internal override ExcelDxfNumberFormat Clone()
         {
             return new ExcelDxfNumberFormat(_styles) { NumFmtID = NumFmtID, Format = Format };

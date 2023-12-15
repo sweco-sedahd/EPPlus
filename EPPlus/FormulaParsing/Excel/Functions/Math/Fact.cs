@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using OfficeOpenXml.FormulaParsing.ExpressionGraph;
 
 namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
@@ -11,13 +8,14 @@ namespace OfficeOpenXml.FormulaParsing.Excel.Functions.Math
         public override CompileResult Execute(IEnumerable<FunctionArgument> arguments, ParsingContext context)
         {
             ValidateArguments(arguments, 1);
-            var number = ArgToDecimal(arguments, 0);
+            double number = ArgToDecimal(arguments, 0);
             ThrowExcelErrorValueExceptionIf(() => number < 0, eErrorType.NA);
-            var result = 1d;
-            for (var x = 1; x < number; x++)
+            double result = 1d;
+            for (int x = 1; x < number; x++)
             {
                 result *= x;
             }
+
             return CreateResult(result, DataType.Integer);
         }
     }

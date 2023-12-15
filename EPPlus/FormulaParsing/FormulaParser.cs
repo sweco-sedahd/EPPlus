@@ -13,48 +13,45 @@
 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * The GNU Lesser General Public License can be viewed at http://www.opensource.org/licenses/lgpl-license.php
  * If you unfamiliar with this license or have questions about it, here is an http://www.gnu.org/licenses/gpl-faq.html
  *
- * All code and executables are provided "as is" with no warranty either express or implied. 
+ * All code and executables are provided "as is" with no warranty either express or implied.
  * The author accepts no liability for any damage or loss of business that this product may cause.
  *
  * Code change notes:
- * 
+ *
  * Author							Change						Date
  * ******************************************************************************
  * Mats Alm   		                Added       		        2013-03-01 (Prior file history on https://github.com/swmal/ExcelFormulaParser)
  *******************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using OfficeOpenXml.FormulaParsing.ExpressionGraph;
-using OfficeOpenXml.FormulaParsing;
-using OfficeOpenXml.FormulaParsing.Excel.Operators;
-using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
-using OfficeOpenXml.FormulaParsing.Excel;
 using OfficeOpenXml.FormulaParsing.Excel.Functions;
 using OfficeOpenXml.FormulaParsing.ExcelUtilities;
+using OfficeOpenXml.FormulaParsing.Exceptions;
+using OfficeOpenXml.FormulaParsing.ExpressionGraph;
+using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
 using OfficeOpenXml.FormulaParsing.Logging;
 using OfficeOpenXml.FormulaParsing.Utilities;
-using System.Diagnostics;
-using OfficeOpenXml.FormulaParsing.Exceptions;
 
 namespace OfficeOpenXml.FormulaParsing
 {
     public class FormulaParser : IDisposable
     {
-        private readonly ParsingContext _parsingContext;
         private readonly ExcelDataProvider _excelDataProvider;
+        private readonly ParsingContext _parsingContext;
+        private IExpressionCompiler _compiler;
+        private IExpressionGraphBuilder _graphBuilder;
 
         public FormulaParser(ExcelDataProvider excelDataProvider)
             : this(excelDataProvider, ParsingContext.Create())
         {
-           
         }
 
         public FormulaParser(ExcelDataProvider excelDataProvider, ParsingContext parsingContext)
@@ -75,98 +72,111 @@ namespace OfficeOpenXml.FormulaParsing
             });
         }
 
+        public ILexer Lexer { get; private set; }
+
+        public IEnumerable<string> FunctionNames => _parsingContext.Configuration.FunctionRepository.FunctionNames;
+
+        public IFormulaParserLogger Logger => _parsingContext.Configuration.Logger;
+
+        public void Dispose()
+        {
+            if (_parsingContext.Debug)
+            {
+                _parsingContext.Configuration.Logger.Dispose();
+            }
+        }
+
         public void Configure(Action<ParsingConfiguration> configMethod)
         {
             configMethod.Invoke(_parsingContext.Configuration);
-            _lexer = _parsingContext.Configuration.Lexer ?? _lexer;
+            Lexer = _parsingContext.Configuration.Lexer ?? Lexer;
             _graphBuilder = _parsingContext.Configuration.GraphBuilder ?? _graphBuilder;
             _compiler = _parsingContext.Configuration.ExpressionCompiler ?? _compiler;
         }
 
-        private ILexer _lexer;
-        private IExpressionGraphBuilder _graphBuilder;
-        private IExpressionCompiler _compiler;
-
-        public ILexer Lexer { get { return _lexer; } }
-        public IEnumerable<string> FunctionNames { get { return _parsingContext.Configuration.FunctionRepository.FunctionNames; } } 
-
         internal virtual object Parse(string formula, RangeAddress rangeAddress)
         {
-            using (var scope = _parsingContext.Scopes.NewScope(rangeAddress))
+            using (ParsingScope scope = _parsingContext.Scopes.NewScope(rangeAddress))
             {
-                var tokens = _lexer.Tokenize(formula);
-                var graph = _graphBuilder.Build(tokens);
+                IEnumerable<Token> tokens = Lexer.Tokenize(formula);
+                ExpressionGraph.ExpressionGraph graph = _graphBuilder.Build(tokens);
                 if (graph.Expressions.Count() == 0)
                 {
                     return null;
                 }
+
                 return _compiler.Compile(graph.Expressions).Result;
             }
         }
 
         internal virtual object Parse(IEnumerable<Token> tokens, string worksheet, string address)
         {
-            var rangeAddress = _parsingContext.RangeAddressFactory.Create(address);
-            using (var scope = _parsingContext.Scopes.NewScope(rangeAddress))
+            RangeAddress rangeAddress = _parsingContext.RangeAddressFactory.Create(address);
+            using (ParsingScope scope = _parsingContext.Scopes.NewScope(rangeAddress))
             {
-                var graph = _graphBuilder.Build(tokens);
+                ExpressionGraph.ExpressionGraph graph = _graphBuilder.Build(tokens);
                 if (graph.Expressions.Count() == 0)
                 {
                     return null;
                 }
+
                 return _compiler.Compile(graph.Expressions).Result;
             }
         }
+
         internal virtual object ParseCell(IEnumerable<Token> tokens, string worksheet, int row, int column)
         {
-            var rangeAddress = _parsingContext.RangeAddressFactory.Create(worksheet, column, row);
-            using (var scope = _parsingContext.Scopes.NewScope(rangeAddress))
+            RangeAddress rangeAddress = _parsingContext.RangeAddressFactory.Create(worksheet, column, row);
+            using (ParsingScope scope = _parsingContext.Scopes.NewScope(rangeAddress))
             {
                 //    _parsingContext.Dependencies.AddFormulaScope(scope);
-                var graph = _graphBuilder.Build(tokens);
+                ExpressionGraph.ExpressionGraph graph = _graphBuilder.Build(tokens);
                 if (graph.Expressions.Count() == 0)
                 {
                     return 0d;
                 }
+
                 try
                 {
-                    var compileResult = _compiler.Compile(graph.Expressions);
+                    CompileResult compileResult = _compiler.Compile(graph.Expressions);
                     // quick solution for the fact that an excelrange can be returned.
-                    var rangeInfo = compileResult.Result as ExcelDataProvider.IRangeInfo;
-                    if (rangeInfo == null)
+                    if (compileResult.Result is not ExcelDataProvider.IRangeInfo rangeInfo)
                     {
                         return compileResult.Result ?? 0d;
                     }
-                    else
+
+                    if (rangeInfo.IsEmpty)
                     {
-                        if (rangeInfo.IsEmpty)
-                        {
-                            return 0d;
-                        }
-                        if (!rangeInfo.IsMulti)
-                        {
-                            return rangeInfo.First().Value ?? 0d;
-                        }
-                        // ok to return multicell if it is a workbook scoped name.
-                        if (string.IsNullOrEmpty(worksheet))
-                        {
-                            return rangeInfo;
-                        }
-                        if (_parsingContext.Debug)
-                        {
-                            var msg = string.Format("A range with multiple cell was returned at row {0}, column {1}",
-                                row, column);
-                            _parsingContext.Configuration.Logger.Log(_parsingContext, msg);
-                        }
-                        return ExcelErrorValue.Create(eErrorType.Value);
+                        return 0d;
                     }
+
+                    if (!rangeInfo.IsMulti)
+                    {
+                        return rangeInfo.First().Value ?? 0d;
+                    }
+
+                    // ok to return multicell if it is a workbook scoped name.
+                    if (string.IsNullOrEmpty(worksheet))
+                    {
+                        return rangeInfo;
+                    }
+
+                    if (_parsingContext.Debug)
+                    {
+                        string msg = string.Format("A range with multiple cell was returned at row {0}, column {1}",
+                            row, column);
+                        _parsingContext.Configuration.Logger.Log(_parsingContext, msg);
+                    }
+
+                    return ExcelErrorValue.Create(eErrorType.Value);
                 }
-                catch(ExcelErrorValueException ex)
+                catch (ExcelErrorValueException ex)
                 {
                     if (_parsingContext.Debug)
                     {
                         _parsingContext.Configuration.Logger.Log(_parsingContext, ex);
                     }
+
                     return ex.ErrorValue;
                 }
             }
@@ -176,7 +186,7 @@ namespace OfficeOpenXml.FormulaParsing
         {
             return Parse(formula, _parsingContext.RangeAddressFactory.Create(address));
         }
-        
+
         public virtual object Parse(string formula)
         {
             return Parse(formula, RangeAddress.Empty);
@@ -185,21 +195,19 @@ namespace OfficeOpenXml.FormulaParsing
         public virtual object ParseAt(string address)
         {
             Require.That(address).Named("address").IsNotNullOrEmpty();
-            var rangeAddress = _parsingContext.RangeAddressFactory.Create(address);
+            RangeAddress rangeAddress = _parsingContext.RangeAddressFactory.Create(address);
             return ParseAt(rangeAddress.Worksheet, rangeAddress.FromRow, rangeAddress.FromCol);
         }
 
         public virtual object ParseAt(string worksheetName, int row, int col)
         {
-            var f = _excelDataProvider.GetRangeFormula(worksheetName, row, col);
+            string f = _excelDataProvider.GetRangeFormula(worksheetName, row, col);
             if (string.IsNullOrEmpty(f))
             {
                 return _excelDataProvider.GetRangeValue(worksheetName, row, col);
             }
-            else
-            {
-                return Parse(f, _parsingContext.RangeAddressFactory.Create(worksheetName,col,row));
-            }
+
+            return Parse(f, _parsingContext.RangeAddressFactory.Create(worksheetName, col, row));
             //var dataItem = _excelDataProvider.GetRangeValues(address).FirstOrDefault();
             //if (dataItem == null /*|| (dataItem.Value == null && dataItem.Formula == null)*/) return null;
             //if (!string.IsNullOrEmpty(dataItem.Formula))
@@ -212,22 +220,9 @@ namespace OfficeOpenXml.FormulaParsing
 
         internal void InitNewCalc()
         {
-            if(_excelDataProvider!=null)
+            if (_excelDataProvider != null)
             {
                 _excelDataProvider.Reset();
-            }
-        }
-
-        public IFormulaParserLogger Logger
-        {
-            get { return _parsingContext.Configuration.Logger; }
-        }
-
-        public void Dispose()
-        {
-            if (_parsingContext.Debug)
-            {
-                _parsingContext.Configuration.Logger.Dispose();
             }
         }
     }

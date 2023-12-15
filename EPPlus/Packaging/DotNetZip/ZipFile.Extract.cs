@@ -27,14 +27,11 @@
 
 using System;
 using System.IO;
-using System.Collections.Generic;
 
 namespace OfficeOpenXml.Packaging.Ionic.Zip
 {
-
     internal partial class ZipFile
     {
-
         /// <summary>
         /// Extracts all of the items in the zip archive, to the specified path in the
         /// filesystem.  The path can be relative or fully-qualified.
@@ -153,7 +150,6 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         }
 
 
-
         /// <summary>
         /// Extracts all of the items in the zip archive, to the specified path in the
         /// filesystem, using the specified behavior when extraction would overwrite an
@@ -172,14 +168,14 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <para>
         /// The action to take when an extract would overwrite an existing file
         /// applies to all entries.  If you want to set this on a per-entry basis,
-        /// then you must use <see cref="ZipEntry.Extract(String,
+        /// then you must use <see cref="ZipEntry.Extract(string,
         /// ExtractExistingFileAction)" /> or one of the similar methods.
         /// </para>
         ///
         /// <para>
         /// Calling this method is equivalent to setting the <see
         /// cref="ExtractExistingFile"/> property and then calling <see
-        /// cref="ExtractAll(String)"/>.
+        /// cref="ExtractAll(string)"/>.
         /// </para>
         ///
         /// <para>
@@ -215,7 +211,7 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
         /// <param name="extractExistingFile">
         /// The action to take if extraction would overwrite an existing file.
         /// </param>
-        /// <seealso cref="ExtractSelectedEntries(String,ExtractExistingFileAction)"/>
+        /// <seealso cref="ExtractSelectedEntries(string,ExtractExistingFileAction)"/>
         internal void ExtractAll(string path, ExtractExistingFileAction extractExistingFile)
         {
             ExtractExistingFile = extractExistingFile;
@@ -237,25 +233,27 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                     if (header)
                     {
                         StatusMessageTextWriter.WriteLine("\n{1,-22} {2,-8} {3,4}   {4,-8}  {0}",
-                                  "Name", "Modified", "Size", "Ratio", "Packed");
-                        StatusMessageTextWriter.WriteLine(new System.String('-', 72));
+                            "Name", "Modified", "Size", "Ratio", "Packed");
+                        StatusMessageTextWriter.WriteLine(new string('-', 72));
                         header = false;
                     }
+
                     if (Verbose)
                     {
                         StatusMessageTextWriter.WriteLine("{1,-22} {2,-8} {3,4:F0}%   {4,-8} {0}",
-                                  e.FileName,
-                                  e.LastModified.ToString("yyyy-MM-dd HH:mm:ss"),
-                                  e.UncompressedSize,
-                                  e.CompressionRatio,
-                                  e.CompressedSize);
-                        if (!String.IsNullOrEmpty(e.Comment))
+                            e.FileName,
+                            e.LastModified.ToString("yyyy-MM-dd HH:mm:ss"),
+                            e.UncompressedSize,
+                            e.CompressionRatio,
+                            e.CompressedSize);
+                        if (!string.IsNullOrEmpty(e.Comment))
                             StatusMessageTextWriter.WriteLine("  Comment: {0}", e.Comment);
                     }
-                    e.Password = _Password;  // this may be null
+
+                    e.Password = _Password; // this may be null
                     OnExtractEntry(n, true, e, path);
                     if (overrideExtractExistingProperty)
-                        e.ExtractExistingFile = this.ExtractExistingFile;
+                        e.ExtractExistingFile = ExtractExistingFile;
                     e.Extract(path);
                     n++;
                     OnExtractEntry(n, false, e, path);
@@ -273,26 +271,23 @@ namespace OfficeOpenXml.Packaging.Ionic.Zip
                     foreach (ZipEntry e in _entries.Values)
                     {
                         // check if it is a directory
-                        if ((e.IsDirectory) || (e.FileName.EndsWith("/")))
+                        if (e.IsDirectory || e.FileName.EndsWith("/"))
                         {
-                            string outputFile = (e.FileName.StartsWith("/"))
+                            string outputFile = e.FileName.StartsWith("/")
                                 ? Path.Combine(path, e.FileName.Substring(1))
                                 : Path.Combine(path, e.FileName);
 
                             e._SetTimes(outputFile, false);
                         }
                     }
+
                     OnExtractAllCompleted(path);
                 }
-
             }
             finally
             {
-
                 _inExtractAll = false;
             }
         }
-
-
     }
 }
